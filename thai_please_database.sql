@@ -17,6 +17,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    token_value INT UNSIGNED NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
@@ -29,10 +30,6 @@ CREATE TABLE shops (
     shop_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     shop_name VARCHAR(150) NOT NULL,
     category VARCHAR(100) NOT NULL,
-    address TEXT,
-    province VARCHAR(100),
-    latitude DECIMAL(10, 7),
-    longitude DECIMAL(10, 7),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -258,11 +255,11 @@ INSERT INTO users (name, email, password_hash) VALUES
 
 -- Shops
 INSERT INTO shops
-    (shop_name, category, address, province, latitude, longitude)
+    (shop_name, category)
 VALUES
-('ร้านป้าสมใจ', 'FOOD', 'ตลาดชุมชน', 'นครปฐม', 13.8199, 100.0620),
-('ร้านชุมชน ABC', 'GROCERY', 'ถนนตัวอย่าง', 'ราชบุรี', 13.5367, 99.8171),
-('ร้านกาแฟ XYZ', 'BEVERAGE', 'ใกล้มหาวิทยาลัย', 'นครปฐม', 13.8210, 100.0510);
+('ร้านป้าสมใจ', 'FOOD'),
+('ร้านชุมชน ABC', 'GROCERY'),
+('ร้านกาแฟ XYZ', 'BEVERAGE');
 
 -- Quest Pool
 INSERT INTO bingo_quests
