@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THAI Please — บิงโกไทยช่วยไทย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ed; --surface:#fff; --ink:#1c2342; --muted:#5f6784; --line:#e4dfd3;
+  --navy:#1f2d6b; --navy-d:#16204f; --red:#c63a30; --gold:#b97d08; --gold-ring:#e8b230; --gold-bg:#fcf1d3;
+  --green:#2e7d4e; --green-bg:#e3f2e8; --r:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 'Noto Sans Thai','Leelawadee UI',Tahoma,system-ui,sans-serif}
+h1,h2,h3{line-height:1.3;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--navy)}
+:focus-visible{outline:3px solid var(--gold-ring);outline-offset:2px}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+svg{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 20px;border:0;border-radius:999px;background:var(--navy);color:#fff;font-weight:500;text-decoration:none}
+.btn:hover{background:var(--navy-d)}
+.btn:disabled{background:#c9cbd6;color:#fff;cursor:not-allowed}
+.btn.red{background:var(--red)} .btn.red:hover{background:#a82f27}
+.btn.ghost{background:transparent;color:var(--navy);border:1.5px solid var(--line)} .btn.ghost:hover{background:#f0ece3}
+.btn.sm{min-height:36px;padding:4px 14px;font-size:14px}
+.btn.block{width:100%}
+
+/* header */
+.top{background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+.top .hbar{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:10px 16px}
+.brand{display:flex;gap:10px;align-items:center;color:#fff;text-decoration:none}
+.mark{width:36px;height:36px;border-radius:10px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:700;position:relative}
+.mark::after{content:"";position:absolute;left:6px;right:6px;bottom:5px;height:3px;background:var(--red);border-radius:2px}
+.brand b{font-weight:700} .brand small{display:block;font-size:11px;opacity:.75;line-height:1.2}
+.brand span.t{line-height:1.2;font-weight:500}
+.me{display:flex;gap:8px;align-items:center;justify-self:end}
+.tokpill{display:flex;gap:6px;align-items:center;background:var(--gold-bg);color:#5a3d00;border-radius:999px;padding:4px 12px 4px 8px;font-weight:700;font-size:15px}
+.top .ghost{color:#fff;border-color:rgba(255,255,255,.35)} .top .ghost:hover{background:rgba(255,255,255,.12)}
+nav.tabs{grid-column:1/-1;display:flex;gap:4px}
+nav.tabs a{flex:1;text-align:center;padding:8px 6px;border-radius:10px;color:#dfe3f7;text-decoration:none;font-weight:500;font-size:15px}
+nav.tabs a[aria-current=page]{background:#fff;color:var(--navy)}
+nav.tabs a:not([aria-current]):hover{background:rgba(255,255,255,.12)}
+.top .brand{grid-column:1;grid-row:1}
+.top .me{grid-column:2;grid-row:1}
+nav.tabs{grid-row:2}
+@media(min-width:760px){
+  .top .hbar{grid-template-columns:auto 1fr auto}
+  nav.tabs{grid-column:2;grid-row:1;justify-content:center}
+  .top .me{grid-column:3}
+  nav.tabs a{flex:none;padding:8px 18px}
+}
+@media(max-width:420px){.top .brand small{display:none}.top .me .ghost{padding:4px 10px}}
+
+main.wrap{padding-top:24px;padding-bottom:32px}
+.lead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 16px;align-items:flex-end;margin-bottom:16px}
+.lead h1{font-size:26px}
+.lead p{margin:2px 0 0;color:var(--muted)}
+.pill{display:inline-block;padding:2px 12px;border-radius:999px;font-size:13px;font-weight:500;background:#eceaf3;color:var(--navy)}
+.pill.win{background:var(--gold-bg);color:#6b4700}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px}
+.stat small{color:var(--muted);font-size:13px;display:block}
+.stat b{font-size:24px;line-height:1.3}
+.stat b i{font-style:normal;font-size:15px;color:var(--muted);font-weight:400}
+
+/* bingo board */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:600px;margin:0 auto}
+.cell{position:relative;min-height:128px;padding:10px 10px 12px;border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r);text-align:left;display:flex;flex-direction:column;gap:4px;transition:transform .12s}
+.cell:hover{transform:translateY(-2px)}
+.cell .cat{font-size:11px;color:var(--muted)}
+.cell .ct{font-weight:600;font-size:14px;line-height:1.35;flex:1}
+.cell .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:7px;height:7px;border-radius:50%;background:#d6d2c6}
+.dots i.on{background:var(--red)}
+.bar{height:6px;background:#ece8dd;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--navy);border-radius:3px}
+.cell.prog{border-color:#b6bcdc}
+.cell.done{background:var(--navy);border-color:var(--navy);color:#fff}
+.cell.done .cat,.cell.done .meta{color:#c9d0f0}
+.cell.done .bar{background:rgba(255,255,255,.25)} .cell.done .bar i{background:#fff}
+.cell.done .dots i{background:rgba(255,255,255,.3)} .cell.done .dots i.on{background:#ff9d94}
+.cell.line{box-shadow:0 0 0 3px var(--gold-ring)}
+.cell .tick{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--navy);display:grid;place-items:center}
+.cell.done .cat{padding-right:24px}
+.hint{max-width:600px;margin:14px auto 0;color:var(--muted);font-size:14px;text-align:center}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend span{display:flex;gap:6px;align-items:center}
+.legend em{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--line);background:#fff;display:inline-block}
+.legend em.p{border-color:#b6bcdc} .legend em.d{background:var(--navy);border-color:var(--navy)} .legend em.l{box-shadow:0 0 0 2px var(--gold-ring);border-color:var(--navy);background:var(--navy)}
+
+@media(max-width:520px){
+  .board{gap:6px}
+  .cell{padding:8px 8px 10px;min-height:118px;border-radius:12px}
+  .cell .ct{font-size:13px}
+  .lead h1{font-size:22px}
+  .stat b{font-size:20px}
+}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:680px){.grid2{grid-template-columns:1fr 1fr}}
+.balance{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between;background:var(--navy);color:#fff;border-radius:var(--r);padding:16px 20px;margin-bottom:16px}
+.balance b{font-size:34px;line-height:1.2}
+.balance small{opacity:.8;display:block}
+.charity{display:flex;flex-direction:column;gap:10px}
+.charity header{display:flex;gap:12px;align-items:flex-start}
+.ico{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff}
+.ico svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ico.EDUCATION{background:#2d5fa8}.ico.ENVIRONMENT{background:#2e7d4e}.ico.COMMUNITY{background:#b97d08}.ico.SOCIAL{background:#c63a30}
+.charity h3{font-size:17px}
+.charity p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.cstats{display:flex;gap:16px;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+.cstats b{color:var(--ink);font-size:15px}
+.give{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:999px;overflow:hidden}
+.stepper button{width:40px;height:40px;border:0;background:#f6f3ed;font-size:20px;line-height:1}
+.stepper button:disabled{color:#b5b8c6;cursor:not-allowed}
+.stepper output{min-width:36px;text-align:center;font-weight:700}
+.value{font-size:13px;color:var(--muted);text-align:right;line-height:1.3}
+.value b{display:block;color:var(--ink);font-size:15px}
+h2.sec{font-size:19px;margin:26px 0 10px}
+.ledger{list-style:none;margin:0;padding:0}
+.ledger li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ledger li:last-child{border:0}
+.ledger .amt{margin-left:auto;font-weight:700}
+.ledger .earn{color:var(--green)} .ledger .spend{color:var(--red)}
+.ledger small{display:block;color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:16px}
+
+/* rank */
+.seg{display:inline-flex;background:#e9e5da;border-radius:999px;padding:4px;margin-bottom:12px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:6px 18px;font-weight:500;min-height:36px}
+.seg button[aria-selected=true]{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chips button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:4px 14px;font-size:14px;min-height:36px}
+.chips button[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.row{display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 14px}
+.row.me{border-color:var(--navy);background:#eef0fb}
+.rk{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:#efebe0;color:var(--muted)}
+.rk.r1{background:#f2c14e;color:#4a3300}.rk.r2{background:#d4d7df;color:#2b3040}.rk.r3{background:#d9a577;color:#43260c}
+.nm{font-weight:500;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nm em{font-style:normal;background:var(--navy);color:#fff;font-size:11px;border-radius:999px;padding:0 8px}
+.row .bar{margin-top:6px}
+.row .bar i{background:var(--red)}
+.score{text-align:right;line-height:1.3}
+.score b{font-size:20px}
+.score small{display:block;color:var(--muted);font-size:12px}
+.gap{text-align:center;color:var(--muted);letter-spacing:4px;line-height:1}
+.top-donor{font-size:13px;color:var(--muted)}
+
+/* login */
+.login{min-height:100vh;display:grid;grid-template-columns:1fr}
+.login .pitch{background:var(--navy);color:#fff;padding:36px 24px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.login .pitch h1{font-size:30px}
+.login .pitch p{margin:0;color:#d6dbf3;max-width:420px}
+.login .pitch ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;color:#d6dbf3}
+.login .pitch li{display:flex;gap:10px;align-items:center}
+.login .pitch li span{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+.login .form{padding:32px 20px;display:grid;place-items:center}
+.login form{width:100%;max-width:380px;display:grid;gap:14px}
+.login h2{font-size:22px}
+label{display:grid;gap:4px;font-weight:500;font-size:14px}
+input{font:inherit;min-height:46px;padding:8px 14px;border:1.5px solid #cfcabc;border-radius:12px;background:#fff;color:var(--ink)}
+input:focus{outline:3px solid var(--gold-ring);outline-offset:1px;border-color:var(--navy)}
+.err{color:var(--red);font-size:14px;margin:0;min-height:1.4em}
+.demo{border-top:1px dashed var(--line);padding-top:14px;display:grid;gap:8px}
+.demo small{color:var(--muted)}
+.demo .btn{justify-content:flex-start;text-align:left}
+@media(min-width:820px){.login{grid-template-columns:1.1fr 1fr}.login .pitch{padding:48px}}
+
+footer{max-width:960px;margin:0 auto;padding:0 16px 32px;color:var(--muted);font-size:13px;text-align:center}
+footer button{border:0;background:none;color:var(--navy);text-decoration:underline;padding:4px}
+
+/* dialog + toast */
+dialog{border:0;border-radius:20px;padding:22px;width:calc(100vw - 32px);max-width:440px;color:var(--ink)}
+dialog::backdrop{background:rgba(20,26,56,.55)}
+dialog h3{font-size:20px;margin:8px 0}
+dialog p{margin:6px 0}
+.chip{display:inline-block;font-size:12px;border-radius:999px;padding:1px 10px;background:#eceaf3;color:var(--navy);margin-right:6px}
+.chip.d1{background:var(--green-bg);color:var(--green)}.chip.d2{background:var(--gold-bg);color:#6b4700}.chip.d3{background:#fbe0dd;color:#9a2a22}
+.small{font-size:13px;color:var(--muted)}
+.dprog{display:flex;align-items:center;gap:12px;margin:12px 0}
+.dprog .bar{flex:1;height:10px}
+.dact{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.dact form{margin:0}
+.win{text-align:center}
+.win .big{width:72px;height:72px;margin:0 auto 6px;border-radius:50%;background:var(--gold-bg);color:var(--gold);display:grid;place-items:center}
+.win .dact{justify-content:center}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;z-index:20;max-width:calc(100vw - 32px);text-align:center;font-size:15px}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<dialog id="dlg"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============ static reference data (from thai_please_database.sql) ============ */
+const QUESTS=[
+ {id:1,title:'ซื้อจากร้านใหม่ 1 ร้าน',desc:'ซื้อสินค้าหรือบริการจากร้านค้าที่ผู้ใช้ไม่เคยใช้มาก่อน 1 ร้าน',category:'EXPLORE',difficulty:'EASY',verify:'TRANSACTION',target:1},
+ {id:2,title:'ใช้สิทธิ 2 วัน',desc:'ทำธุรกรรมในโครงการ 2 วันที่แตกต่างกัน',category:'ENGAGEMENT',difficulty:'EASY',verify:'MULTI_TRANSACTION',target:2},
+ {id:3,title:'รีวิวร้านค้า 1 ร้าน',desc:'เขียนรีวิวให้ร้านค้าที่เคยใช้บริการ 1 ร้าน',category:'COMMUNITY',difficulty:'EASY',verify:'REVIEW',target:1},
+ {id:4,title:'ซื้อจากร้านค้ารายย่อย 2 ร้าน',desc:'ทำธุรกรรมกับร้านค้ารายย่อยที่แตกต่างกัน 2 ร้าน',category:'SUPPORT_LOCAL',difficulty:'MEDIUM',verify:'MULTI_TRANSACTION',target:2},
+ {id:5,title:'ใช้สิทธิ 3 หมวดสินค้า',desc:'ทำธุรกรรมใน 3 หมวดสินค้าที่แตกต่างกัน',category:'EXPLORE',difficulty:'MEDIUM',verify:'MULTI_TRANSACTION',target:3},
+ {id:6,title:'ทดลองร้านชุมชน 2 ร้าน',desc:'ทำธุรกรรมกับร้านค้าในชุมชน 2 ร้านที่แตกต่างกัน',category:'SUPPORT_LOCAL',difficulty:'MEDIUM',verify:'MULTI_TRANSACTION',target:2},
+ {id:7,title:'ซื้อจากร้านใหม่ 2 ร้าน',desc:'ซื้อสินค้าหรือบริการจากร้านค้าที่ไม่เคยใช้มาก่อน 2 ร้าน',category:'EXPLORE',difficulty:'MEDIUM',verify:'MULTI_TRANSACTION',target:2},
+ {id:8,title:'ใช้สิทธิ 3 วันในสัปดาห์เดียวกัน',desc:'ทำธุรกรรมอย่างน้อย 3 วันภายในสัปดาห์เดียวกัน',category:'ENGAGEMENT',difficulty:'MEDIUM',verify:'MULTI_TRANSACTION',target:3},
+ {id:9,title:'สนับสนุนร้านค้ารายย่อย 5 ร้าน',desc:'ทำธุรกรรมกับร้านค้ารายย่อยที่แตกต่างกัน 5 ร้าน',category:'SUPPORT_LOCAL',difficulty:'HARD',verify:'MULTI_TRANSACTION',target:5}
+];
+const CHARITIES=[
+ {id:1,name:'กองทุนเพื่อการศึกษา',desc:'สนับสนุนโอกาสทางการศึกษา',impact:'EDUCATION',value:100},
+ {id:2,name:'กองทุนสิ่งแวดล้อม',desc:'สนับสนุนกิจกรรมด้านสิ่งแวดล้อม',impact:'ENVIRONMENT',value:100},
+ {id:3,name:'กองทุนพัฒนาชุมชน',desc:'สนับสนุนการพัฒนาชุมชน',impact:'COMMUNITY',value:100},
+ {id:4,name:'กองทุนช่วยเหลือสังคม',desc:'สนับสนุนผู้ที่ต้องการความช่วยเหลือ',impact:'SOCIAL',value:100}
+];
+const CAT={SUPPORT_LOCAL:'อุดหนุนร้านท้องถิ่น',EXPLORE:'สำรวจร้านใหม่',ENGAGEMENT:'ใช้สิทธิต่อเนื่อง',COMMUNITY:'ชุมชน'};
+const DIFF={EASY:['ง่าย',1],MEDIUM:['ปานกลาง',2],HARD:['ยาก',3]};
+const VERIFY={TRANSACTION:'ตรวจจากธุรกรรมในโครงการ',MULTI_TRANSACTION:'ตรวจจากธุรกรรมหลายครั้ง',REVIEW:'ตรวจจากรีวิวร้านค้า',SYSTEM:'ระบบตรวจอัตโนมัติ'};
+const SIM={TRANSACTION:'จำลองการซื้อ +1',MULTI_TRANSACTION:'จำลองการซื้อ +1',REVIEW:'จำลองการรีวิว +1',SYSTEM:'จำลองความคืบหน้า +1'};
+const IMPACT={EDUCATION:'การศึกษา',ENVIRONMENT:'สิ่งแวดล้อม',COMMUNITY:'ชุมชน',SOCIAL:'สังคม'};
+const LINES=[[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]];
+const ICON={
+ EDUCATION:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v15H5.5A1.5 1.5 0 0 0 4 20.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H12v15h6.5a1.5 1.5 0 0 1 1.5 1.5z"/>',
+ ENVIRONMENT:'<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/>',
+ COMMUNITY:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M15 14.2c.6-.2 1.3-.3 2-.3 2.2 0 4 1.8 4 4"/>',
+ SOCIAL:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'
+};
+const coin=(s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#e8b230" stroke="#b97d08" stroke-width="1.5"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#b97d08" stroke-width="1.2"/><path d="M12 8.5v7M9.5 11h5" stroke="#b97d08" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+const tick='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+/* ============ state (persisted in localStorage) ============ */
+const LS_KEY='thai_please_mock_v1';
+const daysAgo=n=>new Date(Date.now()-n*864e5).toISOString();
+function seed(){
+  const now=new Date();
+  const users=[
+    [1,'Thanawit Kocharin','thanawit@example.com'],[2,'Demo User','demo@example.com'],
+    [3,'สมชาย ใจดี'],[4,'วิภา สุขใจ'],[5,'ปรีชา มั่นคง'],[6,'นภา รักษ์โลก'],[7,'ธนากร ศรีสุข'],
+    [8,'มาลี ดีเลิศ'],[9,'กิตติ วงศ์ไทย'],[10,'รัตนา แก้วมณี']
+  ].map(([id,name,email])=>({id,name,email:email||null}));
+  // SPEND per charity [edu, env, community, social]
+  const spend={1:[3,2,2,1],2:[1,1,0,0],3:[6,2,3,1],4:[3,5,2,1],5:[2,1,6,1],6:[0,8,1,0],7:[4,1,1,1],8:[1,2,2,1],9:[2,0,1,2],10:[1,1,1,0]};
+  const earnRows={1:9,2:4}; // everyone else earned exactly what they spent
+  const ledger=[];let id=1;
+  users.forEach(u=>{
+    const s=spend[u.id],total=s.reduce((a,b)=>a+b,0);
+    if(earnRows[u.id]){for(let k=0;k<earnRows[u.id];k++)ledger.push({id:id++,user_id:u.id,type:'EARN',amount:1,board_id:null,charity_id:null,created_at:daysAgo(30*(k+1)+3)});}
+    else ledger.push({id:id++,user_id:u.id,type:'EARN',amount:total,board_id:null,charity_id:null,created_at:daysAgo(40)});
+    s.forEach((n,i)=>{if(n)ledger.push({id:id++,user_id:u.id,type:'SPEND',amount:n,board_id:null,charity_id:i+1,created_at:daysAgo(4+i*6+u.id)});});
+  });
+  const prog={1:[1,1,0,0,1,0,0,0,0],2:[1,2,0,1,2,0,1,0,2]};
+  const boards={};
+  [1,2].forEach(uid=>{boards[uid]={year:now.getFullYear(),month:now.getMonth()+1,status:'ACTIVE',cells:QUESTS.map((q,i)=>({pos:i+1,quest_id:q.id,progress:prog[uid][i]}))};});
+  return {me:null,users,ledger,boards,nextId:id};
+}
+function load(){try{const r=localStorage.getItem(LS_KEY);if(r)return JSON.parse(r);}catch(e){}return seed();}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
+let S=load();
+const ui={qty:{},rankTab:'users',rankFilter:'all'};
+
+/* ============ helpers ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>n.toLocaleString('th-TH');
+const fdate=iso=>new Date(iso).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+const fmonth=iso=>new Date(iso).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+const Q=id=>QUESTS.find(q=>q.id===id);
+const CH=id=>CHARITIES.find(c=>c.id===id);
+const userOf=id=>S.users.find(u=>u.id===id);
+const balance=uid=>S.ledger.filter(l=>l.user_id===uid).reduce((s,l)=>s+(l.type==='EARN'?l.amount:-l.amount),0);
+const isDone=c=>c.progress>=Q(c.quest_id).target;
+const board=()=>S.boards[S.me];
+function boardInfo(b){
+  const done=new Set(b.cells.filter(isDone).map(c=>c.pos));
+  const lines=LINES.filter(l=>l.every(p=>done.has(p)));
+  return {done,lines,inLine:new Set(lines.flat())};
+}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2800);}
+
+/* rankings: competition ranking (ties share a rank) */
+function donorRanking(filter){
+  const m=new Map();
+  S.ledger.filter(l=>l.type==='SPEND'&&(filter==='all'||l.charity_id===filter)).forEach(l=>{
+    const r=m.get(l.user_id)||{user:userOf(l.user_id),tokens:0,baht:0};
+    r.tokens+=l.amount;r.baht+=l.amount*CH(l.charity_id).value;m.set(l.user_id,r);
+  });
+  const list=[...m.values()].sort((a,b)=>b.tokens-a.tokens||a.user.name.localeCompare(b.user.name,'th'));
+  list.forEach((r,i)=>{r.rank=i&&list[i-1].tokens===r.tokens?list[i-1].rank:i+1;});
+  return list;
+}
+function charityStats(){
+  return CHARITIES.map(c=>{
+    const rows=S.ledger.filter(l=>l.type==='SPEND'&&l.charity_id===c.id);
+    const tokens=rows.reduce((s,l)=>s+l.amount,0);
+    const top=donorRanking(c.id)[0];
+    return {...c,tokens,baht:tokens*c.value,donors:new Set(rows.map(l=>l.user_id)).size,top};
+  });
+}
+
+/* ============ views ============ */
+function header(r){
+  const u=userOf(S.me);
+  const tab=(k,label)=>`<a href="#/${k}" ${r===k?'aria-current="page"':''}>${label}</a>`;
+  return `<header class="top"><div class="hbar wrap">
+    <a class="brand" href="#/bingo"><span class="mark">T</span><span class="t"><b>THAI</b> Please<small>ส่วนเสริมโครงการไทยช่วยไทย</small></span></a>
+    <nav class="tabs" aria-label="เมนูหลัก">${tab('bingo','บิงโก')}${tab('donate','บริจาคโทเคน')}${tab('rank','อันดับ')}</nav>
+    <div class="me"><span class="tokpill" title="โทเคนคงเหลือของ ${esc(u.name)}">${coin(20)}${fmt(balance(S.me))}</span><button class="btn ghost sm" data-act="logout">ออกจากระบบ</button></div>
+  </div></header>`;
+}
+
+function viewLogin(){
+  return `<div class="pitch">
+    <div class="brand"><span class="mark">T</span><span class="t"><b>THAI</b> Please<small>ส่วนเสริมโครงการไทยช่วยไทย</small></span></div>
+    <h1>ใช้สิทธิ์ สะสมบิงโก<br>เปลี่ยนเป็นการให้</h1>
+    <p>ทำภารกิจอุดหนุนร้านค้าท้องถิ่นให้ครบแถวบนกระดานบิงโกประจำเดือน แล้วนำโทเคนที่ได้ไปบริจาคให้กองทุนที่คุณอยากสนับสนุน</p>
+    <ul><li><span>1</span>ทำภารกิจบนกระดานบิงโก 3×3</li><li><span>2</span>บิงโกครบแถว รับโทเคน</li><li><span>3</span>บริจาคโทเคนให้กองทุน แล้วดูอันดับ</li></ul>
+  </div>
+  <div class="form"><form id="loginForm" novalidate>
+    <h2>เข้าสู่ระบบ</h2>
+    <label>อีเมล<input name="email" type="email" autocomplete="username" placeholder="demo@example.com" required></label>
+    <label>รหัสผ่าน<input name="password" type="password" autocomplete="current-password" required></label>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button class="btn block" type="submit">เข้าสู่ระบบ</button>
+    <div class="demo"><small>ต้นแบบ — กดเลือกบัญชีตัวอย่างจากฐานข้อมูล หรือกรอกอีเมลตัวอย่าง + รหัสผ่านอะไรก็ได้</small>
+      <button class="btn ghost" type="button" data-act="demo" data-email="demo@example.com">Demo User <span class="small">· demo@example.com</span></button>
+      <button class="btn ghost" type="button" data-act="demo" data-email="thanawit@example.com">Thanawit Kocharin <span class="small">· thanawit@example.com</span></button>
+    </div>
+  </form></div>`;
+}
+
+function viewBingo(){
+  const b=board(),info=boardInfo(b);
+  const monthLabel=new Date(b.year,b.month-1,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  const cells=b.cells.map(c=>{
+    const q=Q(c.quest_id),done=isDone(c),pct=Math.min(100,c.progress/q.target*100);
+    const cls=done?'done':c.progress>0?'prog':'';
+    const st=done?'สำเร็จ':c.progress>0?'กำลังทำ':'ยังไม่เริ่ม';
+    const dots=[1,2,3].map(i=>`<i class="${i<=DIFF[q.difficulty][1]?'on':''}"></i>`).join('');
+    return `<button class="cell ${cls} ${info.inLine.has(c.pos)?'line':''}" data-act="quest" data-pos="${c.pos}" aria-label="${esc(q.title)} — ${st} ${c.progress}/${q.target}">
+      <span class="cat">${CAT[q.category]}</span><span class="ct">${esc(q.title)}</span>
+      <span class="meta"><span class="dots" title="ระดับ${DIFF[q.difficulty][0]}">${dots}</span><span>${c.progress}/${q.target}</span></span>
+      <span class="bar"><i style="width:${pct}%"></i></span>${done?`<span class="tick">${tick}</span>`:''}</button>`;
+  }).join('');
+  return `<div class="lead"><div><h1>บิงโกประจำเดือน ${monthLabel}</h1><p>ทำภารกิจให้ครบ 3 ช่องในแนวตั้ง แนวนอน หรือแนวทแยง</p></div>
+      <span class="pill ${b.status==='BINGO'?'win':''}">${b.status==='BINGO'?'บิงโกแล้ว':'กำลังเล่น'}</span></div>
+    <div class="stats">
+      <div class="stat"><small>ภารกิจสำเร็จ</small><b>${info.done.size}<i> / 9</i></b></div>
+      <div class="stat"><small>บิงโก</small><b>${info.lines.length}<i> เส้น</i></b></div>
+      <div class="stat"><small>โทเคนคงเหลือ</small><b>${fmt(balance(S.me))}</b></div>
+    </div>
+    <div class="board">${cells}</div>
+    <p class="hint">แตะช่องเพื่อดูรายละเอียด · บิงโกเส้นแรกของเดือนรับ <b>1 โทเคน</b></p>
+    <div class="legend"><span><em></em>ยังไม่เริ่ม</span><span><em class="p"></em>กำลังทำ</span><span><em class="d"></em>สำเร็จ</span><span><em class="l"></em>อยู่ในเส้นบิงโก</span></div>`;
+}
+
+function viewDonate(){
+  const bal=balance(S.me);
+  const cards=charityStats().map(c=>{
+    const n=Math.max(1,Math.min(ui.qty[c.id]||1,bal||1));
+    return `<article class="card charity"><header><span class="ico ${c.impact}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[c.impact]}</svg></span>
+      <div><h3>${esc(c.name)}</h3><p>${esc(c.desc)}</p></div></header>
+      <div class="cstats"><span><b>${fmt(c.tokens)}</b> โทเคนที่ได้รับ</span><span><b>${fmt(c.donors)}</b> ผู้บริจาค</span></div>
+      <div class="give">
+        <div class="stepper" role="group" aria-label="จำนวนโทเคน"><button data-act="qty" data-id="${c.id}" data-d="-1" ${n<=1?'disabled':''} aria-label="ลด">−</button><output>${bal?n:0}</output><button data-act="qty" data-id="${c.id}" data-d="1" ${n>=bal?'disabled':''} aria-label="เพิ่ม">+</button></div>
+        <div class="value"><b>฿${fmt(n*c.value)}</b>1 โทเคน = ฿${c.value}</div>
+      </div>
+      <button class="btn red block" data-act="donate" data-id="${c.id}" ${bal?'':'disabled'}>${bal?`บริจาค ${n} โทเคน`:'ไม่มีโทเคนคงเหลือ'}</button></article>`;
+  }).join('');
+  const mine=S.ledger.filter(l=>l.user_id===S.me).sort((a,b)=>b.created_at.localeCompare(a.created_at)||b.id-a.id).slice(0,8);
+  const rows=mine.map(l=>l.type==='EARN'
+    ?`<li><span class="ico" style="background:var(--green);width:36px;height:36px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><div>บิงโกประจำเดือน ${fmonth(l.created_at)}<small>${fdate(l.created_at)}</small></div><span class="amt earn">+${l.amount}</span></li>`
+    :`<li><span class="ico ${CH(l.charity_id).impact}" style="width:36px;height:36px"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[CH(l.charity_id).impact]}</svg></span><div>บริจาคให้ ${esc(CH(l.charity_id).name)}<small>${fdate(l.created_at)}</small></div><span class="amt spend">−${l.amount}</span></li>`).join('');
+  return `<div class="lead"><div><h1>บริจาคโทเคน</h1><p>เลือกกองทุนที่อยากสนับสนุน แล้วแบ่งโทเคนที่ได้จากบิงโก</p></div></div>
+    <div class="balance"><div><small>โทเคนคงเหลือของคุณ</small><b>${fmt(bal)}</b></div>${coin(52)}</div>
+    <div class="grid2">${cards}</div>
+    <h2 class="sec">ประวัติโทเคนของฉัน</h2>
+    <div class="card"><ul class="ledger">${rows||'<li class="empty">ยังไม่มีรายการ</li>'}</ul></div>`;
+}
+
+function viewRank(){
+  const tabs=`<div class="seg" role="tablist"><button role="tab" data-act="rtab" data-tab="users" aria-selected="${ui.rankTab==='users'}">ผู้บริจาค</button><button role="tab" data-act="rtab" data-tab="funds" aria-selected="${ui.rankTab==='funds'}">กองทุน</button></div>`;
+  let body='';
+  if(ui.rankTab==='users'){
+    const f=ui.rankFilter,list=donorRanking(f),max=list[0]?list[0].tokens:1;
+    const chip=(k,l)=>`<button data-act="rfilter" data-f="${k}" aria-pressed="${f===k}">${l}</button>`;
+    const row=r=>`<li class="row ${r.user.id===S.me?'me':''}"><span class="rk ${r.rank<=3?'r'+r.rank:''}">${r.rank}</span>
+      <div><div class="nm">${esc(r.user.name)}${r.user.id===S.me?'<em>คุณ</em>':''}</div><div class="bar"><i style="width:${r.tokens/max*100}%"></i></div></div>
+      <div class="score"><b>${fmt(r.tokens)}</b><small>โทเคน · ฿${fmt(r.baht)}</small></div></li>`;
+    const top=list.slice(0,10);
+    const mineIdx=list.findIndex(r=>r.user.id===S.me);
+    let extra='';
+    if(mineIdx>=10)extra=`<li class="gap" aria-hidden="true">···</li>${row(list[mineIdx])}`;
+    else if(mineIdx<0)extra=`<li class="empty card">คุณยังไม่ได้บริจาคให้${f==='all'?'กองทุนใด':'กองทุนนี้'}</li>`;
+    body=`<div class="chips">${chip('all','ทั้งหมด')}${CHARITIES.map(c=>chip(c.id,IMPACT[c.impact])).join('')}</div>
+      <ol class="rank">${top.map(row).join('')}${extra}</ol>`;
+  }else{
+    const list=charityStats().sort((a,b)=>b.tokens-a.tokens),max=list[0].tokens||1;
+    body=`<ol class="rank">${list.map((c,i)=>`<li class="row"><span class="rk ${i<3?'r'+(i+1):''}">${i+1}</span>
+      <div><div class="nm">${esc(c.name)}</div><div class="bar"><i style="width:${c.tokens/max*100}%"></i></div>
+      <div class="top-donor">${c.donors} ผู้บริจาค${c.top?` · สูงสุด: ${esc(c.top.user.name)} (${c.top.tokens})`:''}</div></div>
+      <div class="score"><b>${fmt(c.tokens)}</b><small>โทเคน · ฿${fmt(c.baht)}</small></div></li>`).join('')}</ol>`;
+  }
+  return `<div class="lead"><div><h1>อันดับ</h1><p>ผู้บริจาคโทเคนสูงสุด และกองทุนที่ได้รับโทเคนมากที่สุด</p></div></div>${tabs}${body}`;
+}
+
+const routes={login:viewLogin,bingo:viewBingo,donate:viewDonate,rank:viewRank};
+const titles={login:'เข้าสู่ระบบ',bingo:'บิงโก',donate:'บริจาคโทเคน',rank:'อันดับ'};
+function render(){
+  const r=location.hash.replace(/^#\/?/,'');
+  if(!S.me&&r!=='login'){location.hash='#/login';return;}
+  if(S.me&&!routes[r]||r==='login'&&S.me){location.hash='#/bingo';return;}
+  const app=$('#app');
+  app.innerHTML=r==='login'?`<div class="login">${viewLogin()}</div>`
+    :header(r)+`<main class="wrap">${routes[r]()}</main><footer>ต้นแบบ (mockup) · ข้อมูลทั้งหมดเป็นข้อมูลจำลองและเก็บไว้ในเบราว์เซอร์นี้ · <button data-act="reset">รีเซ็ตข้อมูลเดโม</button></footer>`;
+  document.title=`${titles[r]} · THAI Please`;
+}
+
+/* ============ dialogs ============ */
+function questDialog(pos){
+  const c=board().cells[pos-1],q=Q(c.quest_id),done=isDone(c),d=DIFF[q.difficulty];
+  return `<span class="chip">${CAT[q.category]}</span><span class="chip d${d[1]}">${d[0]}</span>
+    <h3>${esc(q.title)}</h3><p>${esc(q.desc)}</p>
+    <div class="dprog"><div class="bar"><i style="width:${Math.min(100,c.progress/q.target*100)}%"></i></div><b>${c.progress}/${q.target}</b></div>
+    <p class="small">วิธีตรวจสอบ: ${VERIFY[q.verify]}</p>
+    <div class="dact"><form method="dialog"><button class="btn ghost">ปิด</button></form>
+    <button class="btn" data-act="advance" data-pos="${pos}" ${done?'disabled':''}>${done?'ภารกิจสำเร็จแล้ว':SIM[q.verify]}</button></div>
+    <p class="small" style="margin-top:12px">* ปุ่มจำลองมีไว้สำหรับต้นแบบ — ระบบจริงจะอัปเดตความคืบหน้าจากธุรกรรมที่ร้านค้า</p>`;
+}
+function openDialog(html){const d=$('#dlg');d.innerHTML=html;if(!d.open)d.showModal();}
+function winDialog(){
+  openDialog(`<div class="win"><div class="big">${coin(44)}</div><h3>บิงโก!</h3>
+    <p>คุณทำบิงโกครบแล้ว รับ <b>1 โทเคน</b></p><p class="small">โทเคนคงเหลือ ${balance(S.me)} · 1 โทเคนมีมูลค่า ฿100 ให้กองทุน</p>
+    <div class="dact"><form method="dialog"><button class="btn ghost">เล่นต่อ</button></form><a class="btn red" href="#/donate" data-act="closedlg">ไปบริจาคโทเคน</a></div></div>`);
+}
+
+/* ============ actions ============ */
+function advance(pos){
+  const b=board(),c=b.cells[pos-1];
+  if(isDone(c))return false;
+  c.progress++;
+  let won=false;
+  if(b.status==='ACTIVE'&&boardInfo(b).lines.length){
+    b.status='BINGO';won=true;
+    S.ledger.push({id:S.nextId++,user_id:S.me,type:'EARN',amount:1,board_id:1,charity_id:null,created_at:new Date().toISOString()});
+  }
+  save();return won;
+}
+function donate(cid){
+  const n=Math.max(1,Math.min(ui.qty[cid]||1,balance(S.me)));
+  if(balance(S.me)<1)return;
+  S.ledger.push({id:S.nextId++,user_id:S.me,type:'SPEND',amount:n,board_id:null,charity_id:cid,created_at:new Date().toISOString()});
+  ui.qty[cid]=1;save();render();
+  toast(`ขอบคุณ! บริจาค ${n} โทเคน (฿${fmt(n*CH(cid).value)}) ให้${CH(cid).name}`);
+}
+function login(email,pw){
+  const u=S.users.find(u=>u.email&&u.email===String(email).trim().toLowerCase());
+  if(!String(email).trim()||!pw)return 'กรุณากรอกอีเมลและรหัสผ่าน';
+  if(!u)return 'ไม่พบอีเมลนี้ในระบบ (ลอง demo@example.com)';
+  S.me=u.id;save();location.hash='#/bingo';render();return '';
+}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');
+  if(e.target===$('#dlg'))$('#dlg').close();
+  if(!el)return;
+  const a=el.dataset.act;
+  if(a==='quest'){openDialog(questDialog(+el.dataset.pos));}
+  else if(a==='advance'){
+    const pos=+el.dataset.pos,won=advance(pos);render();
+    won?winDialog():openDialog(questDialog(pos));
+  }
+  else if(a==='closedlg'){$('#dlg').close();}
+  else if(a==='qty'){const id=+el.dataset.id;ui.qty[id]=Math.max(1,Math.min(balance(S.me),(ui.qty[id]||1)+(+el.dataset.d)));render();}
+  else if(a==='donate'){donate(+el.dataset.id);}
+  else if(a==='rtab'){ui.rankTab=el.dataset.tab;render();}
+  else if(a==='rfilter'){ui.rankFilter=el.dataset.f==='all'?'all':+el.dataset.f;render();}
+  else if(a==='logout'){S.me=null;save();location.hash='#/login';render();}
+  else if(a==='demo'){login(el.dataset.email,'demo');}
+  else if(a==='reset'){try{localStorage.removeItem(LS_KEY);}catch(err){}S=seed();location.hash='#/login';render();toast('รีเซ็ตข้อมูลเดโมแล้ว');}
+});
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='loginForm')return;
+  e.preventDefault();
+  const f=new FormData(e.target),msg=login(f.get('email'),f.get('password'));
+  const err=$('#loginErr');if(err)err.textContent=msg;
+});
+window.addEventListener('hashchange',render);
+render();
+</script>
+</body>
+</html>
