@@ -205,7 +205,7 @@ INSERT INTO users (user_id, name, thai_id_hash, thai_id_encrypted, email, phone_
 VALUES
 (1, 'นายสมชาย ใจดี', 'c5721ee21d8c7c75b2cecc4de31f275ef071ec4264f9e4b80446a386f2091798', '1-1005-xxxxx-45-1', 'somchai.citizen@thaiplease.go.th', '0812345678', '$2b$10$mTiBG9XxSerFIxQ34Rb0lOIgE1FN71byK0bqk6Ft/B6z9OCbCeKPK', '$2b$10$mTiBG9XxSerFIxQ34Rb0lOIgE1FN71byK0bqk6Ft/B6z9OCbCeKPK', 'CITIZEN', 'BKK'),
 (2, 'นางสมพร สดใส (ป้าพร)', NULL, NULL, 'paporntasty@gmail.com', '0898765432', '$2b$10$mTiBG9XxSerFIxQ34Rb0lOIgE1FN71byK0bqk6Ft/B6z9OCbCeKPK', NULL, 'MERCHANT', 'NPT'),
-(3, 'นายสมศักดิ์ ผู้ดูแลระบบ', NULL, NULL, 'admin@thaiplease.go.th', '0855550001', '$2b$10$mTiBG9XxSerFIxQ34Rb0lOIgE1FN71byK0bqk6Ft/B6z9OCbCeKPK', NULL, 'ADMIN', 'BKK'),
+(3, 'นายสมศักดิ์ ผู้ดูแลระบบ', NULL, NULL, 'admin@thaiplease.go.th', '0855550001', '$2b$10$mTiBG9XxSerFIxQ34Rb0lOIgE1FN71byK0bqk6Ft/B6z9OCbCeKPK', NULL, 'ADMIN', 'BKK');
 
 -- 2. ข้อมูลร้านค้าเริ่มต้น
 INSERT INTO shops (shop_id, shop_name, category, address, owner_user_id)
