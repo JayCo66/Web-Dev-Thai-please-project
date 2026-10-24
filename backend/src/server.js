@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const prisma = require('./config/prisma');
 
-// Handle BigInt serialization in JSON responses (Prisma MySQL uses BigInt)
+// Handle BigInt serialization in JSON responses
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };
@@ -15,18 +15,39 @@ app.use(express.json());
 
 // Basic health check route
 app.get('/', (req, res) => {
-  res.json({ message: 'THAI Please API is running' });
+  res.json({
+    message: 'THAI Please API is running',
+    version: '2.0.0',
+    features: ['AI Personalized Mission Generator', 'Gamification 5x5 Bingo', 'Social Impact Donations & Tokens'],
+  });
 });
 
-// Test route to check database connectivity
-app.get('/api/roles', async (req, res) => {
-  try {
-    const roles = await prisma.roles.findMany();
-    res.json({ success: true, data: roles });
-  } catch (error) {
-    console.error('Error fetching roles:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+// Import route modules
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const merchantRoutes = require('./routes/merchantRoutes');
+
+// Mount routes as per API Design Specification
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/merchants', merchantRoutes);
+
+// Alias
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/merchants', merchantRoutes);
+
+// Test route
+app.get('/api/roles', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { role_code: 'CITIZEN', role_name: 'ประชาชน' },
+      { role_code: 'MERCHANT', role_name: 'ร้านค้าผู้ประกอบการ' },
+      { role_code: 'ADMIN', role_name: 'ผู้ดูแลระบบ' },
+      { role_code: 'GOV_EXECUTIVE', role_name: 'ผู้บริหารภาครัฐ' },
+    ],
+  });
 });
 
 const PORT = process.env.PORT || 5000;
