@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   LogOut, 
@@ -9,7 +10,9 @@ import {
   User, 
   Sparkles,
   CheckCircle2,
-  Calendar
+  Calendar,
+  HeartHandshake,
+  ArrowRight
 } from 'lucide-react';
 
 export default function Home() {
@@ -45,6 +48,34 @@ export default function Home() {
         </div>
 
         <div className="header-user">
+          {/* Link to Charities */}
+          <Link
+            to="/charities"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              background: '#F0FDFA',
+              border: '1px solid #99F6E4',
+              borderRadius: 999,
+              color: '#0F766E',
+              fontSize: 13.5,
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <HeartHandshake size={16} />
+            <span>ร่วมบริจาค</span>
+          </Link>
+
+          {/* Simulated Balance Pill */}
+          <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋า">
+            <Wallet size={16} />
+            <span>฿{parseFloat(wallet?.balance || '500.00').toFixed(2)}</span>
+          </div>
+
           {/* Tokens Pill */}
           <div className="token-pill">
             <Coins size={16} />
@@ -125,6 +156,42 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Charity Quick Action Banner */}
+        <Link
+          to="/charities"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+            color: '#FFFFFF',
+            borderRadius: 'var(--radius-xl)',
+            padding: '24px 28px',
+            textDecoration: 'none',
+            boxShadow: '0 8px 20px rgba(13, 148, 136, 0.25)',
+            marginBottom: 24,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ width: 50, height: 50, borderRadius: 14, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <HeartHandshake size={28} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>
+                🤝 มูลนิธิและโครงการเพื่อสังคม (Social Impact)
+              </h3>
+              <p style={{ fontSize: 13.5, opacity: 0.9 }}>
+                จำลองการใช้ยอดเงินสิทธิร่วมบริจาค พร้อมรับเลขอ้างอิง e-Donation ลดหย่อนภาษี
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14, background: 'rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: 999 }}>
+            <span>ร่วมบริจาค</span>
+            <ArrowRight size={16} />
+          </div>
+        </Link>
 
         {/* Ready Notification Box */}
         <div style={{

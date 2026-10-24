@@ -26,7 +26,15 @@ export function AuthProvider({ children }) {
           const { user, tokens, wallet, shop } = response.data.data;
           setUser(user);
           setTokens(tokens || 0);
-          setWallet(wallet || null);
+
+          // Restore or initialize simulated wallet balance
+          const savedBalance = localStorage.getItem('user_simulated_balance');
+          const effectiveBalance = savedBalance !== null ? savedBalance : (wallet?.balance || '500.00');
+          setWallet({
+            ...(wallet || {}),
+            balance: effectiveBalance,
+          });
+
           setShop(shop || null);
         }
       } catch (error) {
@@ -120,9 +128,39 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Deduct simulated balance
+  const deductBalance = (amount) => {
+    const numAmount = parseFloat(amount) || 0;
+    const currentBalance = parseFloat(wallet?.balance || '500.00');
+    const newBalance = Math.max(0, currentBalance - numAmount).toFixed(2);
+
+    localStorage.setItem('user_simulated_balance', newBalance);
+    setWallet((prev) => ({
+      ...(prev || {}),
+      balance: newBalance,
+    }));
+    return newBalance;
+  };
+
+  // Add impact tokens
+  const addTokens = (amount) => {
+    setTokens((prev) => prev + amount);
+  };
+
+  // Reset demo balance
+  const resetBalance = (amount = 500) => {
+    const val = parseFloat(amount).toFixed(2);
+    localStorage.setItem('user_simulated_balance', val);
+    setWallet((prev) => ({
+      ...(prev || {}),
+      balance: val,
+    }));
+  };
+
   // Logout
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user_simulated_balance');
     setToken(null);
     setUser(null);
     setTokens(0);
@@ -142,6 +180,9 @@ export function AuthProvider({ children }) {
     loginThaiD,
     registerCitizen,
     registerMerchant,
+    deductBalance,
+    addTokens,
+    resetBalance,
     logout,
   };
 
