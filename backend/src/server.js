@@ -28,6 +28,7 @@ const userRoutes = require('./routes/userRoutes');
 const merchantRoutes = require('./routes/merchantRoutes');
 const charityRoutes = require('./routes/charityRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const rewardRoutes = require('./routes/rewardRoutes');
 
 // Mount routes as per API Design Specification
 app.use('/api/v1/auth', authRoutes);
@@ -35,6 +36,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/merchants', merchantRoutes);
 app.use('/api/v1/charities', charityRoutes);
 app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/rewards', rewardRoutes);
 
 // Alias
 app.use('/api/auth', authRoutes);
@@ -42,6 +44,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/merchants', merchantRoutes);
 app.use('/api/charities', charityRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/rewards', rewardRoutes);
 
 // Test route
 app.get('/api/roles', (req, res) => {

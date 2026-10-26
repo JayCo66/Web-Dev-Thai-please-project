@@ -1029,4 +1029,211 @@ body {
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
+/* ====================================================
+   THAI PLEASE PLUS & TOKEN ACTIVITIES STYLES
+   ==================================================== */
+
+.thaiplus-hero {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 40%, #1E3A8A 75%, #065F46 100%);
+  border-radius: var(--radius-xl);
+  padding: 36px 32px;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px -5px rgba(30, 27, 75, 0.35);
+  margin-bottom: 24px;
+}
+
+.thaiplus-hero::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.thaiplus-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.thaiplus-stat-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.thaiplus-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.thaiplus-tabs {
+  display: flex;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.thaiplus-tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.thaiplus-tab-item:hover {
+  color: var(--text-main);
+  background: #F1F5F9;
+}
+
+.thaiplus-tab-item.active {
+  background: #1E40AF;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.25);
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.reward-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.reward-card:hover {
+  transform: translateY(-4px);
+  border-color: #CBD5E1;
+  box-shadow: var(--shadow-lg);
+}
+
+.reward-card-header {
+  padding: 20px 20px 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.reward-card-body {
+  padding: 0 20px 16px;
+  flex: 1;
+}
+
+.reward-card-footer {
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticket-container {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 2px dashed #F59E0B;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+}
+
+.ticket-number {
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #92400E;
+}
+
+.digital-voucher-box {
+  background: #FFFFFF;
+  border: 2px dashed #3B82F6;
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  background-image: radial-gradient(circle at 0 50%, transparent 12px, #fff 13px), radial-gradient(circle at 100% 50%, transparent 12px, #fff 13px);
+  background-size: 100% 100%;
+}
+
+.barcode-sim {
+  letter-spacing: 8px;
+  font-family: monospace;
+  font-size: 26px;
+  font-weight: 900;
+  color: #1E293B;
+  user-select: none;
+  background: #F8FAFC;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin: 12px 0;
+  border: 1px solid #E2E8F0;
+}
+
+.spin-wheel {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 8px solid #F59E0B;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(0,0,0,0.2);
+  transition: transform 3.5s cubic-bezier(0.15, 0.9, 0.25, 1);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.spin-pointer {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 25px solid #EF4444;
+  z-index: 20;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+
 
