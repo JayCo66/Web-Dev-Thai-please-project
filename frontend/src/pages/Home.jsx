@@ -16,7 +16,8 @@ import {
   QrCode,
   Clock,
   PlusCircle,
-  Building2
+  Building2,
+  Gift
 } from 'lucide-react';
 
 export default function Home() {
@@ -86,9 +87,32 @@ export default function Home() {
             </div>
             <div className="wallet-meta-item">
               <span className="wallet-meta-label">Impact Tokens สะสม</span>
-              <span className="wallet-meta-value" style={{ color: '#FDE68A' }}>
-                {tokens} Tokens
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                <span className="wallet-meta-value" style={{ color: '#FDE68A' }}>
+                  {tokens} Tokens
+                </span>
+                <Link
+                  to="/rewards"
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    color: '#FEF3C7',
+                    background: 'rgba(255, 255, 255, 0.16)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    padding: '3px 9px',
+                    borderRadius: 'var(--radius-full)',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    whiteSpace: 'nowrap'
+                  }}
+                  title="ไปหน้าแลกของรางวัลและชิงโชค"
+                >
+                  <span>แลกรางวัล</span>
+                  <ArrowRight size={11} />
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -102,6 +126,13 @@ export default function Home() {
               <QrCode size={20} />
             </div>
             <span className="quick-action-label">คนละครึ่ง 60/40</span>
+          </Link>
+
+          <Link to="/rewards" className="quick-action-item">
+            <div className="quick-action-icon-box" style={{ background: '#FEF3C7', color: '#B45309' }}>
+              <Gift size={20} />
+            </div>
+            <span className="quick-action-label">แลกรางวัล</span>
           </Link>
 
           <Link to="/charities" className="quick-action-item">
@@ -122,17 +153,10 @@ export default function Home() {
             </div>
             <span className="quick-action-label">เติมเงิน ฿500</span>
           </button>
-
-          <Link to="/payment" className="quick-action-item">
-            <div className="quick-action-icon-box" style={{ background: '#F1F5F9', color: '#475569' }}>
-              <Clock size={20} />
-            </div>
-            <span className="quick-action-label">ประวัติธุรกรรม</span>
-          </Link>
         </div>
 
         {/* ========================================================
-            FINANCIAL SERVICE CARDS (Payment & Social Impact)
+            FINANCIAL SERVICE CARDS (Payment, Rewards & Social Impact)
             ======================================================== */}
         <section aria-label="บริการสิทธิประโยชน์">
           {/* Card 1: Co-Pay 60/40 */}
@@ -156,7 +180,28 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Card 2: Social Impact Charities (e-Donation) */}
+          {/* Card 2: ThaiPlus Rewards & Lucky Draw */}
+          <Link to="/rewards" className="financial-service-card">
+            <div className="service-card-left">
+              <div className="service-icon-box" style={{ background: '#FEF3C7', color: '#B45309' }}>
+                <Gift size={22} />
+              </div>
+              <div>
+                <h2 className="service-card-title">
+                  ไทยช่วยไทยพลัส (แลกของรางวัล & ชิงโชคทองคำ)
+                </h2>
+                <p className="service-card-desc">
+                  ใช้ Impact Tokens แลกคูปองส่วนลดร้านค้า, สินค้าพรีเมียมชุมชน หรือลงชื่อชิงโชครางวัลใหญ่ประจำงวด
+                </p>
+              </div>
+            </div>
+            <div className="service-card-btn" style={{ background: 'linear-gradient(135deg, #B45309 0%, #D97706 100%)' }}>
+              <span>ไปหน้าแลกรางวัล</span>
+              <ArrowRight size={15} />
+            </div>
+          </Link>
+
+          {/* Card 3: Social Impact Charities (e-Donation) */}
           <Link to="/charities" className="financial-service-card">
             <div className="service-card-left">
               <div className="service-icon-box accent-teal">
@@ -209,7 +254,7 @@ export default function Home() {
               วงเงินสนับสนุนรวมตลอดระยะเวลาโครงการ
             </div>
             <Link
-              to="/plus"
+              to="/rewards"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

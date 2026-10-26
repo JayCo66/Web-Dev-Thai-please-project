@@ -437,6 +437,46 @@ button, input, select, textarea {
   transform: scale(0.96);
 }
 
+/* Center Elevated Floating Action Button (FAB) for Payment / 60-40 Co-Pay */
+.bottom-nav-item.bottom-nav-fab-center {
+  position: relative;
+  overflow: visible;
+  padding: 0;
+}
+
+.bottom-nav-fab-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A192F 0%, #152E58 40%, #1D4ED8 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(10, 25, 47, 0.35), 0 0 0 3.5px #FFFFFF;
+  margin-top: -22px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.bottom-nav-item.bottom-nav-fab-center:active .bottom-nav-fab-btn,
+.bottom-nav-item.bottom-nav-fab-center.active .bottom-nav-fab-btn {
+  transform: scale(0.93);
+  background: linear-gradient(135deg, #0A192F 0%, #1E40AF 100%);
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.45), 0 0 0 3.5px #FFFFFF;
+}
+
+.bottom-nav-fab-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bank-navy);
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.bottom-nav-item.bottom-nav-fab-center.active .bottom-nav-fab-label {
+  color: var(--bank-royal);
+}
+
 /* ==========================================================================
    FINANCIAL G-WALLET CARD (Signature Banking Asset)
    ========================================================================== */
@@ -1594,4 +1634,486 @@ button, input, select, textarea {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ==========================================================================
+   THAI PLEASE PLUS & TOKEN ACTIVITIES STYLES (BANKING THEME - NO EMOJIS)
+   ========================================================================== */
+
+.thaiplus-hero {
+  background: linear-gradient(135deg, #0A192F 0%, #0F275A 45%, #1E3A8A 100%);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(10, 25, 47, 0.35);
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.thaiplus-hero::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.thaiplus-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 0.2px;
+}
+
+.thaiplus-hero-title {
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+  color: #FFFFFF;
+}
+
+.thaiplus-hero-desc {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 680px;
+}
+
+.thaiplus-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.thaiplus-stat-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.thaiplus-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.thaiplus-tabs {
+  display: flex;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.thaiplus-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.thaiplus-tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.thaiplus-tab-item:hover {
+  color: var(--bank-navy);
+  background: var(--border-subtle);
+}
+
+.thaiplus-tab-item.active {
+  background: var(--bank-royal);
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(29, 78, 216, 0.25);
+}
+
+.thaiplus-tab-item.active-rewards {
+  background: var(--bank-royal);
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(29, 78, 216, 0.25);
+}
+
+.thaiplus-tab-item.active-luckydraw {
+  background: #DC2626;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+}
+
+.thaiplus-tab-item.active-spin {
+  background: #7C3AED;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
+}
+
+.thaiplus-tab-item.active-myitems {
+  background: var(--bank-navy);
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(10, 25, 47, 0.25);
+}
+
+.thaiplus-tab-item.active-history {
+  background: #334155;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(51, 65, 85, 0.25);
+}
+
+.reward-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.reward-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.reward-filter-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border: 1px solid var(--border-light);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reward-filter-btn:hover {
+  background: #F8FAFC;
+  color: var(--text-primary);
+}
+
+.reward-filter-btn.active {
+  background: var(--bank-royal);
+  border-color: var(--bank-royal);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25);
+}
+
+.reward-filter-btn.active.filter-coupon {
+  background: #0284C7;
+  border-color: #0284C7;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+.reward-filter-btn.active.filter-physical {
+  background: #059669;
+  border-color: #059669;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.reward-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.reward-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.reward-card.type-coupon {
+  border-top: 3.5px solid #0284C7;
+}
+
+.reward-card.type-physical {
+  border-top: 3.5px solid #059669;
+}
+
+.reward-card-header {
+  padding: 16px 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reward-tag-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reward-tag-badge.tag-coupon {
+  background: #E0F2FE;
+  color: #0369A1;
+  border: 1px solid #BAE6FD;
+}
+
+.reward-tag-badge.tag-physical {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.reward-cost-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.reward-card-body {
+  padding: 0 18px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.reward-card-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.reward-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.reward-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+}
+
+.reward-card-footer {
+  padding: 12px 18px;
+  background: var(--bg-app);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reward-stock-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.reward-stock-text.urgent {
+  color: #B91C1C;
+  font-weight: 700;
+  background: #FEF2F2;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-redeem-action {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-redeem-action.active-coupon {
+  background: linear-gradient(135deg, #0284C7 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.btn-redeem-action.active-coupon:hover {
+  background: linear-gradient(135deg, #0369A1 0%, #1E40AF 100%);
+}
+
+.btn-redeem-action.active-physical {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+}
+
+.btn-redeem-action.active-physical:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+}
+
+.btn-redeem-action.disabled-lacking {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #CBD5E1;
+  cursor: not-allowed;
+}
+
+.ticket-container {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 2px dashed #F59E0B;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+}
+
+.ticket-number {
+  font-family: 'Outfit', monospace;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #92400E;
+}
+
+.digital-voucher-box {
+  background: #FFFFFF;
+  border: 2px dashed var(--bank-royal);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  background-image: radial-gradient(circle at 0 50%, transparent 12px, #fff 13px), radial-gradient(circle at 100% 50%, transparent 12px, #fff 13px);
+  background-size: 100% 100%;
+}
+
+.barcode-sim {
+  letter-spacing: 8px;
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: 900;
+  color: #0F172A;
+  user-select: none;
+  background: #F8FAFC;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin: 12px 0;
+  border: 1px solid var(--border-light);
+}
+
+.spin-wheel {
+  position: relative;
+  width: 270px;
+  height: 270px;
+  border-radius: 50%;
+  border: 8px solid #F59E0B;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.35), inset 0 0 15px rgba(0,0,0,0.2);
+  transition: transform 3.5s cubic-bezier(0.15, 0.9, 0.25, 1);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.spin-pointer {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 24px solid var(--fin-danger);
+  z-index: 20;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+@media (max-width: 640px) {
+  .thaiplus-hero {
+    padding: 20px 16px;
+    border-radius: var(--radius-lg);
+  }
+  
+  .thaiplus-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .thaiplus-stat-card {
+    padding: 12px 12px;
+    gap: 10px;
+  }
+  
+  .rewards-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }

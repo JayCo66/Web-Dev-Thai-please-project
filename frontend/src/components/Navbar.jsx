@@ -13,7 +13,8 @@ import {
   X,
   ShieldCheck,
   ChevronRight,
-  QrCode
+  QrCode,
+  Gift
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -77,6 +78,13 @@ export default function Navbar() {
             <HeartHandshake size={16} />
             <span>บริจาค e-Donation</span>
           </Link>
+          <Link
+            to="/plus"
+            className={`nav-pill-link ${location.pathname === '/plus' || location.pathname === '/rewards' ? 'active' : ''}`}
+          >
+            <Gift size={16} />
+            <span>ไทยช่วยไทยพลัส</span>
+          </Link>
         </nav>
 
         {/* Desktop User Section */}
@@ -97,10 +105,15 @@ export default function Navbar() {
           </div>
 
           {/* Tokens Pill */}
-          <div className="token-pill" title="Impact Tokens สะสม">
+          <Link
+            to="/plus"
+            className="token-pill"
+            title="Impact Tokens สะสม (คลิกเพื่อแลกรางวัล)"
+            style={{ textDecoration: 'none', cursor: 'pointer' }}
+          >
             <Coins size={15} />
             <span>{tokens} Tokens</span>
-          </div>
+          </Link>
 
           {/* Role Badge */}
           <span className={`role-badge ${getRoleClass(user?.role)}`}>
@@ -137,8 +150,8 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Fixed thumb zone) */}
-      <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
+      {/* Mobile Bottom Navigation Bar (Banking Style with Center FAB) */}
+      <nav className="mobile-bottom-nav" aria-label="เมนูหลัก">
         <Link
           to="/"
           className={`bottom-nav-item ${location.pathname === '/' ? 'active' : ''}`}
@@ -150,13 +163,25 @@ export default function Navbar() {
         </Link>
 
         <Link
-          to="/payment"
-          className={`bottom-nav-item ${location.pathname === '/payment' ? 'active' : ''}`}
+          to="/rewards"
+          className={`bottom-nav-item ${location.pathname === '/rewards' || location.pathname === '/plus' || location.pathname === '/thai-plus' ? 'active' : ''}`}
         >
           <div className="bottom-nav-icon">
-            <QrCode size={19} />
+            <Gift size={19} />
           </div>
-          <span>คนละครึ่ง</span>
+          <span>แลกรางวัล</span>
+        </Link>
+
+        {/* Center Prominent FAB for 60/40 Co-Pay (Banking Scan/Pay style) */}
+        <Link
+          to="/payment"
+          className={`bottom-nav-item bottom-nav-fab-center ${location.pathname === '/payment' ? 'active' : ''}`}
+          aria-label="คนละครึ่ง 60/40 สแกนจ่าย"
+        >
+          <div className="bottom-nav-fab-btn">
+            <QrCode size={24} strokeWidth={2.4} />
+          </div>
+          <span className="bottom-nav-fab-label">คนละครึ่ง</span>
         </Link>
 
         <Link
@@ -356,6 +381,31 @@ export default function Navbar() {
                   <span>บริจาค e-Donation ลดหย่อนภาษี</span>
                 </div>
                 <ChevronRight size={17} color="var(--text-tertiary)" />
+              </Link>
+
+              <Link
+                to="/plus"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  minHeight: 46,
+                  background: '#FEF3C7',
+                  border: '1px solid #FDE68A',
+                  borderRadius: 'var(--radius-sm)',
+                  textDecoration: 'none',
+                  color: '#92400E',
+                  fontSize: 13.5,
+                  fontWeight: 700
+                }}
+                onClick={() => setProfileDrawerOpen(false)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Gift size={17} color="#D97706" />
+                  <span>ไทยช่วยไทยพลัส (แลกรางวัล & ลุ้นโชค)</span>
+                </div>
+                <ChevronRight size={17} color="#B45309" />
               </Link>
 
               <button

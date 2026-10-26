@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import Navbar from '../components/Navbar';
 import {
   Coins,
   Gift,
   Ticket,
-  Trophy,
   Sparkles,
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  AlertCircle,
   Clock,
-  Tag,
   ShieldCheck,
   ShoppingBag,
   RotateCw,
@@ -21,20 +18,37 @@ import {
   Copy,
   Check,
   Crown,
-  Smartphone,
-  Bike,
-  Fuel,
-  PartyPopper,
   Flame,
   Zap,
-  Info
+  PartyPopper,
+  Tag,
+  Truck
 } from 'lucide-react';
 
 export default function ThaiPlus() {
-  const { user, tokens, setTokensBalance, deductTokens, addTokens } = useAuth();
+  const { tokens, setTokensBalance, addTokens } = useAuth();
+  const location = useLocation();
 
-  // Active Tab: 'LUCKY_DRAW' | 'REWARDS' | 'SPIN_WHEEL' | 'MY_ITEMS' | 'HISTORY'
-  const [activeTab, setActiveTab] = useState('LUCKY_DRAW');
+  // Helper to resolve active tab from URL path and search params
+  const resolveTab = () => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = (params.get('tab') || '').toLowerCase();
+    if (tabParam === 'draw' || tabParam === 'luckydraw') return 'LUCKY_DRAW';
+    if (tabParam === 'spin') return 'SPIN_WHEEL';
+    if (tabParam === 'items' || tabParam === 'vouchers') return 'MY_ITEMS';
+    if (tabParam === 'history') return 'HISTORY';
+    if (tabParam === 'rewards' || location.pathname === '/rewards') return 'REWARDS';
+    // Default to REWARDS so clicking "แลกรางวัล" immediately opens the reward catalogue
+    return 'REWARDS';
+  };
+
+  // Active Tab: 'REWARDS' | 'LUCKY_DRAW' | 'SPIN_WHEEL' | 'MY_ITEMS' | 'HISTORY'
+  const [activeTab, setActiveTab] = useState(resolveTab);
+
+  // Sync activeTab when location path or search changes
+  useEffect(() => {
+    setActiveTab(resolveTab());
+  }, [location.pathname, location.search]);
 
   // Rewards and campaign state
   const [rewards, setRewards] = useState([]);
@@ -318,141 +332,23 @@ export default function ThaiPlus() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* App Header */}
-      <header className="app-header">
-        <div className="header-brand">
-          <Link
-            to="/"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div className="header-logo" style={{ width: 34, height: 34, fontSize: 16 }}>
-              <ArrowLeft size={18} />
-            </div>
-            <div>
-              <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>ไทยช่วยไทยพลัส</span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    background: '#F59E0B',
-                    color: '#FFFFFF',
-                    padding: '2px 8px',
-                    borderRadius: 999,
-                    fontWeight: 700,
-                  }}
-                >
-                  PLUS
-                </span>
-              </div>
-              <div className="header-tag">Token Rewards & Lucky Draw Platform</div>
-            </div>
-          </Link>
-        </div>
-
-        <div className="header-user">
-          {/* Quick Nav Links */}
-          <Link
-            to="/payment"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 12px',
-              background: '#EFF6FF',
-              border: '1px solid #BFDBFE',
-              borderRadius: 999,
-              color: '#1E40AF',
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            <span>ชำระเงิน (60/40)</span>
-          </Link>
-
-          <Link
-            to="/charities"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 12px',
-              background: '#F0FDFA',
-              border: '1px solid #99F6E4',
-              borderRadius: 999,
-              color: '#0F766E',
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            <span>ร่วมบริจาค</span>
-          </Link>
-
-          {/* Tokens Pill */}
-          <div className="token-pill" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Coins size={16} />
-            <span>{tokens} Tokens</span>
-            <button
-              type="button"
-              onClick={handleFaucetTokens}
-              disabled={faucetLoading}
-              title="กดรับโทเค็นจำลอง 50 Tokens สำหรับทดสอบระบบ"
-              style={{
-                background: '#D97706',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: 999,
-                padding: '2px 8px',
-                fontSize: 11,
-                cursor: 'pointer',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 3,
-              }}
-            >
-              <Zap size={10} />
-              <span>+50 ฟรี</span>
-            </button>
-          </div>
-        </div>
-      </header>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      {/* Official App Header */}
+      <Navbar />
 
       {/* Main Container */}
-      <main className="home-container" style={{ marginTop: 24 }}>
+      <main className="home-container">
         {/* Hero Banner */}
         <div className="thaiplus-hero">
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'rgba(255,255,255,0.15)',
-              padding: '4px 14px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 600,
-              marginBottom: 14,
-            }}
-          >
-            <Sparkles size={15} color="#FBBF24" />
-            <span>สิทธิประโยชน์สุดพิเศษ เฉพาะผู้ถือ Impact Tokens</span>
+          <div className="thaiplus-hero-badge">
+            <Sparkles size={14} color="#F59E0B" />
+            <span>สิทธิประโยชน์สำหรับผู้ถือ Impact Tokens</span>
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8, letterSpacing: '-0.5px' }}>
-            ไทยช่วยไทยพลัส (Thai Chuay Thai Plus) 🎁
+          <h1 className="thaiplus-hero-title">
+            ไทยช่วยไทยพลัส
           </h1>
-          <p style={{ fontSize: 15, opacity: 0.92, maxWidth: 740, lineHeight: 1.6 }}>
-            ศูนย์รวมการใช้ <strong>Impact Tokens</strong> ที่สะสมจากการร่วมโครงการคนละครึ่งและการบริจาคเพื่อสังคม
-            นำมา<strong>ลงชื่อชิงโชครางวัลใหญ่</strong> แลก<strong>คูปองส่วนลดร้านค้าชุมชน</strong> และ{' '}
-            <strong>สินค้าพรีเมียมส่งตรงถึงบ้าน</strong>
+          <p className="thaiplus-hero-desc">
+            ศูนย์รวมการใช้ Impact Tokens แลกคูปองส่วนลดร้านค้าชุมชน สินค้าพรีเมียมส่งฟรีถึงบ้าน และลงชื่อชิงโชครางวัลใหญ่
           </p>
         </div>
 
@@ -462,21 +358,22 @@ export default function ThaiPlus() {
           <div className="thaiplus-stat-card">
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 borderRadius: 12,
                 background: '#FEF3C7',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#D97706',
+                color: '#B45309',
+                flexShrink: 0
               }}
             >
-              <Coins size={24} />
+              <Coins size={22} />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>ยอด Tokens ของคุณ</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#D97706' }}>{tokens} Tokens</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontWeight: 500 }}>Tokens ของคุณ</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#B45309' }}>{tokens} Tokens</div>
             </div>
           </div>
 
@@ -484,21 +381,22 @@ export default function ThaiPlus() {
           <div className="thaiplus-stat-card">
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 borderRadius: 12,
                 background: '#FEE2E2',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#DC2626',
+                flexShrink: 0
               }}
             >
-              <Ticket size={24} />
+              <Ticket size={22} />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>สิทธิ์ชิงโชคที่ถืออยู่</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#DC2626' }}>
+              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontWeight: 500 }}>สิทธิ์ชิงโชคที่ถืออยู่</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#DC2626' }}>
                 {myTickets.length} สิทธิ์
               </div>
             </div>
@@ -508,21 +406,22 @@ export default function ThaiPlus() {
           <div className="thaiplus-stat-card">
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 borderRadius: 12,
                 background: '#EFF6FF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#2563EB',
+                color: '#1D4ED8',
+                flexShrink: 0
               }}
             >
-              <Gift size={24} />
+              <Gift size={22} />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>ของรางวัลที่แลกแล้ว</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#2563EB' }}>
+              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontWeight: 500 }}>ของรางวัลที่แลกแล้ว</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#1D4ED8' }}>
                 {myVouchers.length} รายการ
               </div>
             </div>
@@ -532,26 +431,27 @@ export default function ThaiPlus() {
           <div
             className="thaiplus-stat-card"
             style={{
-              background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+              background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
               border: '1px solid #A7F3D0',
             }}
           >
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 borderRadius: 12,
-                background: '#10B981',
+                background: '#059669',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#FFFFFF',
+                flexShrink: 0
               }}
             >
-              <Zap size={24} />
+              <Zap size={22} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, color: '#047857', fontWeight: 600 }}>โหมดทดสอบระบบ</div>
+              <div style={{ fontSize: 11.5, color: '#047857', fontWeight: 600 }}>โหมดทดสอบระบบ</div>
               <button
                 type="button"
                 onClick={handleFaucetTokens}
@@ -562,63 +462,83 @@ export default function ThaiPlus() {
                   border: 'none',
                   borderRadius: 6,
                   padding: '4px 10px',
-                  fontSize: 12,
-                  fontWeight: 600,
+                  fontSize: 11.5,
+                  fontWeight: 700,
                   cursor: 'pointer',
                   marginTop: 2,
                 }}
               >
-                {faucetLoading ? 'กำลังเติม...' : '+ รับ 50 Tokens ฟรี'}
+                {faucetLoading ? 'กำลังเติม...' : '+ รับ 50 Tokens'}
               </button>
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="thaiplus-tabs">
+        <div className="thaiplus-tabs" role="tablist" aria-label="หมวดหมู่ไทยช่วยไทยพลัส">
           <button
             type="button"
-            className={`thaiplus-tab-item ${activeTab === 'LUCKY_DRAW' ? 'active' : ''}`}
-            onClick={() => setActiveTab('LUCKY_DRAW')}
+            role="tab"
+            aria-selected={activeTab === 'REWARDS'}
+            className={`thaiplus-tab-item ${activeTab === 'REWARDS' ? 'active-rewards' : ''}`}
+            onClick={() => setActiveTab('REWARDS')}
           >
-            <Ticket size={17} />
-            <span>1. ลงชื่อชิงโชครางวัลใหญ่</span>
+            <Gift size={17} />
+            <span>แลกของรางวัล & คูปอง</span>
             <span
               style={{
                 fontSize: 11,
-                background: activeTab === 'LUCKY_DRAW' ? 'rgba(255,255,255,0.3)' : '#FEE2E2',
-                color: activeTab === 'LUCKY_DRAW' ? '#fff' : '#DC2626',
-                padding: '1px 6px',
+                background: activeTab === 'REWARDS' ? 'rgba(255,255,255,0.25)' : '#EFF6FF',
+                color: activeTab === 'REWARDS' ? '#fff' : '#1D4ED8',
+                padding: '2px 8px',
                 borderRadius: 999,
+                fontWeight: 700
               }}
             >
-              ยอดนิยม 🔥
+              แนะนำ
             </span>
           </button>
 
           <button
             type="button"
-            className={`thaiplus-tab-item ${activeTab === 'REWARDS' ? 'active' : ''}`}
-            onClick={() => setActiveTab('REWARDS')}
+            role="tab"
+            aria-selected={activeTab === 'LUCKY_DRAW'}
+            className={`thaiplus-tab-item ${activeTab === 'LUCKY_DRAW' ? 'active-luckydraw' : ''}`}
+            onClick={() => setActiveTab('LUCKY_DRAW')}
           >
-            <Gift size={17} />
-            <span>2. แลกของรางวัลไทยช่วยไทยพลัส</span>
+            <Ticket size={17} />
+            <span>ชิงโชครางวัลใหญ่</span>
+            <span
+              style={{
+                fontSize: 11,
+                background: activeTab === 'LUCKY_DRAW' ? 'rgba(255,255,255,0.25)' : '#FEE2E2',
+                color: activeTab === 'LUCKY_DRAW' ? '#fff' : '#DC2626',
+                padding: '2px 8px',
+                borderRadius: 999,
+                fontWeight: 700
+              }}
+            >
+              ทองคำ 1 บาท
+            </span>
           </button>
 
           <button
             type="button"
-            className={`thaiplus-tab-item ${activeTab === 'SPIN_WHEEL' ? 'active' : ''}`}
+            role="tab"
+            aria-selected={activeTab === 'SPIN_WHEEL'}
+            className={`thaiplus-tab-item ${activeTab === 'SPIN_WHEEL' ? 'active-spin' : ''}`}
             onClick={() => setActiveTab('SPIN_WHEEL')}
           >
             <RotateCw size={17} />
-            <span>3. วงล้อเสี่ยงโชคจำลอง</span>
+            <span>วงล้อเสี่ยงโชค</span>
             <span
               style={{
                 fontSize: 11,
-                background: activeTab === 'SPIN_WHEEL' ? 'rgba(255,255,255,0.3)' : '#FEF3C7',
-                color: activeTab === 'SPIN_WHEEL' ? '#fff' : '#D97706',
-                padding: '1px 6px',
+                background: activeTab === 'SPIN_WHEEL' ? 'rgba(255,255,255,0.25)' : '#EDE9FE',
+                color: activeTab === 'SPIN_WHEEL' ? '#fff' : '#7C3AED',
+                padding: '2px 8px',
                 borderRadius: 999,
+                fontWeight: 700
               }}
             >
               มินิเกม
@@ -627,20 +547,24 @@ export default function ThaiPlus() {
 
           <button
             type="button"
-            className={`thaiplus-tab-item ${activeTab === 'MY_ITEMS' ? 'active' : ''}`}
+            role="tab"
+            aria-selected={activeTab === 'MY_ITEMS'}
+            className={`thaiplus-tab-item ${activeTab === 'MY_ITEMS' ? 'active-myitems' : ''}`}
             onClick={() => setActiveTab('MY_ITEMS')}
           >
             <ShoppingBag size={17} />
-            <span>4. สิทธิ์และคูปองของฉัน ({myTickets.length + myVouchers.length})</span>
+            <span>สิทธิ์และคูปองของฉัน ({myTickets.length + myVouchers.length})</span>
           </button>
 
           <button
             type="button"
-            className={`thaiplus-tab-item ${activeTab === 'HISTORY' ? 'active' : ''}`}
+            role="tab"
+            aria-selected={activeTab === 'HISTORY'}
+            className={`thaiplus-tab-item ${activeTab === 'HISTORY' ? 'active-history' : ''}`}
             onClick={() => setActiveTab('HISTORY')}
           >
             <Clock size={17} />
-            <span>5. ประวัติการใช้ Token</span>
+            <span>ประวัติการใช้ Token</span>
           </button>
         </div>
 
@@ -695,7 +619,7 @@ export default function ThaiPlus() {
                       <span>{campaign.title}</span>
                     </div>
                     <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-main)', marginBottom: 6 }}>
-                      ชิงโชคทองคำแท่ง 1 บาท, iPhone 16 Pro และรถมอเตอร์ไซค์ไฟฟ้า 🛵
+                      ชิงโชคทองคำแท่ง 1 บาท, iPhone 16 Pro และรถมอเตอร์ไซค์ไฟฟ้า
                     </h2>
                     <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
                       {campaign.subtitle} • จับรางวัล:{' '}
@@ -723,7 +647,7 @@ export default function ThaiPlus() {
 
                 {/* Prizes Grid */}
                 <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, color: '#334155' }}>
-                  🏆 รายการของรางวัลใหญ่ประจำงวดนี้:
+                  รายการของรางวัลใหญ่ประจำงวดนี้:
                 </h4>
                 <div
                   style={{
@@ -795,42 +719,44 @@ export default function ThaiPlus() {
 
                     {/* Packages Selector */}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {campaign.packages.map((pkg) => (
-                        <button
-                          key={pkg.tickets}
-                          type="button"
-                          onClick={() => setSelectedPackage(pkg.tickets)}
-                          style={{
-                            padding: '10px 16px',
-                            borderRadius: 'var(--radius-md)',
-                            border:
-                              selectedPackage === pkg.tickets
-                                ? '2px solid #2563EB'
+                      {campaign.packages.map((pkg) => {
+                        const isSelected = selectedPackage === pkg.tickets;
+                        return (
+                          <button
+                            key={pkg.tickets}
+                            type="button"
+                            onClick={() => setSelectedPackage(pkg.tickets)}
+                            style={{
+                              padding: '10px 16px',
+                              borderRadius: 'var(--radius-md)',
+                              border: isSelected
+                                ? '2px solid #DC2626'
                                 : '1px solid #CBD5E1',
-                            background: selectedPackage === pkg.tickets ? '#EFF6FF' : '#FFFFFF',
-                            color: selectedPackage === pkg.tickets ? '#1E40AF' : '#334155',
-                            fontWeight: 700,
-                            fontSize: 13.5,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                            position: 'relative',
-                          }}
-                        >
-                          <div>{pkg.label}</div>
-                          {pkg.badge && (
-                            <span
-                              style={{
-                                display: 'block',
-                                fontSize: 10,
-                                color: '#D97706',
-                                fontWeight: 600,
-                              }}
-                            >
-                              {pkg.badge}
-                            </span>
-                          )}
-                        </button>
-                      ))}
+                              background: isSelected ? '#FEF2F2' : '#FFFFFF',
+                              color: isSelected ? '#B91C1C' : '#334155',
+                              fontWeight: 700,
+                              fontSize: 13.5,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                              position: 'relative',
+                            }}
+                          >
+                            <div>{pkg.label}</div>
+                            {pkg.badge && (
+                              <span
+                                style={{
+                                  display: 'block',
+                                  fontSize: 10,
+                                  color: isSelected ? '#DC2626' : '#D97706',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {pkg.badge}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* Submit Button */}
@@ -907,8 +833,9 @@ export default function ThaiPlus() {
                     </div>
 
                     <div className="reward-card-footer">
-                      <span style={{ fontSize: 12, color: '#059669', fontWeight: 600 }}>
-                        ✓ สุ่มจับรางวัลสิ้นเดือน
+                      <span style={{ fontSize: 12, color: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Check size={13} />
+                        <span>สุ่มจับรางวัลสิ้นงวด</span>
                       </span>
                       <button
                         type="button"
@@ -917,7 +844,7 @@ export default function ThaiPlus() {
                           handleConfirmLuckyDraw();
                         }}
                         style={{
-                          background: tokens >= item.tokenCost ? '#1E40AF' : '#94A3B8',
+                          background: tokens >= item.tokenCost ? '#DC2626' : '#94A3B8',
                           color: '#FFFFFF',
                           border: 'none',
                           borderRadius: 8,
@@ -928,6 +855,7 @@ export default function ThaiPlus() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 6,
+                          boxShadow: tokens >= item.tokenCost ? '0 2px 6px rgba(220, 38, 38, 0.25)' : 'none'
                         }}
                       >
                         <span>ส่ง 1 สิทธิ์</span>
@@ -941,61 +869,45 @@ export default function ThaiPlus() {
         )}
 
         {/* ====================================================
-            TAB 2: REDEEM REWARDS (ใช้ TOKEN แลกของ ไทยช่วยไทยพลัส)
+            TAB: REDEEM REWARDS (ใช้ TOKEN แลกของ ไทยช่วยไทยพลัส)
             ==================================================== */}
         {activeTab === 'REWARDS' && (
           <div>
-            {/* Filter Pills */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            {/* Filter Pills with Counts */}
+            <div className="reward-filter-bar" role="tablist" aria-label="ตัวกรองประเภทของรางวัล">
               <button
                 type="button"
                 onClick={() => setRewardFilter('ALL')}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: 999,
-                  border: rewardFilter === 'ALL' ? '2px solid #2563EB' : '1px solid #CBD5E1',
-                  background: rewardFilter === 'ALL' ? '#EFF6FF' : '#FFFFFF',
-                  color: rewardFilter === 'ALL' ? '#1E40AF' : '#475569',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
+                className={`reward-filter-btn ${rewardFilter === 'ALL' ? 'active' : ''}`}
               >
-                ทั้งหมด ({rewards.filter((r) => r.rewardType !== 'LUCKY_DRAW').length})
+                <span>ทั้งหมด</span>
+                <span style={{ opacity: 0.85, fontSize: 12 }}>
+                  ({rewards.filter((r) => r.rewardType !== 'LUCKY_DRAW').length})
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setRewardFilter('COUPON')}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: 999,
-                  border: rewardFilter === 'COUPON' ? '2px solid #2563EB' : '1px solid #CBD5E1',
-                  background: rewardFilter === 'COUPON' ? '#EFF6FF' : '#FFFFFF',
-                  color: rewardFilter === 'COUPON' ? '#1E40AF' : '#475569',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
+                className={`reward-filter-btn ${rewardFilter === 'COUPON' ? 'active filter-coupon' : ''}`}
               >
-                🏷️ คูปองส่วนลดร้านค้า (E-Coupons)
+                <Tag size={14} />
+                <span>คูปองส่วนลดร้านค้า (E-Coupons)</span>
+                <span style={{ opacity: 0.85, fontSize: 12 }}>
+                  ({rewards.filter((r) => r.rewardType === 'COUPON').length})
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setRewardFilter('PHYSICAL')}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: 999,
-                  border: rewardFilter === 'PHYSICAL' ? '2px solid #2563EB' : '1px solid #CBD5E1',
-                  background: rewardFilter === 'PHYSICAL' ? '#EFF6FF' : '#FFFFFF',
-                  color: rewardFilter === 'PHYSICAL' ? '#1E40AF' : '#475569',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
+                className={`reward-filter-btn ${rewardFilter === 'PHYSICAL' ? 'active filter-physical' : ''}`}
               >
-                🎁 สินค้าพรีเมียมชุมชน (ส่งฟรีถึงบ้าน)
+                <Truck size={14} />
+                <span>สินค้าชุมชนส่งฟรีถึงบ้าน (OTOP & Goods)</span>
+                <span style={{ opacity: 0.85, fontSize: 12 }}>
+                  ({rewards.filter((r) => r.rewardType === 'PHYSICAL').length})
+                </span>
               </button>
             </div>
 
@@ -1003,81 +915,65 @@ export default function ThaiPlus() {
             <div className="rewards-grid">
               {filteredRewards.map((reward) => {
                 const canAfford = tokens >= reward.tokenCost;
+                const isCoupon = reward.rewardType === 'COUPON';
+                const isLowStock = reward.stock <= 20;
+
                 return (
-                  <div key={reward.rewardId} className="reward-card">
+                  <div
+                    key={reward.rewardId}
+                    className={`reward-card ${isCoupon ? 'type-coupon' : 'type-physical'}`}
+                  >
                     <div className="reward-card-header">
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          padding: '3px 10px',
-                          borderRadius: 999,
-                          background:
-                            reward.rewardType === 'PHYSICAL'
-                              ? '#ECFDF5'
-                              : '#EFF6FF',
-                          color:
-                            reward.rewardType === 'PHYSICAL'
-                              ? '#047857'
-                              : '#1E40AF',
-                        }}
-                      >
-                        {reward.tag}
+                      <span className={`reward-tag-badge ${isCoupon ? 'tag-coupon' : 'tag-physical'}`}>
+                        {isCoupon ? <Tag size={12} /> : <Truck size={12} />}
+                        <span>{reward.tag || (isCoupon ? 'E-Coupon' : 'สินค้าชุมชน')}</span>
                       </span>
 
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          color: '#D97706',
-                          fontWeight: 800,
-                          fontSize: 15,
-                        }}
-                      >
-                        <Coins size={16} />
+                      <div className="reward-cost-pill">
+                        <Coins size={14} />
                         <span>{reward.tokenCost} Tokens</span>
                       </div>
                     </div>
 
                     <div className="reward-card-body">
-                      <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: 'var(--text-main)' }}>
-                        {reward.name}
-                      </h4>
-                      <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
-                        {reward.description}
-                      </p>
-                      <div style={{ fontSize: 12, color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <ShieldCheck size={14} color="#10B981" />
-                        <span>{reward.partner}</span>
+                      <h4 className="reward-card-title">{reward.name}</h4>
+                      <p className="reward-card-desc">{reward.description}</p>
+                      
+                      <div className="reward-card-meta">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <ShieldCheck size={14} color={isCoupon ? '#0284C7' : '#059669'} />
+                          <span>{reward.partner}</span>
+                        </div>
+                        {!isCoupon && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#059669', fontWeight: 600 }}>
+                            <Check size={13} />
+                            <span>ส่งฟรีถึงที่อยู่</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="reward-card-footer">
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        สต็อก: เหลือ {reward.stock} ชิ้น
+                      <span className={`reward-stock-text ${isLowStock ? 'urgent' : ''}`}>
+                        {isLowStock ? `เหลือเพียง ${reward.stock} ชิ้น` : `สต็อก ${reward.stock} ชิ้น`}
                       </span>
 
                       <button
                         type="button"
                         onClick={() => setSelectedReward(reward)}
-                        style={{
-                          background: canAfford ? '#059669' : '#94A3B8',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          borderRadius: 8,
-                          padding: '8px 16px',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: canAfford ? 'pointer' : 'not-allowed',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          boxShadow: canAfford ? '0 2px 6px rgba(5, 150, 105, 0.25)' : 'none',
-                        }}
+                        className={`btn-redeem-action ${
+                          canAfford
+                            ? isCoupon
+                              ? 'active-coupon'
+                              : 'active-physical'
+                            : 'disabled-lacking'
+                        }`}
+                        disabled={!canAfford}
                       >
                         <Gift size={14} />
-                        <span>{canAfford ? 'แลกรางวัล' : `ขาดอีก ${reward.tokenCost - tokens}`}</span>
+                        <span>
+                          {canAfford ? 'แลกรางวัล' : `ขาดอีก ${reward.tokenCost - tokens} Tokens`}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1122,7 +1018,7 @@ export default function ThaiPlus() {
             </div>
 
             <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-main)', marginBottom: 6 }}>
-              วงล้อเสี่ยงโชคไทยช่วยไทยพลัส 🎡
+              วงล้อเสี่ยงโชคไทยช่วยไทยพลัส
             </h2>
             <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 28, maxWidth: 500, margin: '0 auto 28px' }}>
               ใช้เพียง <strong>15 Impact Tokens</strong> ต่อการหมุน 1 ครั้ง ลุ้นรับโบนัสคืนสูงสุด 50 Tokens,
@@ -1764,7 +1660,7 @@ export default function ThaiPlus() {
                 <Crown size={30} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)' }}>
-                ลงชื่อชิงโชคสำเร็จ! 🎉
+                ลงชื่อชิงโชคสำเร็จ
               </h3>
               <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>
                 ได้รับสิทธิ์ลุ้นรางวัลทั้งหมด {drawSuccessData.ticketsCount} สิทธิ์
@@ -1797,9 +1693,9 @@ export default function ThaiPlus() {
                 lineHeight: 1.5,
               }}
             >
-              📅 <strong>กำหนดการสุ่มจับรางวัล:</strong> {drawSuccessData.drawDate}
+              <strong>กำหนดการสุ่มจับรางวัล:</strong> {drawSuccessData.drawDate}
               <br />
-              📢 ระบบจะแจ้งเตือนผลการจับรางวัลผ่านแอปพลิเคชันและบันทึกประวัติให้คุณทราบ
+              ระบบจะแจ้งเตือนผลการจับรางวัลผ่านแอปพลิเคชันและบันทึกประวัติให้คุณทราบ
             </div>
 
             <button

@@ -176,7 +176,7 @@ export function AuthProvider({ children }) {
     try {
       const response = await api.get('/users/me');
       if (response.data && response.data.success) {
-        const { user, tokens, wallet, shop } = response.data.data;
+        const { user, tokens } = response.data.data;
         setUser(user);
         setTokens(tokens || 0);
         return { success: true, tokens, user };
