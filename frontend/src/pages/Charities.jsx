@@ -17,7 +17,8 @@ import {
   Sparkles,
   PlusCircle,
   Clock,
-  X
+  X,
+  Gift
 } from 'lucide-react';
 
 export default function Charities() {
@@ -180,6 +181,38 @@ export default function Charities() {
         </div>
 
         <div className="header-user">
+          {/* Link to ThaiPlus */}
+          <Link
+            to="/plus"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              background: '#FEF3C7',
+              border: '1px solid #FDE68A',
+              borderRadius: 999,
+              color: '#92400E',
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            <Gift size={15} color="#D97706" />
+            <span>ไทยช่วยไทยพลัส (ใช้ Token)</span>
+          </Link>
+
+          {/* Tokens Pill */}
+          <Link
+            to="/plus"
+            className="token-pill"
+            style={{ textDecoration: 'none', cursor: 'pointer' }}
+            title="คลิกเพื่อไปหน้าใช้โทเค็น"
+          >
+            <Coins size={16} />
+            <span>{tokens} Tokens</span>
+          </Link>
+
           {/* Simulated Wallet Balance Pill */}
           <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋าของคุณ">
             <Wallet size={16} />
@@ -192,12 +225,6 @@ export default function Charities() {
             >
               + เติม ฿500
             </button>
-          </div>
-
-          {/* Tokens Pill */}
-          <div className="token-pill">
-            <Coins size={16} />
-            <span>{tokens} Tokens</span>
           </div>
         </div>
       </header>

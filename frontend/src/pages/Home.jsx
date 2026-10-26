@@ -13,7 +13,8 @@ import {
   Calendar,
   HeartHandshake,
   ArrowRight,
-  CreditCard
+  CreditCard,
+  Gift
 } from 'lucide-react';
 
 export default function Home() {
@@ -93,6 +94,28 @@ export default function Home() {
             <span>ร่วมบริจาค</span>
           </Link>
 
+          {/* Link to ThaiPlus (Token Activities) */}
+          <Link
+            to="/plus"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              background: '#FEF3C7',
+              border: '1px solid #FDE68A',
+              borderRadius: 999,
+              color: '#92400E',
+              fontSize: 13.5,
+              fontWeight: 700,
+              textDecoration: 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Gift size={16} color="#D97706" />
+            <span>ไทยช่วยไทยพลัส (ใช้ Token)</span>
+          </Link>
+
           {/* Simulated Balance Pill */}
           <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋า">
             <Wallet size={16} />
@@ -100,10 +123,15 @@ export default function Home() {
           </div>
 
           {/* Tokens Pill */}
-          <div className="token-pill">
+          <Link
+            to="/plus"
+            className="token-pill"
+            style={{ textDecoration: 'none', cursor: 'pointer' }}
+            title="คลิกเพื่อไปหน้าใช้โทเค็น"
+          >
             <Coins size={16} />
             <span>{tokens} Tokens</span>
-          </div>
+          </Link>
 
           {/* Role Badge */}
           <span className={`role-badge ${getRoleClass(user?.role)}`}>
@@ -160,9 +188,24 @@ export default function Home() {
             <div className="info-card-value" style={{ color: '#D97706' }}>
               {tokens}
             </div>
-            <div className="info-card-desc">
+            <div className="info-card-desc" style={{ marginBottom: 8 }}>
               โทเค็นสำหรับร่วมบริจาคโครงการเพื่อสังคม หรือแลกรางวัล
             </div>
+            <Link
+              to="/plus"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: '#D97706',
+                textDecoration: 'none',
+              }}
+            >
+              <span>ใช้ Token แลกของ & ลุ้นโชค</span>
+              <ArrowRight size={13} />
+            </Link>
           </div>
 
           {/* Card 3: Co-Pay Wallet Quota */}
@@ -179,6 +222,45 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Thai Plus Token Activities Banner */}
+        <Link
+          to="/plus"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 40%, #B45309 100%)',
+            color: '#FFFFFF',
+            borderRadius: 'var(--radius-xl)',
+            padding: '24px 28px',
+            textDecoration: 'none',
+            boxShadow: '0 8px 24px rgba(49, 46, 129, 0.3)',
+            marginBottom: 18,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ width: 50, height: 50, borderRadius: 14, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Gift size={28} color="#FBBF24" />
+            </div>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#FDE68A', marginBottom: 4 }}>
+                <Sparkles size={12} /> สิทธิประโยชน์ใหม่!
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>
+                🎁 ไทยช่วยไทยพลัส: ใช้ Impact Tokens แลกของรางวัล & ลุ้นโชคใหญ่
+              </h3>
+              <p style={{ fontSize: 13.5, opacity: 0.9 }}>
+                นำโทเค็นสะสมมาลงชื่อชิงโชคทองคำแท่ง 1 บาท, iPhone 16 Pro, แลกคูปองส่วนลดร้านค้า หรือสินค้าชุมชน
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14, background: 'rgba(255,255,255,0.25)', padding: '8px 16px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+            <span>ไปใช้ Token</span>
+            <ArrowRight size={16} />
+          </div>
+        </Link>
 
         {/* Payment Co-Pay Banner */}
         <Link
