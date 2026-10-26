@@ -208,6 +208,21 @@ export default function Home() {
             <div className="banking-info-desc">
               วงเงินสนับสนุนรวมตลอดระยะเวลาโครงการ
             </div>
+            <Link
+              to="/plus"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: '#D97706',
+                textDecoration: 'none',
+              }}
+            >
+              <span>ใช้ Token แลกของ & ลุ้นโชค</span>
+              <ArrowRight size={13} />
+            </Link>
           </div>
 
           <div className="banking-info-card">
