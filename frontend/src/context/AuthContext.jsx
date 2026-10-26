@@ -58,7 +58,14 @@ export function AuthProvider({ children }) {
         setToken(token);
         setUser(user);
         setTokens(tokens || 0);
-        setWallet(wallet || null);
+
+        const savedBalance = localStorage.getItem('user_simulated_balance');
+        const effectiveBalance = savedBalance !== null ? savedBalance : (wallet?.balance || '500.00');
+        setWallet({
+          ...(wallet || {}),
+          balance: effectiveBalance,
+        });
+
         setShop(shop || null);
         return { success: true, data: response.data.data };
       }
@@ -79,7 +86,14 @@ export function AuthProvider({ children }) {
         setToken(token);
         setUser(user);
         setTokens(tokens || 0);
-        setWallet(wallet || null);
+
+        const savedBalance = localStorage.getItem('user_simulated_balance');
+        const effectiveBalance = savedBalance !== null ? savedBalance : (wallet?.balance || '500.00');
+        setWallet({
+          ...(wallet || {}),
+          balance: effectiveBalance,
+        });
+
         return { success: true, isNew, data: response.data.data };
       }
       return { success: false, error: response.data.error || 'เข้าสู่ระบบด้วย ThaiD ไม่สำเร็จ' };
@@ -147,6 +161,31 @@ export function AuthProvider({ children }) {
     setTokens((prev) => prev + amount);
   };
 
+  // Deduct impact tokens
+  const deductTokens = (amount) => {
+    setTokens((prev) => Math.max(0, prev - amount));
+  };
+
+  // Set tokens balance directly
+  const setTokensBalance = (amount) => {
+    setTokens(amount);
+  };
+
+  // Refresh user and token data from backend
+  const refreshUser = async () => {
+    try {
+      const response = await api.get('/users/me');
+      if (response.data && response.data.success) {
+        const { user, tokens, wallet, shop } = response.data.data;
+        setUser(user);
+        setTokens(tokens || 0);
+        return { success: true, tokens, user };
+      }
+    } catch (err) {
+      console.warn('Failed to refresh user:', err);
+    }
+  };
+
   // Reset demo balance
   const resetBalance = (amount = 500) => {
     const val = parseFloat(amount).toFixed(2);
@@ -182,6 +221,9 @@ export function AuthProvider({ children }) {
     registerMerchant,
     deductBalance,
     addTokens,
+    deductTokens,
+    setTokensBalance,
+    refreshUser,
     resetBalance,
     logout,
   };
