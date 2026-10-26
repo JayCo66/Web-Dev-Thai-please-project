@@ -9,7 +9,6 @@ import {
   Eye, 
   EyeOff, 
   AlertCircle, 
-  Sparkles,
   QrCode,
   ArrowRight
 } from 'lucide-react';
@@ -18,7 +17,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, loginThaiD } = useAuth();
 
-  const [activeTab, setActiveTab] = useState('credentials'); // 'credentials' | 'thaid'
+  const [activeTab, setActiveTab] = useState('credentials');
   
   // Credentials Form
   const [identifier, setIdentifier] = useState('');
@@ -80,7 +79,7 @@ export default function Login() {
     }
   };
 
-  // Fill Demo Account
+  // Fill Demo Account (No Emojis)
   const fillDemo = (id, pass) => {
     setActiveTab('credentials');
     setIdentifier(id);
@@ -94,13 +93,13 @@ export default function Login() {
         {/* Brand Header */}
         <div className="brand-header">
           <div className="brand-badge">
-            <ShieldCheck size={14} /> โครงการกระตุ้นเศรษฐกิจดิจิทัล
+            <ShieldCheck size={13} /> โครงการกระตุ้นเศรษฐกิจดิจิทัลภาครัฐ
           </div>
           <h1 className="brand-title">
             ไทยช่วยไทย<span>พลีส</span>
           </h1>
           <p className="brand-subtitle">
-            เข้าสู่ระบบเพื่อใช้งานสิทธิประโยชน์ ภารกิจบิงโก และกระเป๋าเงินดิจิทัล
+            เข้าสู่ระบบเพื่อใช้งานกระเป๋าเงินดิจิทัลและสิทธิประโยชน์คนละครึ่ง
           </p>
         </div>
 
@@ -111,21 +110,21 @@ export default function Login() {
             className={`tab-btn ${activeTab === 'credentials' ? 'active' : ''}`}
             onClick={() => { setActiveTab('credentials'); setError(''); }}
           >
-            <User size={16} /> เข้าสู่ระบบทั่วไป
+            <User size={15} /> เข้าสู่ระบบทั่วไป
           </button>
           <button
             type="button"
             className={`tab-btn ${activeTab === 'thaid' ? 'active' : ''}`}
             onClick={() => { setActiveTab('thaid'); setError(''); }}
           >
-            <QrCode size={16} /> เข้าสู่ระบบผ่าน ThaiD
+            <QrCode size={15} /> เข้าสู่ระบบผ่าน ThaiD
           </button>
         </div>
 
         {/* Error Alert */}
         {error && (
           <div className="alert alert-danger">
-            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+            <AlertCircle size={17} style={{ flexShrink: 0 }} />
             <div>{error}</div>
           </div>
         )}
@@ -138,11 +137,11 @@ export default function Login() {
                 บัญชีผู้ใช้ <span className="req">*</span>
               </label>
               <div className="input-with-icon">
-                <User size={18} className="input-icon" />
+                <User size={17} className="input-icon" />
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="เบอร์โทร 10 หลัก / เลขบัตร ปชช. / อีเมล"
+                  placeholder="เบอร์โทรศัพท์ 10 หลัก / เลขบัตร ปชช. / อีเมล"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   autoComplete="username"
@@ -150,7 +149,7 @@ export default function Login() {
                 />
               </div>
               <div className="form-hint">
-                สามารถใช้เบอร์โทรศัพท์ (เช่น 0812345678) หรืออีเมลในการเข้าสู่ระบบ
+                สามารถใช้เบอร์โทรศัพท์ (เช่น 0812345678) หรืออีเมลที่ลงทะเบียนไว้
               </div>
             </div>
 
@@ -159,7 +158,7 @@ export default function Login() {
                 รหัสผ่าน <span className="req">*</span>
               </label>
               <div className="input-with-icon">
-                <Lock size={18} className="input-icon" />
+                <Lock size={17} className="input-icon" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   className="form-input"
@@ -168,14 +167,15 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   disabled={loading}
+                  style={{ paddingRight: 44 }}
                 />
                 <button
                   type="button"
                   className="input-action-icon"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label="Toggle password visibility"
+                  aria-label="แสดงหรือซ่อนรหัสผ่าน"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
@@ -183,12 +183,12 @@ export default function Login() {
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? (
                 <>
-                  <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-                  กำลังเข้าสู่ระบบ...
+                  <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                  <span>กำลังเข้าสู่ระบบ...</span>
                 </>
               ) : (
                 <>
-                  <LogIn size={18} /> เข้าสู่ระบบ
+                  <LogIn size={16} /> <span>เข้าสู่ระบบ</span>
                 </>
               )}
             </button>
@@ -199,11 +199,11 @@ export default function Login() {
         {activeTab === 'thaid' && (
           <form onSubmit={handleThaiDSubmit}>
             <div className="alert alert-info">
-              <Sparkles size={18} style={{ flexShrink: 0 }} />
+              <ShieldCheck size={17} style={{ flexShrink: 0 }} />
               <div>
                 <strong>ระบบเชื่อมโยง Digital ID (ThaiD):</strong>
                 <br />
-                เข้าสู่ระบบสะดวกรวดเร็วโดยไม่ต้องใช้รหัสผ่าน หากยังไม่เคยมีบัญชี ระบบจะสร้างบัญชีและมอบกระดานบิงโกให้ทันที
+                เข้าสู่ระบบสะดวกรวดเร็วโดยไม่ต้องใช้รหัสผ่าน หากยังไม่เคยมีบัญชี ระบบจะสร้างบัญชีให้อัตโนมัติ
               </div>
             </div>
 
@@ -212,7 +212,7 @@ export default function Login() {
                 เลขประจำตัวประชาชน (13 หลัก) <span className="req">*</span>
               </label>
               <div className="input-with-icon">
-                <ShieldCheck size={18} className="input-icon" />
+                <ShieldCheck size={17} className="input-icon" />
                 <input
                   type="text"
                   className="form-input"
@@ -230,7 +230,7 @@ export default function Login() {
                 ชื่อ-นามสกุล (สำหรับบัญชีใหม่ ไม่บังคับ)
               </label>
               <div className="input-with-icon">
-                <User size={18} className="input-icon" />
+                <User size={17} className="input-icon" />
                 <input
                   type="text"
                   className="form-input"
@@ -245,22 +245,22 @@ export default function Login() {
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? (
                 <>
-                  <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-                  กำลังเชื่อมต่อ ThaiD...
+                  <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                  <span>กำลังเชื่อมต่อ ThaiD...</span>
                 </>
               ) : (
                 <>
-                  <QrCode size={18} /> ยืนยันตัวตนผ่าน ThaiD
+                  <QrCode size={16} /> <span>ยืนยันตัวตนผ่าน ThaiD</span>
                 </>
               )}
             </button>
           </form>
         )}
 
-        {/* Quick Demo Fill Box */}
+        {/* Quick Demo Fill Box (No Emojis) */}
         <div className="demo-box">
           <div className="demo-title">
-            <Sparkles size={14} color="#D97706" /> ข้อมูลทดสอบด่วน (คลิกเพื่อกรอกอัตโนมัติ):
+            <ShieldCheck size={13} color="var(--bank-royal)" /> บัญชีทดสอบด่วน:
           </div>
           <div className="demo-chips">
             <button
@@ -268,21 +268,21 @@ export default function Login() {
               className="demo-chip"
               onClick={() => fillDemo('0812345678', 'password123')}
             >
-              👤 สมชาย (ประชาชน)
+              ประชาชน (สมชาย)
             </button>
             <button
               type="button"
               className="demo-chip"
               onClick={() => fillDemo('0898765432', 'password123')}
             >
-              🏪 ป้าพร (ร้านค้า)
+              ร้านค้า (ป้าพร)
             </button>
             <button
               type="button"
               className="demo-chip"
               onClick={() => fillDemo('0855550001', 'password123')}
             >
-              ⚙️ แอดมินระบบ
+              ผู้ดูแลระบบ (แอดมิน)
             </button>
           </div>
         </div>
@@ -291,7 +291,8 @@ export default function Login() {
         <div className="auth-footer">
           ยังไม่ได้ลงทะเบียนเข้าร่วมโครงการ?
           <Link to="/register" className="auth-link">
-            ลงทะเบียนที่นี่ <ArrowRight size={14} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            <span>ลงทะเบียนที่นี่</span>
+            <ArrowRight size={13} style={{ marginLeft: 2 }} />
           </Link>
         </div>
       </div>

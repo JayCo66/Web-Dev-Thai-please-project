@@ -1,27 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import Navbar from '../components/Navbar';
 import {
   HeartHandshake,
   GraduationCap,
   Trees,
   Users,
   HeartPulse,
-  Coins,
-  Wallet,
-  ArrowLeft,
   CheckCircle2,
   AlertCircle,
   FileText,
-  Sparkles,
-  PlusCircle,
   Clock,
-  X
+  X,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function Charities() {
-  const { user, wallet, tokens, deductBalance, addTokens, resetBalance } = useAuth();
+  const { wallet, deductBalance, addTokens } = useAuth();
 
   const [charities, setCharities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,20 +110,15 @@ export default function Charities() {
       });
 
       if (res.data && res.data.success) {
-        // 1. Deduct simulated balance in AuthContext & LocalStorage
         const remaining = deductBalance(amountToDeduct);
-
-        // 2. Add awarded Impact Tokens
         const bonusTokens = res.data.data.bonusTokensAwarded || Math.max(1, Math.floor(amountToDeduct / 20));
         addTokens(bonusTokens);
 
-        // 3. Set success state to show receipt
         setDonationSuccess({
           ...res.data.data,
           remainingBalance: remaining,
         });
 
-        // 4. Refresh charities stats & history
         fetchCharities();
         fetchMyDonations();
       } else {
@@ -141,7 +132,6 @@ export default function Charities() {
     }
   };
 
-  // Filtered charities
   const filteredCharities = activeFilter === 'ALL'
     ? charities
     : charities.filter((c) => c.impactType === activeFilter);
@@ -149,75 +139,57 @@ export default function Charities() {
   const getImpactBadge = (type) => {
     switch (type) {
       case 'EDUCATION':
-        return { label: 'การศึกษาและเยาวชน', class: 'badge-edu', icon: <GraduationCap size={14} /> };
+        return { label: 'การศึกษาและเยาวชน', class: 'badge-edu', icon: <GraduationCap size={13} /> };
       case 'ENVIRONMENT':
-        return { label: 'สิ่งแวดล้อมและธรรมชาติ', class: 'badge-env', icon: <Trees size={14} /> };
+        return { label: 'สิ่งแวดล้อมและธรรมชาติ', class: 'badge-env', icon: <Trees size={13} /> };
       case 'COMMUNITY':
-        return { label: 'ชุมชนและผู้สูงอายุ', class: 'badge-com', icon: <Users size={14} /> };
+        return { label: 'ชุมชนและผู้สูงอายุ', class: 'badge-com', icon: <Users size={13} /> };
       case 'HEALTHCARE':
-        return { label: 'สาธารณสุขและการแพทย์', class: 'badge-health', icon: <HeartPulse size={14} /> };
+        return { label: 'สาธารณสุขและการแพทย์', class: 'badge-health', icon: <HeartPulse size={13} /> };
       default:
-        return { label: 'เพื่อสังคม', class: 'badge-edu', icon: <HeartHandshake size={14} /> };
+        return { label: 'เพื่อสังคม', class: 'badge-edu', icon: <HeartHandshake size={13} /> };
     }
   };
 
   const userBalance = parseFloat(wallet?.balance || '500.00');
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header */}
-      <header className="app-header">
-        <div className="header-brand">
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}>
-            <div className="header-logo" style={{ width: 34, height: 34, fontSize: 16 }}>
-              <ArrowLeft size={18} />
-            </div>
-            <div>
-              <div className="header-title">มูลนิธิและโครงการเพื่อสังคม</div>
-              <div className="header-tag">Social Impact & e-Donation</div>
-            </div>
-          </Link>
-        </div>
-
-        <div className="header-user">
-          {/* Simulated Wallet Balance Pill */}
-          <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋าของคุณ">
-            <Wallet size={16} />
-            <span>ยอดคงเหลือ: ฿{userBalance.toFixed(2)}</span>
-            <button
-              type="button"
-              className="btn-topup-mini"
-              onClick={() => resetBalance(500)}
-              title="รีเซ็ตหรือเติมเงินจำลองเป็น 500 บาทสำหรับการทดสอบ"
-            >
-              + เติม ฿500
-            </button>
-          </div>
-
-          {/* Tokens Pill */}
-          <div className="token-pill">
-            <Coins size={16} />
-            <span>{tokens} Tokens</span>
-          </div>
-        </div>
-      </header>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      {/* Official App Header */}
+      <Navbar />
 
       {/* Main Content */}
-      <main className="home-container" style={{ marginTop: 24 }}>
-        {/* Hero Banner */}
-        <div className="hero-banner" style={{ background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 50%, #14B8A6 100%)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 999, fontSize: 13, marginBottom: 12 }}>
-            <HeartHandshake size={14} /> จำลองการบริจาคเพื่อสังคม
+      <main className="home-container">
+        {/* Banner Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0A192F 0%, #0369A1 100%)',
+          color: '#FFFFFF',
+          borderRadius: 'var(--radius-lg)',
+          padding: '22px 20px',
+          marginBottom: 20
+        }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'rgba(255, 255, 255, 0.14)',
+            padding: '4px 10px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: 12,
+            fontWeight: 600,
+            marginBottom: 10
+          }}>
+            <ShieldCheck size={13} /> ระบบ e-Donation กรมสรรพากร
           </div>
-          <h1 className="hero-title">
-            ส่งต่อความช่วยเหลือ สร้างรอยยิ้มสู่ชุมชน 🌱
+          <h1 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 6 }}>
+            ระบบบริจาคอิเล็กทรอนิกส์เพื่อสังคม
           </h1>
-          <p className="hero-subtitle">
-            เลือกมูลนิธิที่คุณต้องการสนับสนุน โดยระบบจะ<strong>จำลองการหักยอดเงินจากกระเป๋าเงินของคุณ</strong> พร้อมออกเลขอ้างอิง <strong>e-Donation สำหรับลดหย่อนภาษี</strong> และมอบ Impact Tokens เพิ่มเติมให้คุณ
+          <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5, maxWidth: 680 }}>
+            เลือกมูลนิธิที่คุณต้องการสนับสนุน โดยระบบจะจำลองการหักยอดเงินจากกระเป๋าของคุณ พร้อมออกเลขอ้างอิง <strong>e-Donation สำหรับลดหย่อนภาษีเงินได้</strong> และบันทึกคะแนน Impact Tokens
           </p>
         </div>
 
-        {/* Category Filters */}
+        {/* Category Filters (Touch-friendly 44px targets, no emojis) */}
         <div className="charity-filters">
           <button
             type="button"
@@ -245,7 +217,7 @@ export default function Charities() {
             className={`filter-chip ${activeFilter === 'COMMUNITY' ? 'active' : ''}`}
             onClick={() => setActiveFilter('COMMUNITY')}
           >
-            <Users size={15} /> ชุมชน & ผู้สูงอายุ
+            <Users size={15} /> ชุมชนและผู้สูงอายุ
           </button>
           <button
             type="button"
@@ -258,16 +230,16 @@ export default function Charities() {
 
         {/* Loading Spinner */}
         {loading && (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+          <div style={{ textAlign: 'center', padding: '50px 0' }}>
             <div className="spinner" />
-            <p style={{ marginTop: 12, color: 'var(--text-muted)' }}>กำลังโหลดรายชื่อมูลนิธิ...</p>
+            <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text-secondary)' }}>กำลังโหลดรายชื่อมูลนิธิ...</p>
           </div>
         )}
 
         {/* Error message */}
         {error && (
           <div className="alert alert-danger">
-            <AlertCircle size={18} />
+            <AlertCircle size={17} style={{ flexShrink: 0 }} />
             <div>{error}</div>
           </div>
         )}
@@ -280,7 +252,7 @@ export default function Charities() {
               return (
                 <div key={item.charityId} className="charity-card">
                   <div>
-                    {/* Impact Category Badge */}
+                    {/* Category Accreditation Badge */}
                     <div className={`charity-impact-badge ${badge.class}`}>
                       {badge.icon}
                       <span>{badge.label}</span>
@@ -289,8 +261,8 @@ export default function Charities() {
                     {/* Charity Name & Tax ID */}
                     <h2 className="charity-title">{item.name}</h2>
                     <div className="charity-taxid">
-                      <FileText size={13} />
-                      <span>เลขผู้เสียภาษี: {item.taxId} • e-Donation</span>
+                      <FileText size={12} />
+                      <span>เลขประจำตัวผู้เสียภาษี: {item.taxId} • e-Donation</span>
                     </div>
 
                     {/* Description */}
@@ -300,18 +272,18 @@ export default function Charities() {
                   <div>
                     {/* Stats summary */}
                     <div className="charity-stats">
-                      <div className="charity-stats-item">
-                        <span style={{ color: 'var(--text-muted)' }}>ยอดสนับสนุนรวม</span>
-                        <strong style={{ color: '#059669' }}>฿{Number(item.totalDonations).toLocaleString()}</strong>
+                      <div>
+                        <span style={{ color: 'var(--text-secondary)' }}>ยอดสนับสนุนรวม</span>
+                        <strong>฿{Number(item.totalDonations).toLocaleString()}</strong>
                       </div>
-                      <div className="charity-stats-item" style={{ textAlign: 'right' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>ผู้ร่วมบริจาค</span>
-                        <strong>{item.donorCount} คน</strong>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>ผู้ร่วมบริจาค</span>
+                        <strong style={{ color: 'var(--text-primary)' }}>{item.donorCount} คน</strong>
                       </div>
                     </div>
 
-                    {/* Quick Preset Buttons */}
-                    <div className="donation-presets">
+                    {/* Quick Preset Buttons (min 44px touch height) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 12 }}>
                       <button type="button" className="preset-btn" onClick={() => handleOpenDonate(item, 20)}>
                         ฿20
                       </button>
@@ -329,11 +301,11 @@ export default function Charities() {
                     {/* Main Action Button */}
                     <button
                       type="button"
-                      className="btn-donate"
+                      className="btn-primary"
                       onClick={() => handleOpenDonate(item, 50)}
                     >
-                      <HeartHandshake size={18} />
-                      <span>ร่วมบริจาค</span>
+                      <HeartHandshake size={16} />
+                      <span>ร่วมบริจาค (e-Donation)</span>
                     </button>
                   </div>
                 </div>
@@ -342,41 +314,43 @@ export default function Charities() {
           </div>
         )}
 
-        {/* User Donation History Card */}
+        {/* User Donation History Statement */}
         <div className="history-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={20} color="var(--primary)" />
+          <div className="history-card-header">
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Clock size={17} color="var(--bank-royal)" />
               ประวัติการบริจาคของคุณ ({history.length} รายการ)
             </h3>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              บันทึกการหักเงินจำลองและ e-Donation
+            <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+              บันทึกการหักเงินจำลองและ e-Donation กรมสรรพากร
             </span>
           </div>
 
           {history.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-              คุณยังไม่มีประวัติการบริจาค เลือกมูลนิธิด้านบนเพื่อเริ่มส่งต่อความช่วยเหลือได้เลยครับ ✨
+            <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-secondary)', fontSize: 13.5 }}>
+              คุณยังไม่มีประวัติการบริจาค เลือกมูลนิธิด้านบนเพื่อเริ่มส่งต่อความช่วยเหลือ
             </div>
           ) : (
             <div>
               {history.map((h) => (
                 <div key={h.donationId} className="history-item">
-                  <div>
-                    <strong style={{ fontSize: 15, color: 'var(--text-main)' }}>{h.charityName}</strong>
-                    <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <strong style={{ fontSize: 14.5, color: 'var(--text-primary)', display: 'block', wordBreak: 'break-word' }}>
+                      {h.charityName}
+                    </strong>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span>{new Date(h.donatedAt).toLocaleString('th-TH')}</span>
                       <span>•</span>
-                      <span style={{ color: '#0284C7', fontWeight: 600 }}>{h.edonationRef}</span>
+                      <span style={{ color: 'var(--bank-royal)', fontWeight: 600 }}>{h.edonationRef}</span>
                     </div>
                   </div>
 
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: '#DC2626' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 }}>
+                    <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--fin-danger)' }}>
                       -฿{Number(h.amount).toFixed(2)}
                     </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, background: '#ECFDF5', color: '#059669', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>
-                      <CheckCircle2 size={12} /> สำเร็จ (e-Donation)
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--fin-success-bg)', color: 'var(--fin-success)', padding: '2px 8px', borderRadius: 999, fontWeight: 600, border: '1px solid var(--fin-success-border)' }}>
+                      <CheckCircle2 size={11} /> สำเร็จ (e-Donation)
                     </span>
                   </div>
                 </div>
@@ -387,60 +361,62 @@ export default function Charities() {
       </main>
 
       {/* ========================================================
-          Donation Confirmation & Success Modal
+          Donation Confirmation & Success Modal (No Emojis)
           ======================================================== */}
       {selectedCharity && (
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
             <div className="modal-header">
-              <div className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <HeartHandshake size={22} color="#059669" />
-                <span>ยืนยันการบริจาค</span>
+              <div className="modal-title">
+                <HeartHandshake size={20} color="var(--bank-royal)" />
+                <span>ยืนยันการบริจาค e-Donation</span>
               </div>
-              <button type="button" className="btn-close" onClick={handleCloseModal}>
-                <X size={20} />
+              <button
+                type="button"
+                className="btn-close"
+                onClick={handleCloseModal}
+                aria-label="ปิดหน้าต่าง"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            {/* Error in modal */}
             {error && (
-              <div className="alert alert-danger" style={{ marginBottom: 16 }}>
-                <AlertCircle size={16} />
+              <div className="alert alert-danger" style={{ marginBottom: 14 }}>
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
                 <div>{error}</div>
               </div>
             )}
 
-            {/* Success State View */}
             {donationSuccess ? (
-              <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#059669' }}>
-                  <CheckCircle2 size={38} />
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fin-success-bg)', border: '1px solid var(--fin-success-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: 'var(--fin-success)' }}>
+                  <CheckCircle2 size={30} />
                 </div>
-                <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6 }}>
-                  บริจาคสำเร็จเรียบร้อย! 🎉
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+                  บริจาคสำเร็จเรียบร้อย
                 </h3>
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
                   ขอบคุณที่ร่วมสนับสนุน <strong>{donationSuccess.charityName}</strong>
                 </p>
 
                 {/* Receipt Card */}
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 'var(--radius-lg)', padding: 18, textAlign: 'left', marginBottom: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13.5 }}>
-                    <span style={{ color: 'var(--text-muted)' }}>จำนวนเงินที่บริจาค:</span>
-                    <strong style={{ color: '#DC2626' }}>-฿{Number(donationSuccess.amount).toFixed(2)}</strong>
+                <div style={{ background: 'var(--bank-royal-light)', border: '1px solid var(--bank-royal-border)', borderRadius: 'var(--radius-sm)', padding: 14, textAlign: 'left', marginBottom: 18 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>จำนวนเงินที่บริจาค:</span>
+                    <strong style={{ color: 'var(--fin-danger)' }}>-฿{Number(donationSuccess.amount).toFixed(2)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13.5 }}>
-                    <span style={{ color: 'var(--text-muted)' }}>ยอดเงินคงเหลือในกระเป๋า:</span>
-                    <strong style={{ color: '#059669' }}>฿{Number(donationSuccess.remainingBalance).toFixed(2)}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>ยอดเงินคงเหลือในกระเป๋า:</span>
+                    <strong style={{ color: 'var(--bank-royal)' }}>฿{Number(donationSuccess.remainingBalance).toFixed(2)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13.5 }}>
-                    <span style={{ color: 'var(--text-muted)' }}>เลขอ้างอิง e-Donation:</span>
-                    <span style={{ color: '#0284C7', fontWeight: 700, fontFamily: 'monospace' }}>{donationSuccess.edonationRef}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, flexWrap: 'wrap', gap: 4 }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>เลขอ้างอิง e-Donation:</span>
+                    <span style={{ color: 'var(--bank-royal)', fontWeight: 700, fontFamily: 'monospace' }}>{donationSuccess.edonationRef}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, paddingTop: 8, borderTop: '1px dashed #CBD5E1' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Impact Tokens ที่ได้รับ:</span>
-                    <span style={{ color: '#D97706', fontWeight: 700 }}>+{donationSuccess.bonusTokensAwarded} Tokens ⭐</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: 6, borderTop: '1px dashed var(--bank-royal-border)' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Impact Tokens ที่ได้รับ:</span>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 700 }}>+{donationSuccess.bonusTokensAwarded} Tokens</span>
                   </div>
                 </div>
 
@@ -449,16 +425,15 @@ export default function Charities() {
                 </button>
               </div>
             ) : (
-              /* Step 1: Input & Confirm State */
               <div>
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 16 }}>
+                <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', marginBottom: 14 }}>
                   คุณกำลังจะร่วมบริจาคให้ <strong>{selectedCharity.name}</strong>
                 </p>
 
                 {/* Select Amount Buttons */}
-                <div style={{ marginBottom: 16 }}>
+                <div style={{ marginBottom: 14 }}>
                   <label className="form-label">เลือกจำนวนเงินบริจาค (บาท)</label>
-                  <div className="donation-presets" style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 8 }}>
                     {[20, 50, 100, 200].map((amt) => (
                       <button
                         key={amt}
@@ -471,11 +446,10 @@ export default function Charities() {
                     ))}
                   </div>
 
-                  {/* Or Custom Amount */}
                   <input
                     type="number"
                     className="form-input"
-                    style={{ paddingLeft: 14 }}
+                    style={{ paddingLeft: 12 }}
                     placeholder="หรือระบุจำนวนเงินเอง (บาท)"
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
@@ -485,52 +459,53 @@ export default function Charities() {
                 </div>
 
                 {/* Simulated Balance Breakdown */}
-                <div className="donation-breakdown">
-                  <div className="breakdown-row">
-                    <span style={{ color: 'var(--text-muted)' }}>ยอดเงินคงเหลือปัจจุบัน:</span>
+                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: 12, marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 6 }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>ยอดเงินคงเหลือปัจจุบัน:</span>
                     <span>฿{userBalance.toFixed(2)}</span>
                   </div>
-                  <div className="breakdown-row">
-                    <span style={{ color: 'var(--text-muted)' }}>ยอดที่จะบริจาค (จำลองหักเงิน):</span>
-                    <span style={{ color: '#DC2626', fontWeight: 600 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 6 }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>ยอดที่จะบริจาค (จำลองหักเงิน):</span>
+                    <span style={{ color: 'var(--fin-danger)', fontWeight: 600 }}>
                       -฿{(customAmount ? parseFloat(customAmount) || 0 : donationAmount).toFixed(2)}
                     </span>
                   </div>
-                  <div className="breakdown-row">
-                    <span>ยอดเงินคงเหลือหลังบริจาค:</span>
-                    <span style={{ color: '#059669' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, paddingTop: 6, borderTop: '1px dashed var(--border-light)' }}>
+                    <span>ยอดคงเหลือหลังบริจาค:</span>
+                    <span style={{ color: 'var(--bank-royal)' }}>
                       ฿{Math.max(0, userBalance - (customAmount ? parseFloat(customAmount) || 0 : donationAmount)).toFixed(2)}
                     </span>
                   </div>
                 </div>
 
                 {/* e-Donation Checkbox */}
-                <label className="edonation-checkbox">
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12.5, color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: 16 }}>
                   <input
                     type="checkbox"
                     checked={requestEDonation}
                     onChange={(e) => setRequestEDonation(e.target.checked)}
+                    style={{ marginTop: 2 }}
                   />
                   <span>
-                    ขอรับเลขอ้างอิง <strong>e-Donation</strong> ส่งข้อมูลตรงยังกรมสรรพากรเพื่อใช้ลดหย่อนภาษีเงินได้บุคคลธรรมดา
+                    ขอรับเลขอ้างอิง <strong>e-Donation</strong> ส่งข้อมูลตรงยังกรมสรรพากรเพื่อใช้สิทธิลดหย่อนภาษีเงินได้บุคคลธรรมดา
                   </span>
                 </label>
 
                 {/* Confirm Button */}
                 <button
                   type="button"
-                  className="btn-donate"
+                  className="btn-primary"
                   onClick={handleConfirmDonation}
                   disabled={donating || (customAmount ? parseFloat(customAmount) > userBalance : donationAmount > userBalance)}
                 >
                   {donating ? (
                     <>
-                      <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
+                      <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
                       <span>กำลังประมวลผลการบริจาค...</span>
                     </>
                   ) : (
                     <>
-                      <HeartHandshake size={18} />
+                      <HeartHandshake size={16} />
                       <span>ยืนยันการบริจาค (หักยอดเงินจำลอง)</span>
                     </>
                   )}
