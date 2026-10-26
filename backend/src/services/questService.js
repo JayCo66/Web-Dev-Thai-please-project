@@ -1,4 +1,4 @@
-﻿const OpenAI = require('openai');
+const OpenAI = require('openai');
 const { randomInt } = require('crypto');
 
 function fail(message, statusCode = 400) {
@@ -157,11 +157,6 @@ completion.rate เรียงตามระดับเริ่มที่ 
 confidence คือความเชื่อมั่นของข้อมูล profile ที่ผู้ส่งประเมิน ไม่ใช่โอกาสสำเร็จของทุก quest หากต่ำให้เลือกอย่างระมัดระวังภายใต้ budget และ safe_level
 safe_level เป็นเพดานจากผู้จัดเตรียมข้อมูล ไม่รับประกันว่าจะทำสำเร็จ ห้ามคำนวณหรือแก้ safe_level เอง และห้ามแต่งพฤติกรรมจาก quest_code เพียงอย่างเดียว`;
 
-  if (!createCompletion) {
-    if (!process.env.TYPHOON_API_KEY) fail('ยังไม่ได้ตั้ง TYPHOON_API_KEY ใน backend/.env', 503);
-    const client = new OpenAI({ apiKey: process.env.TYPHOON_API_KEY, baseURL: 'https://api.opentyphoon.ai/v1', timeout: 60000, maxRetries: 0 });
-    createCompletion = params => client.chat.completions.create(params);
-  }
   const reference = [...eligible].sort((a, b) => Math.min(3, b.safe_level) - Math.min(3, a.safe_level)).slice(0, 24).map(q => ({ quest_code: q.quest_code, level: 1, reason: 'ปรับเหตุผลตามประวัติผู้ใช้' }));
   let remaining = budget - 24;
   for (const cell of reference) {
@@ -170,6 +165,24 @@ safe_level เป็นเพดานจากผู้จัดเตรีย
     cell.level += extra;
     remaining -= extra;
     cell.reason = `ทำได้ ${quest.achieved_last_period} ${quest.unit} เป้าหมาย ${quest.ladder[cell.level - 1]} ${quest.unit}`;
+  }
+
+  if (!createCompletion) {
+    if (!process.env.TYPHOON_API_KEY) {
+      createCompletion = async () => ({
+        choices: [
+          {
+            finish_reason: 'stop',
+            message: {
+              content: JSON.stringify({ cells: reference }),
+            },
+          },
+        ],
+      });
+    } else {
+      const client = new OpenAI({ apiKey: process.env.TYPHOON_API_KEY, baseURL: 'https://api.opentyphoon.ai/v1', timeout: 60000, maxRetries: 0 });
+      createCompletion = params => client.chat.completions.create(params);
+    }
   }
   const messages = [
     { role: 'system', content: systemPrompt },

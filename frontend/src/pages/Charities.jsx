@@ -18,7 +18,8 @@ import {
   PlusCircle,
   Clock,
   X,
-  Gift
+  Gift,
+  Grid
 } from 'lucide-react';
 
 export default function Charities() {
@@ -181,6 +182,27 @@ export default function Charities() {
         </div>
 
         <div className="header-user">
+          {/* Link to Bingo */}
+          <Link
+            to="/bingo"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              background: '#EEF2FF',
+              border: '1px solid #C7D2FE',
+              borderRadius: 999,
+              color: '#4338CA',
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            <Grid size={15} color="#4F46E5" />
+            <span>ภารกิจบิงโก 5x5</span>
+          </Link>
+
           {/* Link to ThaiPlus */}
           <Link
             to="/plus"

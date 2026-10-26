@@ -112,6 +112,15 @@ async function donateToCharity(req, res) {
       },
     });
 
+    // Real-time Mission Checker: Synchronize Bingo Mission progress for citizen
+    let questUpdate = null;
+    try {
+      const { syncDonationProgress } = require('./questController');
+      questUpdate = await syncDonationProgress(userId.toString(), donationAmount, newDonation.donation_id);
+    } catch (questErr) {
+      console.warn('Could not sync quest progress on donation:', questErr.message);
+    }
+
     return res.status(201).json({
       success: true,
       message: `บริจาคให้ ${charity.name} สำเร็จ`,
@@ -123,6 +132,7 @@ async function donateToCharity(req, res) {
         edonationRef: edonRef,
         bonusTokensAwarded: bonusTokens,
         donatedAt: newDonation.donated_at,
+        questUpdate,
       },
     });
   } catch (error) {
