@@ -137,6 +137,102 @@ function validateCells(parsed, eligible, budget) {
   return mapped;
 }
 
+/**
+ * Constrained Line Layout Algorithm (ADR-0003)
+ * Distributes 24 mission cells around center position 12 so that
+ * every row and column has a balanced difficulty level sum (12-14 levels per row/column).
+ * @param {Array} normalCells - 24 cells with levels summing to budget (e.g. 63)
+ * @param {Object} centerCell - The dual-action center cell (position 12)
+ * @returns {Array} 25 cells ordered from position 0 to 24
+ */
+function arrangeFairBoardLayout(normalCells, centerCell) {
+  const grid = new Array(25);
+  grid[12] = centerCell;
+
+  const normalPositions = [
+    0, 1, 2, 3, 4,
+    5, 6, 7, 8, 9,
+    10, 11, 13, 14,
+    15, 16, 17, 18, 19,
+    20, 21, 22, 23, 24,
+  ];
+
+  // Distribute cells initially in a snake-like interleaved pattern across rows to start near balanced
+  const sorted = [...normalCells].sort((a, b) => (b.level || 1) - (a.level || 1));
+  const rowBuckets = [[], [], [], [], []];
+  let r = 0;
+  let dir = 1;
+  for (const cell of sorted) {
+    rowBuckets[r].push(cell);
+    if (r === 4 && dir === 1) dir = -1;
+    else if (r === 0 && dir === -1) dir = 1;
+    else r += dir;
+  }
+
+  // Populate grid from buckets
+  let pIdx = 0;
+  for (let rIdx = 0; rIdx < 5; rIdx++) {
+    for (const cell of rowBuckets[rIdx]) {
+      grid[normalPositions[pIdx++]] = cell;
+    }
+  }
+
+  function getVariance() {
+    let variance = 0;
+    // Row sums (target: 12.6 for normal rows, 10.08 for row 2)
+    for (let row = 0; row < 5; row++) {
+      let sum = 0;
+      for (let col = 0; col < 5; col++) {
+        const idx = row * 5 + col;
+        if (idx !== 12) sum += grid[idx].level || 1;
+      }
+      const target = (row === 2) ? 10.08 : 12.6;
+      variance += Math.pow(sum - target, 2);
+    }
+    // Col sums
+    for (let col = 0; col < 5; col++) {
+      let sum = 0;
+      for (let row = 0; row < 5; row++) {
+        const idx = row * 5 + col;
+        if (idx !== 12) sum += grid[idx].level || 1;
+      }
+      const target = (col === 2) ? 10.08 : 12.6;
+      variance += Math.pow(sum - target, 2);
+    }
+    return variance;
+  }
+
+  let currentVariance = getVariance();
+  // Constrained pair swapping
+  for (let iter = 0; iter < 20; iter++) {
+    let improved = false;
+    for (let i = 0; i < 24; i++) {
+      for (let j = i + 1; j < 24; j++) {
+        const p1 = normalPositions[i];
+        const p2 = normalPositions[j];
+        if (grid[p1].level === grid[p2].level) continue;
+
+        const tmp = grid[p1];
+        grid[p1] = grid[p2];
+        grid[p2] = tmp;
+
+        const v = getVariance();
+        if (v < currentVariance) {
+          currentVariance = v;
+          improved = true;
+        } else {
+          // Revert swap
+          grid[p2] = grid[p1];
+          grid[p1] = tmp;
+        }
+      }
+    }
+    if (!improved) break;
+  }
+
+  return grid;
+}
+
 /** Generate a preview only: no database writes, payments, or Bingo line checks. */
 async function generateBingoMissionsWithAI(input, { createCompletion } = {}) {
   const { profile, eligible, budget, board } = validateInput(input);
@@ -216,16 +312,34 @@ safe_level เป็นเพดานจากผู้จัดเตรีย
       messages.push({ role: 'user', content: `คำตอบผิดกติกา: ${error.message} กรุณาส่ง JSON ฉบับแก้ไขครบ 24 ช่อง ผลรวมระดับต้องเท่ากับ ${budget} ชุดนี้เป็นเพียงตัวอย่างที่รวมได้ ไม่ใช่อันดับความเหมาะสม: ${JSON.stringify(reference)}` });
     }
   }
-  cells.push({ quest_code: 'DONATION', family: 'DONATION', unit: 'ครั้ง', level: null, target_value: 1, title: 'บริจาคให้มูลนิธิ 1 ครั้ง', reason: 'ภารกิจบริจาคบังคับ 1 ช่อง ไม่นับรวม budget' });
-  for (let i = cells.length - 1; i > 0; i--) {
-    const j = randomInt(i + 1);
-    [cells[i], cells[j]] = [cells[j], cells[i]];
-  }
-  if (board.center_quest === 'DONATION') {
-    const index = cells.findIndex(cell => cell.family === 'DONATION');
-    [cells[12], cells[index]] = [cells[index], cells[12]];
-  }
-  return { board, budget, total_level: cells.reduce((sum, cell) => sum + (cell.level ?? 0), 0), adjusted_cells_count: cells.filter(cell => cell.level_adjusted).length, total_cells: 25, donation_cells_count: 1, source: 'AI', ai_attempts: attempts, period: profile.period, bingo_board_5x5: cells.map((cell, position) => ({ position, ...cell })) };
+  const centerCell = {
+    quest_code: 'DONATION',
+    family: 'DONATION',
+    unit: 'ครั้ง',
+    level: null,
+    target_value: 1,
+    title: 'ร่วมบริจาคหรืออุดหนุนร้านค้าชุมชน 1 ครั้ง',
+    short_title: 'บริจาค/อุดหนุนชุมชน',
+    reason: 'ภารกิจใจกลางเพื่อสังคม: เลือกบริจาคผ่าน e-Donation หรือซื้อสินค้าจากร้านค้ารายย่อยชุมชน 1 ครั้ง',
+    reason_source: 'SERVER_DATA',
+  };
+
+  const finalGrid = arrangeFairBoardLayout(cells, centerCell);
+  return {
+    board,
+    budget,
+    total_level: finalGrid.reduce((sum, cell) => sum + (cell.level ?? 0), 0),
+    adjusted_cells_count: finalGrid.filter(cell => cell.level_adjusted).length,
+    total_cells: 25,
+    donation_cells_count: 1,
+    source: 'AI',
+    ai_attempts: attempts,
+    period: profile.period,
+    bingo_board_5x5: finalGrid.map((cell, position) => ({ position, ...cell })),
+  };
 }
 
-module.exports = { generateBingoMissionsWithAI };
+module.exports = {
+  arrangeFairBoardLayout,
+  generateBingoMissionsWithAI,
+};

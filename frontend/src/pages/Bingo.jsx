@@ -26,7 +26,11 @@ import {
   Check,
   X,
   AlertTriangle,
-  Play
+  AlertCircle,
+  Play,
+  RotateCw,
+  HelpCircle,
+  Award
 } from 'lucide-react';
 
 export default function Bingo() {
@@ -336,6 +340,37 @@ export default function Bingo() {
           </p>
         </div>
 
+        {/* Senior-Friendly 3-Step Guide */}
+        <div className="bingo-guide-banner">
+          <div className="bingo-guide-title">
+            <HelpCircle size={17} color="var(--bank-royal)" />
+            <span>วิธีเล่นบิงโกแบบง่าย 3 ขั้นตอน สำหรับประชาชนทุกท่าน</span>
+          </div>
+          <div className="bingo-guide-steps">
+            <div className="bingo-guide-step">
+              <div className="guide-step-num">1</div>
+              <div className="guide-step-body">
+                <div className="guide-step-title">ใช้จ่ายหรือร่วมบริจาค</div>
+                <div className="guide-step-desc">สแกนจ่ายคนละครึ่ง 60/40 หรือบริจาค e-Donation</div>
+              </div>
+            </div>
+            <div className="bingo-guide-step">
+              <div className="guide-step-num">2</div>
+              <div className="guide-step-body">
+                <div className="guide-step-title">ระบบกาช่องอัตโนมัติ</div>
+                <div className="guide-step-desc">เมื่อทำภารกิจตรงตามเงื่อนไข ตารางจะขึ้นตราปั๊มสำเร็จ</div>
+              </div>
+            </div>
+            <div className="bingo-guide-step">
+              <div className="guide-step-num">3</div>
+              <div className="guide-step-body">
+                <div className="guide-step-title">รับโบนัสบิงโกทันที</div>
+                <div className="guide-step-desc">เรียงครบ 5 ช่องแนวนอน แนวตั้ง หรือแนวทแยง รับ +100 โทเค็น</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Simple 4-Board Selector */}
         <div className="bingo-tabs-bar">
           {boardsSummary.map((b) => {
@@ -404,27 +439,56 @@ export default function Bingo() {
               </div>
             </div>
           </div>
+
+          <div className="scoreboard-card">
+            <div className="scoreboard-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
+              <Coins size={24} />
+            </div>
+            <div>
+              <div className="scoreboard-label">โทเค็นสะสมของคุณ</div>
+              <div className="scoreboard-value" style={{ color: '#D97706' }}>{tokens || 0} โทเค็น</div>
+              <Link
+                to="/plus"
+                style={{
+                  fontSize: 11.5,
+                  color: 'var(--bank-royal)',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  marginTop: 2
+                }}
+              >
+                <span>ไปแลกของรางวัล</span>
+                <ChevronRight size={13} />
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Direct Action Links */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 20 }}>
           <Link
             to="/payment"
             style={{
               background: '#1E40AF',
               color: '#FFFFFF',
               borderRadius: 'var(--radius-md)',
-              padding: '10px 18px',
-              fontSize: 13,
+              padding: '12px 18px',
+              minHeight: 48,
+              fontSize: 13.5,
               fontWeight: 700,
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6,
+              justifyContent: 'center',
+              gap: 8,
+              boxShadow: '0 2px 6px rgba(30, 64, 175, 0.2)'
             }}
           >
-            <CreditCard size={15} />
-            <span>ไปใช้จ่ายคนละครึ่ง</span>
+            <CreditCard size={17} />
+            <span>ไปใช้จ่ายคนละครึ่ง (60/40)</span>
           </Link>
 
           <Link
@@ -433,16 +497,19 @@ export default function Bingo() {
               background: '#059669',
               color: '#FFFFFF',
               borderRadius: 'var(--radius-md)',
-              padding: '10px 18px',
-              fontSize: 13,
+              padding: '12px 18px',
+              minHeight: 48,
+              fontSize: 13.5,
               fontWeight: 700,
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6,
+              justifyContent: 'center',
+              gap: 8,
+              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.2)'
             }}
           >
-            <HeartHandshake size={15} />
+            <HeartHandshake size={17} />
             <span>ร่วมบริจาค (ช่องกลาง FREE)</span>
           </Link>
         </div>
@@ -848,27 +915,29 @@ export default function Bingo() {
                   <span>ภารกิจนี้สำเร็จเรียบร้อยแล้ว</span>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
                   <button
                     type="button"
                     onClick={() => handleProgressCell(selectedCell.position, false)}
                     disabled={actionLoading}
                     style={{
-                      padding: 10,
+                      padding: '10px 14px',
+                      minHeight: 48,
                       borderRadius: 'var(--radius-md)',
                       border: '1px solid #CBD5E1',
                       background: '#F8FAFC',
                       color: '#334155',
-                      fontSize: 13,
-                      fontWeight: 600,
+                      fontSize: 13.5,
+                      fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: 4,
+                      gap: 6,
+                      touchAction: 'manipulation'
                     }}
                   >
-                    <Zap size={14} color="#F59E0B" />
+                    <Zap size={16} color="#F59E0B" />
                     <span>+1 {selectedCell.unit} (จำลอง)</span>
                   </button>
 
@@ -877,21 +946,23 @@ export default function Bingo() {
                     onClick={() => handleProgressCell(selectedCell.position, true)}
                     disabled={actionLoading}
                     style={{
-                      padding: 10,
+                      padding: '10px 14px',
+                      minHeight: 48,
                       borderRadius: 'var(--radius-md)',
                       border: 'none',
                       background: '#10B981',
                       color: '#FFFFFF',
-                      fontSize: 13,
-                      fontWeight: 700,
+                      fontSize: 13.5,
+                      fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: 4,
+                      gap: 6,
+                      touchAction: 'manipulation'
                     }}
                   >
-                    <Check size={14} />
+                    <Check size={16} />
                     <span>สำเร็จ 100% (จำลอง)</span>
                   </button>
                 </div>

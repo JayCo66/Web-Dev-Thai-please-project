@@ -16,11 +16,17 @@ import {
   Check,
   Coins,
   Gift,
-  Grid
+  Grid,
+  QrCode,
+  ArrowRight,
+  ArrowLeft,
+  Wallet,
+  PlusCircle,
+  Info
 } from 'lucide-react';
 
 export default function Payment() {
-  const { wallet, deductBalance } = useAuth();
+  const { user, wallet, tokens, deductBalance, resetBalance } = useAuth();
 
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +91,7 @@ export default function Payment() {
 
   // Handle Confirm Payment
   const handleConfirmPayment = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
 
     if (!selectedShop) {
@@ -133,12 +139,12 @@ export default function Payment() {
 
   const getShopIcon = (category) => {
     if (category.includes('อาหาร') || category.includes('เครื่องดื่ม')) {
-      return <Utensils size={18} />;
+      return <Utensils size={20} />;
     }
     if (category.includes('OTOP')) {
-      return <ShoppingBag size={18} />;
+      return <ShoppingBag size={20} />;
     }
-    return <Store size={18} />;
+    return <Store size={20} />;
   };
 
   const filteredShops = shops.filter((s) =>
@@ -147,119 +153,110 @@ export default function Payment() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header */}
-      <header className="app-header">
-        <div className="header-brand">
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}>
-            <div className="header-logo" style={{ width: 34, height: 34, fontSize: 16 }}>
-              <ArrowLeft size={18} />
-            </div>
-            <div>
-              <div className="header-title">ชำระเงินคนละครึ่ง (Co-Pay 60/40)</div>
-              <div className="header-tag">Government Subsidy & Smart Checkout</div>
-            </div>
-          </Link>
-        </div>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      {/* Unified Official Banking Header and Fixed Mobile Bottom Navigation */}
+      <Navbar />
 
-        <div className="header-user">
-          {/* Link to Bingo */}
-          <Link
-            to="/bingo"
+      {/* Main Payment Shell */}
+      <main className="home-container" id="main-payment-content">
+        {/* Banner Section */}
+        <section
+          style={{
+            background: 'linear-gradient(135deg, #0A192F 0%, #152E58 50%, #1E3A8A 100%)',
+            color: '#FFFFFF',
+            borderRadius: 'var(--radius-xl)',
+            padding: '22px 20px',
+            marginBottom: 20,
+            boxShadow: '0 4px 16px rgba(10, 25, 47, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
+          }}
+          aria-label="หัวข้อการชำระเงินคนละครึ่ง"
+        >
+          <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '6px 14px',
-              background: '#EEF2FF',
-              border: '1px solid #C7D2FE',
-              borderRadius: 999,
-              color: '#4338CA',
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: 'none',
+              background: 'rgba(255, 255, 255, 0.14)',
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 12,
+              fontWeight: 600,
+              marginBottom: 10,
+              color: '#93C5FD'
             }}
           >
-            <Grid size={15} color="#4F46E5" />
-            <span>ภารกิจบิงโก 5x5</span>
-          </Link>
+            <ShieldCheck size={14} color="#93C5FD" />
+            <span>สิทธิประโยชน์คนละครึ่ง (Co-Pay 60/40)</span>
+          </div>
 
-          {/* Link to ThaiPlus */}
-          <Link
-            to="/plus"
+          <h1 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, margin: '0 0 6px 0', color: '#FFFFFF' }}>
+            ชำระเงินที่ร้านค้าชุมชน
+          </h1>
+          <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5, margin: 0, maxWidth: 640, color: '#E2E8F0' }}>
+            รัฐบาลร่วมจ่าย 60% สูงสุด 150 บาทต่อวัน ประชาชนจ่ายเองเพียง 40% ผ่านยอดเงินจำลองในกระเป๋าของคุณ
+          </p>
+
+          {/* Balance & Topup Quick Pill */}
+          <div
             style={{
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              background: '#FEF3C7',
-              border: '1px solid #FDE68A',
-              borderRadius: 999,
-              color: '#92400E',
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: 'none',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 10,
+              marginTop: 16,
+              paddingTop: 14,
+              borderTop: '1px solid rgba(255, 255, 255, 0.16)'
             }}
           >
-            <Gift size={15} color="#D97706" />
-            <span>ไทยช่วยไทยพลัส (ใช้ Token)</span>
-          </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Wallet size={17} color="#93C5FD" />
+              <span style={{ fontSize: 13, color: '#CBD5E1' }}>ยอดเงินในกระเป๋า:</span>
+              <strong style={{ fontSize: 16, color: '#FFFFFF' }}>฿{userBalance.toFixed(2)}</strong>
+            </div>
 
-          {/* Tokens Pill */}
-          <Link
-            to="/plus"
-            className="token-pill"
-            style={{ textDecoration: 'none', cursor: 'pointer' }}
-            title="คลิกเพื่อไปหน้าใช้โทเค็น"
-          >
-            <Coins size={16} />
-            <span>{tokens} Tokens</span>
-          </Link>
-
-          {/* Simulated Wallet Balance Pill */}
-          <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋าของคุณ">
-            <Wallet size={16} />
-            <span>ยอดคงเหลือ: ฿{userBalance.toFixed(2)}</span>
             <button
               type="button"
-              className="btn-topup-mini"
+              className="btn-wallet-topup"
               onClick={() => resetBalance(500)}
-              title="รีเซ็ตหรือเติมเงินจำลองเป็น 500 บาท"
+              style={{ minHeight: 38, padding: '6px 14px', fontSize: 12.5 }}
+              title="เติมเงินจำลอง 500 บาทสำหรับการทดสอบระบบ"
+              aria-label="เติมเงินจำลอง 500 บาท"
             >
-              + เติม ฿500
+              <PlusCircle size={15} />
+              <span>เติมเงิน ฿500 (ทดลอง)</span>
             </button>
           </div>
-        </div>
-      </header>
+        </section>
 
-      {/* Main Container */}
-      <main className="home-container">
         {/* ========================================================
             VIEW 1: Official Banking e-Slip (Shown when payment succeeded)
             ======================================================== */}
         {receipt ? (
           <div className="eslip-container" role="status" aria-label="ใบเสร็จการชำระเงิน">
             <div className="eslip-header">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
-                <CheckCircle2 size={20} color="var(--fin-success)" />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
+                <CheckCircle2 size={24} color="var(--fin-success)" />
                 <span className="eslip-title">ใบเสร็จรับเงินอิเล็กทรอนิกส์ (e-Slip)</span>
               </div>
               <div className="eslip-subtitle">โครงการคนละครึ่งพลีส • สิทธิประโยชน์ภาครัฐ</div>
               <div className="eslip-status-badge">
-                <span>ทำรายการสำเร็จ</span>
+                <Check size={13} />
+                <span>ชำระเงินสำเร็จเรียบร้อย</span>
               </div>
             </div>
 
             <div className="eslip-data-row">
               <span className="eslip-data-label">รหัสอ้างอิงธุรกรรม</span>
-              <span className="eslip-data-value" style={{ fontFamily: 'monospace' }}>
+              <span className="eslip-data-value" style={{ fontFamily: 'monospace', fontWeight: 700 }}>
                 TX-{String(receipt.transactionId).padStart(6, '0')}
               </span>
             </div>
 
             <div className="eslip-data-row">
               <span className="eslip-data-label">ร้านค้าผู้รับเงิน</span>
-              <span className="eslip-data-value">{receipt.shopName}</span>
+              <span className="eslip-data-value" style={{ fontWeight: 700 }}>{receipt.shopName}</span>
             </div>
 
             <div className="eslip-data-row">
@@ -267,14 +264,14 @@ export default function Payment() {
               <span className="eslip-data-value">{receipt.paidAt ? new Date(receipt.paidAt).toLocaleString('th-TH') : new Date().toLocaleDateString('th-TH')}</span>
             </div>
 
-            <div className="eslip-data-row" style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed var(--border-light)' }}>
+            <div className="eslip-data-row" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed var(--border-light)' }}>
               <span className="eslip-data-label">ราคาสินค้ารวม</span>
               <span className="eslip-data-value">฿{Number(receipt.totalAmount).toFixed(2)}</span>
             </div>
 
             <div className="eslip-data-row" style={{ color: 'var(--bank-royal)' }}>
               <span>สิทธิรัฐร่วมจ่าย (60%)</span>
-              <span style={{ fontWeight: 700 }}>-฿{Number(receipt.governmentAmount).toFixed(2)}</span>
+              <span style={{ fontWeight: 800 }}>-฿{Number(receipt.governmentAmount).toFixed(2)}</span>
             </div>
 
             <div className="eslip-total-row">
@@ -282,16 +279,24 @@ export default function Payment() {
               <span>฿{Number(receipt.userAmount).toFixed(2)}</span>
             </div>
 
-            <div className="eslip-data-row" style={{ marginTop: 12, fontSize: 12.5, color: 'var(--text-tertiary)' }}>
+            <div className="eslip-data-row" style={{ marginTop: 12, fontSize: 13, color: 'var(--text-secondary)' }}>
               <span>ยอดเงินคงเหลือในกระเป๋า</span>
-              <span>฿{Number(receipt.remainingBalance).toFixed(2)}</span>
+              <strong style={{ color: 'var(--bank-royal)' }}>฿{Number(receipt.remainingBalance).toFixed(2)}</strong>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
               <button
                 type="button"
                 className="btn-primary"
-                style={{ flex: 1, background: 'var(--bg-app)', color: 'var(--text-primary)', border: '1px solid var(--border-light)', boxShadow: 'none' }}
+                style={{
+                  background: 'var(--bg-app)',
+                  color: 'var(--text-primary)',
+                  border: '1.5px solid var(--border-light)',
+                  boxShadow: 'none',
+                  minHeight: 48,
+                  fontSize: 14,
+                  fontWeight: 700
+                }}
                 onClick={() => setReceipt(null)}
               >
                 ทำรายการใหม่
@@ -299,7 +304,15 @@ export default function Payment() {
               <Link
                 to="/"
                 className="btn-primary"
-                style={{ flex: 1 }}
+                style={{
+                  minHeight: 48,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none'
+                }}
               >
                 กลับหน้าหลัก
               </Link>
@@ -312,19 +325,19 @@ export default function Payment() {
           <div>
             {/* Step 1: Select Shop */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-                <h2 style={{ fontSize: 16.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Store size={19} color="var(--bank-royal)" />
-                  <span>ขั้นตอนที่ 1: เลือกร้านค้าผู้ประกอบการที่เข้าร่วมโครงการ</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+                <h2 style={{ fontSize: 16.5, fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                  <Store size={20} color="var(--bank-royal)" />
+                  <span>ขั้นตอนที่ 1: เลือกร้านค้าที่ร่วมโครงการ</span>
                 </h2>
 
-                <div style={{ position: 'relative', width: '100%', maxWidth: 240 }}>
-                  <Search size={15} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
+                <div style={{ position: 'relative', width: '100%', maxWidth: 260 }}>
+                  <Search size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
                   <input
                     type="text"
                     className="form-input"
-                    style={{ paddingLeft: 36, paddingRight: 10, minHeight: 38, fontSize: 13 }}
-                    placeholder="ค้นหาร้านค้า..."
+                    style={{ paddingLeft: 38, paddingRight: 10, minHeight: 42, fontSize: 13.5 }}
+                    placeholder="ค้นหาชื่อร้านค้าหรือหมวดหมู่..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -332,9 +345,9 @@ export default function Payment() {
               </div>
 
               {loading ? (
-                <div style={{ textAlign: 'center', padding: '30px 0' }}>
+                <div style={{ textAlign: 'center', padding: '36px 0' }}>
                   <div className="spinner" />
-                  <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-secondary)' }}>กำลังโหลดรายชื่อร้านค้า...</p>
+                  <p style={{ marginTop: 10, fontSize: 13.5, color: 'var(--text-secondary)' }}>กำลังโหลดรายชื่อร้านค้า...</p>
                 </div>
               ) : (
                 <div className="shop-select-grid">
@@ -347,7 +360,9 @@ export default function Payment() {
                         onClick={() => setSelectedShop(s)}
                         role="button"
                         tabIndex={0}
+                        aria-pressed={isSelected}
                         onKeyDown={(e) => { if (e.key === 'Enter') setSelectedShop(s); }}
+                        style={{ minHeight: 80, touchAction: 'manipulation' }}
                       >
                         <div className="shop-icon-wrapper">
                           {getShopIcon(s.category)}
@@ -360,8 +375,8 @@ export default function Payment() {
                         </div>
 
                         {isSelected && (
-                          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--bank-royal)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Check size={13} />
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--bank-royal)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Check size={14} />
                           </div>
                         )}
                       </div>
@@ -373,25 +388,37 @@ export default function Payment() {
 
             {/* Step 2: Enter Amount & Live Co-Pay 60/40 Breakdown */}
             {selectedShop && (
-              <div className="copay-card">
-                <h2 style={{ fontSize: 16.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <CreditCard size={19} color="var(--bank-royal)" />
+              <div className="copay-card" style={{ marginBottom: 24 }}>
+                <h2 style={{ fontSize: 16.5, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CreditCard size={20} color="var(--bank-royal)" />
                   <span>ขั้นตอนที่ 2: ระบุราคาสินค้า และคำนวณสิทธิ 60/40</span>
                 </h2>
 
                 {error && (
                   <div className="alert alert-danger" style={{ marginBottom: 14 }}>
-                    <AlertCircle size={17} style={{ flexShrink: 0 }} />
+                    <AlertCircle size={18} style={{ flexShrink: 0 }} />
                     <div>{error}</div>
                   </div>
                 )}
 
-                <div style={{ maxWidth: 500, margin: '0 auto' }}>
+                <div style={{ maxWidth: 520, margin: '0 auto' }}>
                   {/* Selected Shop Information Plate */}
-                  <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 10 }}>
+                  <div
+                    style={{
+                      background: 'var(--bg-app)',
+                      border: '1px solid var(--bank-royal-border)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 16,
+                      gap: 10
+                    }}
+                  >
                     <div style={{ minWidth: 0 }}>
-                      <span style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>ร้านค้าที่เลือก:</span>
-                      <strong style={{ display: 'block', fontSize: 14.5, color: 'var(--bank-royal)', wordBreak: 'break-word' }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ร้านค้าที่เลือก:</span>
+                      <strong style={{ display: 'block', fontSize: 15, color: 'var(--bank-royal)', wordBreak: 'break-word' }}>
                         {selectedShop.shopName}
                       </strong>
                     </div>
@@ -399,14 +426,21 @@ export default function Payment() {
                   </div>
 
                   {/* Input Amount Field */}
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontSize: 13.5 }}>
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label className="form-label" style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
                       ราคาสินค้ารวม (บาท) <span className="req">*</span>
                     </label>
                     <input
                       type="number"
                       className="form-input"
-                      style={{ fontSize: 24, fontWeight: 700, textAlign: 'center', padding: '10px', minHeight: 50, color: 'var(--bank-royal)' }}
+                      style={{
+                        fontSize: 26,
+                        fontWeight: 800,
+                        textAlign: 'center',
+                        padding: '12px',
+                        minHeight: 56,
+                        color: 'var(--bank-royal)'
+                      }}
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -415,14 +449,15 @@ export default function Payment() {
                     />
                   </div>
 
-                  {/* Preset Buttons (3 cols mobile, 6 cols desktop, min 44px height) */}
-                  <div className="payment-presets">
+                  {/* Preset Buttons (min 48px height for seniors) */}
+                  <div className="payment-presets" style={{ marginBottom: 18 }}>
                     {['50', '100', '150', '200', '250', '300'].map((val) => (
                       <button
                         key={val}
                         type="button"
                         className={`preset-btn ${amount === val ? 'active' : ''}`}
                         onClick={() => setAmount(val)}
+                        style={{ minHeight: 48, fontSize: 14, fontWeight: 700 }}
                       >
                         ฿{val}
                       </button>
@@ -430,9 +465,9 @@ export default function Payment() {
                   </div>
 
                   {/* Live Co-Pay 60/40 Calculation Box */}
-                  <div className="copay-breakdown-box">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'var(--bank-royal)', marginBottom: 10 }}>
-                      <ShieldCheck size={15} /> การคำนวณสิทธิคนละครึ่งพลีส (Co-Payment 60/40)
+                  <div className="copay-breakdown-box" style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--bank-royal)', marginBottom: 10 }}>
+                      <ShieldCheck size={16} /> การคำนวณสิทธิคนละครึ่งพลีส (Co-Payment 60/40)
                     </div>
 
                     <div className="copay-row">
@@ -442,38 +477,51 @@ export default function Payment() {
 
                     <div className="copay-row highlight-gov">
                       <span>รัฐบาลร่วมจ่าย (60%)</span>
-                      <strong>-฿{calculatedGovSubsidy.toFixed(2)}</strong>
+                      <strong style={{ color: '#059669' }}>-฿{calculatedGovSubsidy.toFixed(2)}</strong>
                     </div>
 
                     <div className="copay-row highlight-user">
                       <span>ผู้ใช้สิทธิจ่ายจริง (40%)</span>
-                      <span>฿{calculatedUserPayment.toFixed(2)}</span>
+                      <span style={{ fontSize: 18, color: 'var(--bank-royal)' }}>฿{calculatedUserPayment.toFixed(2)}</span>
                     </div>
                   </div>
 
                   {/* Balance Check Row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 18, padding: '0 2px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>ยอดเงินคงเหลือหลังหักจ่าย:</span>
-                    <strong style={{ color: isBalanceSufficient ? 'var(--bank-royal)' : 'var(--fin-danger)' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: 13.5,
+                      marginBottom: 20,
+                      padding: '8px 12px',
+                      background: isBalanceSufficient ? '#F0FDF4' : '#FEF2F2',
+                      border: `1px solid ${isBalanceSufficient ? '#BBF7D0' : '#FECACA'}`,
+                      borderRadius: 'var(--radius-md)'
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>ยอดคงเหลือหลังหักจ่าย:</span>
+                    <strong style={{ color: isBalanceSufficient ? '#059669' : '#DC2626' }}>
                       ฿{remainingBalanceAfterPay.toFixed(2)} {!isBalanceSufficient && '(ยอดเงินไม่พอ)'}
                     </strong>
                   </div>
 
-                  {/* Confirm Payment Button */}
+                  {/* Confirm Payment Button (Large 52px Touch Target) */}
                   <button
                     type="button"
                     className="btn-primary"
                     onClick={handleConfirmPayment}
                     disabled={paying || totalAmountNum <= 0 || !isBalanceSufficient}
+                    style={{ minHeight: 52, fontSize: 16, fontWeight: 800, width: '100%' }}
                   >
                     {paying ? (
                       <>
-                        <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                        <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
                         <span>กำลังประมวลผลการชำระเงิน...</span>
                       </>
                     ) : (
                       <>
-                        <QrCode size={17} />
+                        <QrCode size={20} />
                         <span>ยืนยันการชำระเงิน ฿{calculatedUserPayment.toFixed(2)}</span>
                       </>
                     )}
@@ -489,9 +537,9 @@ export default function Payment() {
             ======================================================== */}
         <div className="history-card">
           <div className="history-card-header">
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={17} color="var(--bank-royal)" />
-              ประวัติรายการชำระเงินคนละครึ่ง ({history.length} รายการ)
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+              <Clock size={18} color="var(--bank-royal)" />
+              <span>ประวัติรายการชำระเงินคนละครึ่ง ({history.length} รายการ)</span>
             </h3>
             <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
               บันทึกธุรกรรมอิเล็กทรอนิกส์
@@ -499,7 +547,7 @@ export default function Payment() {
           </div>
 
           {history.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-secondary)', fontSize: 13.5 }}>
+            <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-secondary)', fontSize: 13.5 }}>
               ยังไม่มีประวัติการชำระเงิน เลือกร้านค้าด้านบนเพื่อเริ่มใช้สิทธิคนละครึ่ง
             </div>
           ) : (
@@ -507,20 +555,20 @@ export default function Payment() {
               {history.map((tx) => (
                 <div key={tx.transactionId} className="history-item">
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ fontSize: 14.5, color: 'var(--text-primary)', display: 'block', wordBreak: 'break-word' }}>
+                    <strong style={{ fontSize: 15, color: 'var(--text-primary)', display: 'block', wordBreak: 'break-word' }}>
                       {tx.shopName}
                     </strong>
-                    <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span>{new Date(tx.paidAt).toLocaleString('th-TH')}</span>
                       <span>•</span>
                       <span style={{ color: 'var(--bank-royal)', fontWeight: 600 }}>{tx.category || 'ร้านค้าทั่วไป'}</span>
                       <span>•</span>
-                      <span>รัฐจ่าย ฿{Number(tx.governmentAmount).toFixed(2)}</span>
+                      <span>รัฐช่วยจ่าย ฿{Number(tx.governmentAmount).toFixed(2)}</span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 }}>
-                    <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--fin-success)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#059669' }}>
                       จ่ายจริง ฿{Number(tx.userAmount).toFixed(2)}
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--text-tertiary)' }}>

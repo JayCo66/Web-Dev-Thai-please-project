@@ -35,3 +35,17 @@ _Avoid_: Board score, board total
 **Donation Cashback Rate**:
 The fixed social incentive rate granting 1 Impact Token per 20 THB donated through e-Donation (representing a 0.5% effective cashback rate), exempt from the Monthly Liability Cap.
 _Avoid_: Tax rebate, donation interest
+
+## Board Fairness & Distribution
+
+**Constrained Line Distribution**:
+An arrangement rule requiring every 5-cell line (row and column) to have an aggregate difficulty score between 12 and 14 levels, eliminating extreme difficulty variance.
+_Avoid_: Random grid, uniform shuffle
+
+**Dual-Action Center Tile**:
+The central cell (position 12) intersecting four Bingo lines, fulfillable by either an e-Donation or a purchase at a registered community micro-merchant, eliminating economic exclusion.
+_Avoid_: Free space, donation paywall
+
+**Relative Effort Invariant**:
+The design rule that mission ladder target values scale proportionately (+10% to +20%) to an individual citizen's historical baseline, maintaining equal challenge across purchasing powers under a fixed 63-budget ceiling.
+_Avoid_: Absolute target, flat quota

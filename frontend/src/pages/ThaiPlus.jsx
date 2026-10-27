@@ -460,12 +460,18 @@ export default function ThaiPlus() {
                   background: '#059669',
                   color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 11.5,
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '6px 14px',
+                  minHeight: 40,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   cursor: 'pointer',
-                  marginTop: 2,
+                  marginTop: 4,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  touchAction: 'manipulation'
                 }}
               >
                 {faucetLoading ? 'กำลังเติม...' : '+ รับ 50 Tokens'}

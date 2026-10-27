@@ -13,11 +13,15 @@ import {
   FileText,
   Clock,
   X,
-  ShieldCheck
+  ShieldCheck,
+  PlusCircle,
+  Wallet,
+  Coins,
+  Check
 } from 'lucide-react';
 
 export default function Charities() {
-  const { wallet, deductBalance, addTokens } = useAuth();
+  const { wallet, deductBalance, addTokens, resetBalance } = useAuth();
 
   const [charities, setCharities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,12 +95,12 @@ export default function Charities() {
     const currentBalance = parseFloat(wallet?.balance || '0.00');
 
     if (!amountToDeduct || amountToDeduct <= 0) {
-      setError('กรุณาระบุจำนวนเงินบริจาคที่ถูกต้อง');
+      setError('กรุณาระบุจำนวนเงินบริจาคที่ถูกต้อง (มากกว่า 0 บาท)');
       return;
     }
 
     if (amountToDeduct > currentBalance) {
-      setError(`ยอดเงินคงเหลือของคุณมีไม่พอ (คงเหลือ ฿${currentBalance.toFixed(2)})`);
+      setError(`ยอดเงินคงเหลือของคุณมีไม่พอ (ต้องการ ฿${amountToDeduct.toFixed(2)}, คงเหลือ ฿${currentBalance.toFixed(2)})`);
       return;
     }
 
@@ -126,7 +130,7 @@ export default function Charities() {
       }
     } catch (err) {
       console.error('Error donating:', err);
-      setError(err.response?.data?.error || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      setError(err.response?.data?.error || 'เกิดข้อผิดพลาดในการเชื่อมต่อระบบบริจาค');
     } finally {
       setDonating(false);
     }
@@ -155,46 +159,89 @@ export default function Charities() {
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      {/* Official App Header */}
+      {/* Official Banking Navigation & Fixed Mobile Bottom Dock */}
       <Navbar />
 
-      {/* Main Content */}
-      <main className="home-container">
+      {/* Main Container */}
+      <main className="home-container" id="main-charities-content">
         {/* Banner Section */}
-        <div style={{
-          background: 'linear-gradient(135deg, #0A192F 0%, #0369A1 100%)',
-          color: '#FFFFFF',
-          borderRadius: 'var(--radius-lg)',
-          padding: '22px 20px',
-          marginBottom: 20
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'rgba(255, 255, 255, 0.14)',
-            padding: '4px 10px',
-            borderRadius: 'var(--radius-full)',
-            fontSize: 12,
-            fontWeight: 600,
-            marginBottom: 10
-          }}>
-            <ShieldCheck size={13} /> ระบบ e-Donation กรมสรรพากร
+        <section
+          style={{
+            background: 'linear-gradient(135deg, #0A192F 0%, #0369A1 100%)',
+            color: '#FFFFFF',
+            borderRadius: 'var(--radius-xl)',
+            padding: '22px 20px',
+            marginBottom: 20,
+            boxShadow: '0 4px 16px rgba(10, 25, 47, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
+          }}
+          aria-label="ระบบบริจาคอิเล็กทรอนิกส์ e-Donation"
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255, 255, 255, 0.14)',
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 12,
+              fontWeight: 600,
+              marginBottom: 10,
+              color: '#BAE6FD'
+            }}
+          >
+            <ShieldCheck size={14} color="#BAE6FD" />
+            <span>ระบบ e-Donation กรมสรรพากร</span>
           </div>
-          <h1 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 6 }}>
-            ระบบบริจาคอิเล็กทรอนิกส์เพื่อสังคม
-          </h1>
-          <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5, maxWidth: 680 }}>
-            เลือกมูลนิธิที่คุณต้องการสนับสนุน โดยระบบจะจำลองการหักยอดเงินจากกระเป๋าของคุณ พร้อมออกเลขอ้างอิง <strong>e-Donation สำหรับลดหย่อนภาษีเงินได้</strong> และบันทึกคะแนน Impact Tokens
-          </p>
-        </div>
 
-        {/* Category Filters (Touch-friendly 44px targets, no emojis) */}
-        <div className="charity-filters">
+          <h1 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, margin: '0 0 6px 0', color: '#FFFFFF' }}>
+            บริจาคอิเล็กทรอนิกส์เพื่อสังคม
+          </h1>
+          <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5, margin: 0, maxWidth: 680, color: '#E0F2FE' }}>
+            สนับสนุนมูลนิธิที่คุณไว้วางใจ ระบบจะหักยอดเงินจำลองในกระเป๋าของคุณ พร้อมออกเลขอ้างอิง <strong>e-Donation ลดหย่อนภาษี</strong> และมอบคะแนน Impact Tokens ตอบแทนทันที
+          </p>
+
+          {/* Quick Balance & Refill Pill */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 10,
+              marginTop: 16,
+              paddingTop: 14,
+              borderTop: '1px solid rgba(255, 255, 255, 0.16)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Wallet size={17} color="#BAE6FD" />
+              <span style={{ fontSize: 13, color: '#CBD5E1' }}>ยอดคงเหลือในกระเป๋า:</span>
+              <strong style={{ fontSize: 16, color: '#FFFFFF' }}>฿{userBalance.toFixed(2)}</strong>
+            </div>
+
+            <button
+              type="button"
+              className="btn-wallet-topup"
+              onClick={() => resetBalance(500)}
+              style={{ minHeight: 38, padding: '6px 14px', fontSize: 12.5 }}
+              title="เติมเงินจำลอง 500 บาทสำหรับการทดสอบระบบ"
+              aria-label="เติมเงินจำลอง 500 บาท"
+            >
+              <PlusCircle size={15} />
+              <span>เติมเงิน ฿500 (ทดลอง)</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Category Filters (Mobile-first, min 44px touch targets) */}
+        <div className="charity-filters" role="tablist" aria-label="หมวดหมู่มูลนิธิ">
           <button
             type="button"
             className={`filter-chip ${activeFilter === 'ALL' ? 'active' : ''}`}
             onClick={() => setActiveFilter('ALL')}
+            style={{ minHeight: 44 }}
           >
             ทั้งหมด ({charities.length})
           </button>
@@ -202,6 +249,7 @@ export default function Charities() {
             type="button"
             className={`filter-chip ${activeFilter === 'EDUCATION' ? 'active' : ''}`}
             onClick={() => setActiveFilter('EDUCATION')}
+            style={{ minHeight: 44 }}
           >
             <GraduationCap size={15} /> การศึกษา
           </button>
@@ -209,6 +257,7 @@ export default function Charities() {
             type="button"
             className={`filter-chip ${activeFilter === 'ENVIRONMENT' ? 'active' : ''}`}
             onClick={() => setActiveFilter('ENVIRONMENT')}
+            style={{ minHeight: 44 }}
           >
             <Trees size={15} /> สิ่งแวดล้อม
           </button>
@@ -216,6 +265,7 @@ export default function Charities() {
             type="button"
             className={`filter-chip ${activeFilter === 'COMMUNITY' ? 'active' : ''}`}
             onClick={() => setActiveFilter('COMMUNITY')}
+            style={{ minHeight: 44 }}
           >
             <Users size={15} /> ชุมชนและผู้สูงอายุ
           </button>
@@ -223,6 +273,7 @@ export default function Charities() {
             type="button"
             className={`filter-chip ${activeFilter === 'HEALTHCARE' ? 'active' : ''}`}
             onClick={() => setActiveFilter('HEALTHCARE')}
+            style={{ minHeight: 44 }}
           >
             <HeartPulse size={15} /> สาธารณสุข
           </button>
@@ -232,14 +283,14 @@ export default function Charities() {
         {loading && (
           <div style={{ textAlign: 'center', padding: '50px 0' }}>
             <div className="spinner" />
-            <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text-secondary)' }}>กำลังโหลดรายชื่อมูลนิธิ...</p>
+            <p style={{ marginTop: 10, fontSize: 13.5, color: 'var(--text-secondary)' }}>กำลังโหลดรายชื่อมูลนิธิ...</p>
           </div>
         )}
 
         {/* Error message */}
         {error && (
-          <div className="alert alert-danger">
-            <AlertCircle size={17} style={{ flexShrink: 0 }} />
+          <div className="alert alert-danger" style={{ marginBottom: 16 }}>
+            <AlertCircle size={18} style={{ flexShrink: 0 }} />
             <div>{error}</div>
           </div>
         )}
@@ -261,7 +312,7 @@ export default function Charities() {
                     {/* Charity Name & Tax ID */}
                     <h2 className="charity-title">{item.name}</h2>
                     <div className="charity-taxid">
-                      <FileText size={12} />
+                      <FileText size={13} />
                       <span>เลขประจำตัวผู้เสียภาษี: {item.taxId} • e-Donation</span>
                     </div>
 
@@ -284,27 +335,27 @@ export default function Charities() {
 
                     {/* Quick Preset Buttons (min 44px touch height) */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 12 }}>
-                      <button type="button" className="preset-btn" onClick={() => handleOpenDonate(item, 20)}>
-                        ฿20
-                      </button>
-                      <button type="button" className="preset-btn" onClick={() => handleOpenDonate(item, 50)}>
-                        ฿50
-                      </button>
-                      <button type="button" className="preset-btn" onClick={() => handleOpenDonate(item, 100)}>
-                        ฿100
-                      </button>
-                      <button type="button" className="preset-btn" onClick={() => handleOpenDonate(item, 200)}>
-                        ฿200
-                      </button>
+                      {[20, 50, 100, 200].map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          className="preset-btn"
+                          onClick={() => handleOpenDonate(item, amt)}
+                          style={{ minHeight: 44, fontSize: 13.5, fontWeight: 700 }}
+                        >
+                          ฿{amt}
+                        </button>
+                      ))}
                     </div>
 
-                    {/* Main Action Button */}
+                    {/* Main Action Button (min 48px touch height) */}
                     <button
                       type="button"
                       className="btn-primary"
                       onClick={() => handleOpenDonate(item, 50)}
+                      style={{ minHeight: 48, fontSize: 14, fontWeight: 700, width: '100%' }}
                     >
-                      <HeartHandshake size={16} />
+                      <HeartHandshake size={18} />
                       <span>ร่วมบริจาค (e-Donation)</span>
                     </button>
                   </div>
@@ -317,9 +368,9 @@ export default function Charities() {
         {/* User Donation History Statement */}
         <div className="history-card">
           <div className="history-card-header">
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={17} color="var(--bank-royal)" />
-              ประวัติการบริจาคของคุณ ({history.length} รายการ)
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+              <Clock size={18} color="var(--bank-royal)" />
+              <span>ประวัติการบริจาคของคุณ ({history.length} รายการ)</span>
             </h3>
             <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
               บันทึกการหักเงินจำลองและ e-Donation กรมสรรพากร
@@ -327,7 +378,7 @@ export default function Charities() {
           </div>
 
           {history.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-secondary)', fontSize: 13.5 }}>
+            <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-secondary)', fontSize: 13.5 }}>
               คุณยังไม่มีประวัติการบริจาค เลือกมูลนิธิด้านบนเพื่อเริ่มส่งต่อความช่วยเหลือ
             </div>
           ) : (
@@ -335,18 +386,18 @@ export default function Charities() {
               {history.map((h) => (
                 <div key={h.donationId} className="history-item">
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ fontSize: 14.5, color: 'var(--text-primary)', display: 'block', wordBreak: 'break-word' }}>
+                    <strong style={{ fontSize: 15, color: 'var(--text-primary)', display: 'block', wordBreak: 'break-word' }}>
                       {h.charityName}
                     </strong>
-                    <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span>{new Date(h.donatedAt).toLocaleString('th-TH')}</span>
                       <span>•</span>
                       <span style={{ color: 'var(--bank-royal)', fontWeight: 600 }}>{h.edonationRef}</span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 }}>
-                    <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--fin-danger)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#DC2626' }}>
                       -฿{Number(h.amount).toFixed(2)}
                     </div>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: 'var(--fin-success-bg)', color: 'var(--fin-success)', padding: '2px 8px', borderRadius: 999, fontWeight: 600, border: '1px solid var(--fin-success-border)' }}>
@@ -364,11 +415,11 @@ export default function Charities() {
           Donation Confirmation & Success Modal (No Emojis)
           ======================================================== */}
       {selectedCharity && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={handleCloseModal} role="dialog" aria-modal="true">
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <div className="modal-title">
-                <HeartHandshake size={20} color="var(--bank-royal)" />
+                <HeartHandshake size={22} color="var(--bank-royal)" />
                 <span>ยืนยันการบริจาค e-Donation</span>
               </div>
               <button
@@ -376,70 +427,79 @@ export default function Charities() {
                 className="btn-close"
                 onClick={handleCloseModal}
                 aria-label="ปิดหน้าต่าง"
+                style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
             {error && (
               <div className="alert alert-danger" style={{ marginBottom: 14 }}>
-                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <AlertCircle size={17} style={{ flexShrink: 0 }} />
                 <div>{error}</div>
               </div>
             )}
 
             {donationSuccess ? (
-              <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fin-success-bg)', border: '1px solid var(--fin-success-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: 'var(--fin-success)' }}>
-                  <CheckCircle2 size={30} />
+              <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--fin-success-bg)', border: '1px solid var(--fin-success-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', color: 'var(--fin-success)' }}>
+                  <CheckCircle2 size={32} />
                 </div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+                <h3 style={{ fontSize: 18.5, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
                   บริจาคสำเร็จเรียบร้อย
                 </h3>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+                <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', marginBottom: 16 }}>
                   ขอบคุณที่ร่วมสนับสนุน <strong>{donationSuccess.charityName}</strong>
                 </p>
 
                 {/* Receipt Card */}
-                <div style={{ background: 'var(--bank-royal-light)', border: '1px solid var(--bank-royal-border)', borderRadius: 'var(--radius-sm)', padding: 14, textAlign: 'left', marginBottom: 18 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                <div style={{ background: 'var(--bank-royal-light)', border: '1px solid var(--bank-royal-border)', borderRadius: 'var(--radius-md)', padding: 16, textAlign: 'left', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13.5 }}>
                     <span style={{ color: 'var(--text-secondary)' }}>จำนวนเงินที่บริจาค:</span>
-                    <strong style={{ color: 'var(--fin-danger)' }}>-฿{Number(donationSuccess.amount).toFixed(2)}</strong>
+                    <strong style={{ color: '#DC2626' }}>-฿{Number(donationSuccess.amount).toFixed(2)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13.5 }}>
                     <span style={{ color: 'var(--text-secondary)' }}>ยอดเงินคงเหลือในกระเป๋า:</span>
                     <strong style={{ color: 'var(--bank-royal)' }}>฿{Number(donationSuccess.remainingBalance).toFixed(2)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, flexWrap: 'wrap', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13.5, flexWrap: 'wrap', gap: 4 }}>
                     <span style={{ color: 'var(--text-secondary)' }}>เลขอ้างอิง e-Donation:</span>
                     <span style={{ color: 'var(--bank-royal)', fontWeight: 700, fontFamily: 'monospace' }}>{donationSuccess.edonationRef}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: 6, borderTop: '1px dashed var(--bank-royal-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, paddingTop: 8, borderTop: '1px dashed var(--bank-royal-border)' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Impact Tokens ที่ได้รับ:</span>
-                    <span style={{ color: 'var(--accent-gold)', fontWeight: 700 }}>+{donationSuccess.bonusTokensAwarded} Tokens</span>
+                    <span style={{ color: '#B45309', fontWeight: 800 }}>+{donationSuccess.bonusTokensAwarded} Tokens</span>
                   </div>
                 </div>
 
-                <button type="button" className="btn-primary" onClick={handleCloseModal}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleCloseModal}
+                  style={{ minHeight: 48, fontSize: 15, fontWeight: 700, width: '100%' }}
+                >
                   เสร็จสิ้น
                 </button>
               </div>
             ) : (
               <div>
-                <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', marginBottom: 14 }}>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
                   คุณกำลังจะร่วมบริจาคให้ <strong>{selectedCharity.name}</strong>
                 </p>
 
                 {/* Select Amount Buttons */}
-                <div style={{ marginBottom: 14 }}>
-                  <label className="form-label">เลือกจำนวนเงินบริจาค (บาท)</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 8 }}>
+                <div style={{ marginBottom: 16 }}>
+                  <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 8 }}>
+                    เลือกจำนวนเงินบริจาค (บาท)
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 10 }}>
                     {[20, 50, 100, 200].map((amt) => (
                       <button
                         key={amt}
                         type="button"
                         className={`preset-btn ${!customAmount && donationAmount === amt ? 'active' : ''}`}
                         onClick={() => { setDonationAmount(amt); setCustomAmount(''); }}
+                        style={{ minHeight: 46, fontSize: 13.5, fontWeight: 700 }}
                       >
                         ฿{amt}
                       </button>
@@ -449,7 +509,7 @@ export default function Charities() {
                   <input
                     type="number"
                     className="form-input"
-                    style={{ paddingLeft: 12 }}
+                    style={{ paddingLeft: 14, minHeight: 48, fontSize: 15 }}
                     placeholder="หรือระบุจำนวนเงินเอง (บาท)"
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
@@ -459,18 +519,18 @@ export default function Charities() {
                 </div>
 
                 {/* Simulated Balance Breakdown */}
-                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: 12, marginBottom: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 6 }}>
+                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 14, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span style={{ color: 'var(--text-secondary)' }}>ยอดเงินคงเหลือปัจจุบัน:</span>
                     <span>฿{userBalance.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span style={{ color: 'var(--text-secondary)' }}>ยอดที่จะบริจาค (จำลองหักเงิน):</span>
-                    <span style={{ color: 'var(--fin-danger)', fontWeight: 600 }}>
+                    <span style={{ color: '#DC2626', fontWeight: 700 }}>
                       -฿{(customAmount ? parseFloat(customAmount) || 0 : donationAmount).toFixed(2)}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, paddingTop: 6, borderTop: '1px dashed var(--border-light)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, paddingTop: 8, borderTop: '1px dashed var(--border-light)' }}>
                     <span>ยอดคงเหลือหลังบริจาค:</span>
                     <span style={{ color: 'var(--bank-royal)' }}>
                       ฿{Math.max(0, userBalance - (customAmount ? parseFloat(customAmount) || 0 : donationAmount)).toFixed(2)}
@@ -479,12 +539,12 @@ export default function Charities() {
                 </div>
 
                 {/* e-Donation Checkbox */}
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12.5, color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: 20 }}>
                   <input
                     type="checkbox"
                     checked={requestEDonation}
                     onChange={(e) => setRequestEDonation(e.target.checked)}
-                    style={{ marginTop: 2 }}
+                    style={{ marginTop: 3, width: 18, height: 18 }}
                   />
                   <span>
                     ขอรับเลขอ้างอิง <strong>e-Donation</strong> ส่งข้อมูลตรงยังกรมสรรพากรเพื่อใช้สิทธิลดหย่อนภาษีเงินได้บุคคลธรรมดา
@@ -497,15 +557,16 @@ export default function Charities() {
                   className="btn-primary"
                   onClick={handleConfirmDonation}
                   disabled={donating || (customAmount ? parseFloat(customAmount) > userBalance : donationAmount > userBalance)}
+                  style={{ minHeight: 50, fontSize: 15.5, fontWeight: 800, width: '100%' }}
                 >
                   {donating ? (
                     <>
-                      <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                      <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
                       <span>กำลังประมวลผลการบริจาค...</span>
                     </>
                   ) : (
                     <>
-                      <HeartHandshake size={16} />
+                      <HeartHandshake size={18} />
                       <span>ยืนยันการบริจาค (หักยอดเงินจำลอง)</span>
                     </>
                   )}

@@ -65,7 +65,7 @@
   --font-family: 'Prompt', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Dimensions */
-  --tap-target: 44px;
+  --tap-target: 48px;
   --bottom-nav-height: 64px;
 }
 
@@ -553,12 +553,20 @@ button, input, select, textarea {
   border: none;
   color: #94A3B8;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
+  min-width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.btn-toggle-balance:hover { color: #FFFFFF; }
+.btn-toggle-balance:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
 
 .wallet-balance-amount {
   font-size: clamp(28px, 6vw, 36px);
@@ -568,20 +576,21 @@ button, input, select, textarea {
 }
 
 .btn-wallet-topup {
-  padding: 8px 16px;
-  min-height: 38px;
+  padding: 10px 18px;
+  min-height: 44px;
   background: #FFFFFF;
   color: var(--bank-navy-dark);
   border: none;
   border-radius: var(--radius-full);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: all 0.15s ease;
+  touch-action: manipulation;
 }
 
 .btn-wallet-topup:hover {
@@ -697,21 +706,41 @@ button, input, select, textarea {
 @media (max-width: 600px) {
   .hero-scan-card {
     padding: 16px 14px;
+    gap: 12px;
   }
   .hero-scan-desc {
-    display: none;
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.35;
+    opacity: 0.9;
   }
   .hero-scan-icon-wrap {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
   }
   .hero-scan-title {
-    font-size: 15px;
+    font-size: 15.5px;
   }
   .hero-scan-btn {
-    padding: 8px 14px;
+    padding: 9px 14px;
     font-size: 12.5px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero-scan-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .hero-scan-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 13.5px;
+    min-height: 48px;
   }
 }
 
@@ -725,11 +754,17 @@ button, input, select, textarea {
   margin-bottom: 24px;
 }
 
+@media (max-width: 360px) {
+  .financial-quick-grid {
+    gap: 6px;
+  }
+}
+
 .quick-action-item {
   background: #FFFFFF;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: 14px 8px;
+  padding: 12px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -740,6 +775,8 @@ button, input, select, textarea {
   cursor: pointer;
   transition: all 0.15s ease;
   min-height: 84px;
+  min-width: 0;
+  touch-action: manipulation;
 }
 
 .quick-action-item:hover {
@@ -754,21 +791,24 @@ button, input, select, textarea {
 }
 
 .quick-action-icon-box {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-md);
   background: var(--bank-royal-light);
   color: var(--bank-royal);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .quick-action-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: clamp(11px, 2.8vw, 12.5px);
+  font-weight: 700;
   line-height: 1.25;
+  color: var(--text-primary);
+  word-break: break-word;
 }
 
 /* ==========================================================================
@@ -912,6 +952,285 @@ button, input, select, textarea {
 .banking-info-desc {
   font-size: 12px;
   color: var(--text-tertiary);
+}
+
+/* ==========================================================================
+   DASHBOARD BINGO SPOTLIGHT CARD
+   ========================================================================== */
+.dashboard-bingo-card {
+  background: linear-gradient(135deg, #0A192F 0%, #152E58 50%, #1E3A8A 100%);
+  color: #FFFFFF;
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(10, 25, 47, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .dashboard-bingo-card {
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+}
+
+.dashboard-bingo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(10, 25, 47, 0.22);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.dashboard-bingo-card:active {
+  transform: scale(0.99);
+}
+
+.dashboard-bingo-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboard-bingo-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.dashboard-bingo-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #FDE047;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dashboard-bingo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #FEF08A;
+  background: rgba(254, 240, 138, 0.16);
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  margin-bottom: 4px;
+}
+
+.dashboard-bingo-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0 0 3px 0;
+}
+
+.dashboard-bingo-desc {
+  font-size: 12.5px;
+  color: #CBD5E1;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.dashboard-bingo-progress-box {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard-bingo-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #E2E8F0;
+  font-weight: 600;
+}
+
+.dashboard-bingo-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.dashboard-bingo-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B 0%, #10B981 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.dashboard-bingo-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  background: #FFFFFF;
+  color: var(--bank-navy-dark);
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+  width: 100%;
+  touch-action: manipulation;
+}
+
+.dashboard-bingo-card:hover .dashboard-bingo-action-btn {
+  background: #F8FAFC;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   SENIOR-FRIENDLY 3-STEP GUIDE
+   ========================================================================== */
+.dashboard-steps-section {
+  margin-bottom: 24px;
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.dashboard-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.dashboard-steps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .dashboard-steps-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
+.step-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow-flat);
+  min-width: 0;
+}
+
+.step-num-badge {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: var(--radius-full);
+  background: var(--bank-royal);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.step-content {
+  min-width: 0;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.step-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   CITIZEN ACCOUNT & PROJECT QUOTA SUMMARY
+   ========================================================================== */
+.citizen-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .citizen-summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+.citizen-summary-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-flat);
+  min-width: 0;
+}
+
+.citizen-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.citizen-summary-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.citizen-summary-meta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
 }
 
 /* ==========================================================================
@@ -1610,11 +1929,11 @@ button, input, select, textarea {
 .btn-primary {
   width: 100%;
   padding: 12px 18px;
-  min-height: 46px;
+  min-height: 48px;
   background: var(--btn-primary-gradient);
   color: #FFFFFF;
-  font-size: 14.5px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -1625,6 +1944,7 @@ button, input, select, textarea {
   text-decoration: none;
   box-shadow: 0 2px 6px rgba(15, 39, 90, 0.25);
   transition: all 0.15s ease;
+  touch-action: manipulation;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -2242,6 +2562,81 @@ button, input, select, textarea {
   pointer-events: none;
 }
 
+/* Senior-Friendly Bingo 3-Step Guide */
+.bingo-guide-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.bingo-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--bank-royal);
+  margin-bottom: 12px;
+}
+
+.bingo-guide-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .bingo-guide-steps {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.bingo-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-alt);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.guide-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: var(--bank-royal);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guide-step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.guide-step-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.guide-step-desc {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
 .bingo-layout-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
@@ -2320,6 +2715,22 @@ button, input, select, textarea {
 .bingo-cell.highlighted-line {
   border-color: #F59E0B !important;
   box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4) !important;
+}
+
+.bingo-cell-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 4px auto;
+  flex-shrink: 0;
+}
+
+.bingo-cell-icon-box svg {
+  width: 17px;
+  height: 17px;
 }
 
 .bingo-cell-position {
@@ -2538,7 +2949,7 @@ button, input, select, textarea {
 /* Scoreboard */
 .bingo-scoreboard {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
 }

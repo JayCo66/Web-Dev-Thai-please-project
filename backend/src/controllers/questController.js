@@ -277,9 +277,9 @@ async function generateFourMonthlyBoards(userId, monthKey) {
         progress: 0,
         status: 'IN_PROGRESS',
         token_reward: tokenReward,
-        title: isDonation ? 'บริจาคให้มูลนิธิ 1 ครั้ง' : c.title,
-        short_title: formatShortQuestTitle(isDonation ? 'บริจาคเพื่อสังคม' : c.title, isDonation),
-        reason: isDonation ? 'ร่วมบริจาคช่วยเหลือสังคมผ่าน e-Donation ไม่นับรวม budget' : c.reason,
+        title: isDonation ? 'ร่วมบริจาคหรืออุดหนุนร้านค้าชุมชน 1 ครั้ง' : c.title,
+        short_title: formatShortQuestTitle(isDonation ? 'บริจาค/อุดหนุนชุมชน' : c.title, isDonation),
+        reason: isDonation ? 'ภารกิจใจกลางเพื่อสังคม: เลือกบริจาคผ่าน e-Donation หรือซื้อสินค้าจากร้านค้ารายย่อยชุมชน 1 ครั้ง' : c.reason,
         reason_source: isDonation ? 'SERVER_DATA' : (c.reason_source || 'AI_TYPHOON'),
         level_adjusted: c.level_adjusted || false,
       };
@@ -513,6 +513,29 @@ async function syncPaymentProgress(userId, transaction) {
       } catch (err) {
         console.warn('Token award warning:', err.message);
       }
+    }
+  }
+
+  // Dual-Action Center Tile Check (ADR-0003):
+  // Fulfill position 12 if user makes a payment at a participating merchant
+  const centerCell = activeBoard.cells.find((c) => c.position === 12);
+  if (centerCell && centerCell.status !== 'COMPLETED') {
+    centerCell.progress = 1;
+    centerCell.status = 'COMPLETED';
+    centerCell.completed_at = new Date().toISOString();
+    newlyCompletedCount += 1;
+    totalCellTokensAwarded += centerCell.token_reward;
+    try {
+      await prisma.token_transactions.create({
+        data: {
+          user_id: BigInt(userId),
+          amount: centerCell.token_reward,
+          type: 'EARN_CELL',
+          board_id: activeBoard.boardId && !isNaN(activeBoard.boardId) ? BigInt(activeBoard.boardId) : null,
+        },
+      });
+    } catch (err) {
+      console.warn('Center cell token award warning:', err.message);
     }
   }
 
