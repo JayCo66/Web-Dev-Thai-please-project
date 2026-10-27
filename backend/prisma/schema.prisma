@@ -107,6 +107,11 @@ model bingo_quests {
   target_min        Int                            @default(1)
   target_max        Int                            @default(1)
   token_weight      Int                            @default(10)
+  quest_code        String?                        @unique(map: "uq_bingo_quests_code") @db.VarChar(60)
+  metric            String?                        @db.VarChar(60)
+  filter_json       String?                        @db.LongText
+  unit              String?                        @db.VarChar(20)
+  levels_json       String?                        @db.LongText
   is_active         Boolean                        @default(true)
   created_at        DateTime                       @default(now())
   user_quests       user_quests[]

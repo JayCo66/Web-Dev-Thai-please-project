@@ -14,7 +14,9 @@ import {
   Search,
   ShieldCheck,
   Check,
-  QrCode
+  Coins,
+  Gift,
+  Grid
 } from 'lucide-react';
 
 export default function Payment() {
@@ -145,9 +147,90 @@ export default function Payment() {
   );
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      {/* Official App Header */}
-      <Navbar />
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Top Header */}
+      <header className="app-header">
+        <div className="header-brand">
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}>
+            <div className="header-logo" style={{ width: 34, height: 34, fontSize: 16 }}>
+              <ArrowLeft size={18} />
+            </div>
+            <div>
+              <div className="header-title">ชำระเงินคนละครึ่ง (Co-Pay 60/40)</div>
+              <div className="header-tag">Government Subsidy & Smart Checkout</div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="header-user">
+          {/* Link to Bingo */}
+          <Link
+            to="/bingo"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              background: '#EEF2FF',
+              border: '1px solid #C7D2FE',
+              borderRadius: 999,
+              color: '#4338CA',
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            <Grid size={15} color="#4F46E5" />
+            <span>ภารกิจบิงโก 5x5</span>
+          </Link>
+
+          {/* Link to ThaiPlus */}
+          <Link
+            to="/plus"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              background: '#FEF3C7',
+              border: '1px solid #FDE68A',
+              borderRadius: 999,
+              color: '#92400E',
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            <Gift size={15} color="#D97706" />
+            <span>ไทยช่วยไทยพลัส (ใช้ Token)</span>
+          </Link>
+
+          {/* Tokens Pill */}
+          <Link
+            to="/plus"
+            className="token-pill"
+            style={{ textDecoration: 'none', cursor: 'pointer' }}
+            title="คลิกเพื่อไปหน้าใช้โทเค็น"
+          >
+            <Coins size={16} />
+            <span>{tokens} Tokens</span>
+          </Link>
+
+          {/* Simulated Wallet Balance Pill */}
+          <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋าของคุณ">
+            <Wallet size={16} />
+            <span>ยอดคงเหลือ: ฿{userBalance.toFixed(2)}</span>
+            <button
+              type="button"
+              className="btn-topup-mini"
+              onClick={() => resetBalance(500)}
+              title="รีเซ็ตหรือเติมเงินจำลองเป็น 500 บาท"
+            >
+              + เติม ฿500
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* Main Container */}
       <main className="home-container">

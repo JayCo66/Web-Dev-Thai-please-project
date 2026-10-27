@@ -92,6 +92,15 @@ async function createPayment(req, res) {
       },
     });
 
+    // Real-time Mission Checker: Synchronize Bingo Mission progress for citizen
+    let questUpdate = null;
+    try {
+      const { syncPaymentProgress } = require('./questController');
+      questUpdate = await syncPaymentProgress(userId.toString(), newTransaction);
+    } catch (questErr) {
+      console.warn('Could not sync quest progress on payment:', questErr.message);
+    }
+
     return res.status(201).json({
       success: true,
       message: `ชำระเงินให้ร้าน "${shop.shop_name}" สำเร็จ`,
@@ -105,6 +114,7 @@ async function createPayment(req, res) {
         governmentAmount: govSubsidy,
         copayRate: '60/40',
         paidAt: newTransaction.paid_at,
+        questUpdate,
       },
     });
   } catch (error) {

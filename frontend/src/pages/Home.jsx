@@ -10,6 +10,8 @@ import {
   HeartHandshake,
   ArrowRight,
   CreditCard,
+  Gift,
+  Grid
   ShieldCheck,
   Eye,
   EyeOff,
@@ -133,6 +135,28 @@ export default function Home() {
               <Gift size={20} />
             </div>
             <span className="quick-action-label">แลกรางวัล</span>
+          </Link>
+
+          {/* Link to Bingo Board */}
+          <Link
+            to="/bingo"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              background: '#EEF2FF',
+              border: '1px solid #C7D2FE',
+              borderRadius: 999,
+              color: '#4338CA',
+              fontSize: 13.5,
+              fontWeight: 700,
+              textDecoration: 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Grid size={16} color="#4F46E5" />
+            <span>ภารกิจบิงโก 5x5</span>
           </Link>
 
           <Link to="/charities" className="quick-action-item">
@@ -282,6 +306,48 @@ export default function Home() {
               คะแนนสะสมความดีสำหรับร่วมกิจกรรมและรับสิทธิพิเศษ
             </div>
           </div>
+        </div>
+
+        {/* AI Bingo Mission Board Banner */}
+        <Link
+          to="/bingo"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, #1E1B4B 0%, #4338CA 50%, #6366F1 100%)',
+            color: '#FFFFFF',
+            borderRadius: 'var(--radius-xl)',
+            padding: '24px 28px',
+            textDecoration: 'none',
+            boxShadow: '0 8px 24px rgba(79, 70, 229, 0.35)',
+            marginBottom: 18,
+            transition: 'all 0.2s ease',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Grid size={28} color="#FDE047" />
+            </div>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(238, 242, 255, 0.25)', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#E0E7FF', marginBottom: 4 }}>
+                <Sparkles size={12} /> ขับเคลื่อนด้วย Typhoon AI v2.5
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>
+                🎯 ภารกิจบิงโก 5x5: ทำภารกิจพิชิตแถวบิงโกลุ้นรับโทเค็น
+              </h3>
+              <p style={{ fontSize: 13.5, opacity: 0.9 }}>
+                กระดานภารกิจ 25 ช่องที่ออกแบบเฉพาะบุคคล | ศูนย์กลางบริจาคใจฟู + 12 เส้นทางบิงโกรับโบนัสสะสมโทเค็น
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14, background: 'rgba(255,255,255,0.25)', padding: '8px 18px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+            <span>เปิดกระดานบิงโก</span>
+            <ArrowRight size={16} />
+          </div>
+        </Link>
         </section>
 
         {/* ========================================================

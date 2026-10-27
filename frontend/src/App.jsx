@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Charities from './pages/Charities';
 import Payment from './pages/Payment';
 import ThaiPlus from './pages/ThaiPlus';
+import Bingo from './pages/Bingo';
 
 function App() {
   return (
@@ -64,6 +65,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ThaiPlus />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bingo"
+            element={
+              <ProtectedRoute>
+                <Bingo />
               </ProtectedRoute>
             }
           />

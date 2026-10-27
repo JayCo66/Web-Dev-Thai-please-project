@@ -2096,24 +2096,187 @@ button, input, select, textarea {
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
-@media (max-width: 640px) {
-  .thaiplus-hero {
-    padding: 20px 16px;
-    border-radius: var(--radius-lg);
-  }
-  
-  .thaiplus-stat-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* ====================================================
+   BINGO 5x5 MISSION BOARD STYLES
+   ==================================================== */
+
+.bingo-hero {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 40%, #4338CA 70%, #065F46 100%);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px -5px rgba(30, 27, 75, 0.35);
+  margin-bottom: 24px;
+}
+
+.bingo-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.bingo-grid-5x5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+  .bingo-grid-5x5 {
     gap: 8px;
   }
-  
-  .thaiplus-stat-card {
-    padding: 12px 12px;
-    gap: 10px;
-  }
-  
-  .rewards-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .bingo-grid-5x5 {
+    gap: 6px;
   }
 }
+
+.bingo-cell {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: var(--radius-lg);
+  padding: 12px 10px;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.bingo-cell:hover {
+  transform: translateY(-3px);
+  border-color: #3B82F6;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.18);
+}
+
+.bingo-cell.completed {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border-color: #10B981;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+}
+
+.bingo-cell.completed::before {
+  content: '✓';
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 38px;
+  height: 38px;
+  background: #10B981;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 0 0 4px 8px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+.bingo-cell.center-donation {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 2px solid #F59E0B;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+}
+
+.bingo-cell.center-donation.completed {
+  background: linear-gradient(135deg, #ECFDF5 0%, #FEF3C7 100%);
+  border: 2px solid #10B981;
+}
+
+.bingo-cell-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badge-family-activity { background: #FEF3C7; color: #B45309; }
+.badge-family-variety { background: #CCFBF1; color: #0F766E; }
+.badge-family-time { background: #EDE9FE; color: #6D28D9; }
+.badge-family-spend { background: #DBEAFE; color: #1E40AF; }
+.badge-family-donation { background: #FFE4E6; color: #BE123C; }
+
+.bingo-cell-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin: 6px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bingo-progress-container {
+  width: 100%;
+  height: 6px;
+  background: #E2E8F0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.bingo-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3B82F6, #10B981);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.bingo-cell-reward {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #D97706;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bingo-lines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.bingo-line-item {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  transition: all 0.15s;
+}
+
+.bingo-line-item.bingo-achieved {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-color: #F59E0B;
+  color: #92400E;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+
+
+
