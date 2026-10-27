@@ -29,8 +29,8 @@ function generateToken(user) {
 /**
  * Calculate user total Impact Tokens
  */
-async function getUserTotalTokens(userId) {
-  const txs = await prisma.token_transactions.findMany({
+async function getUserTotalTokens(userId, db = prisma) {
+  const txs = await db.token_transactions.findMany({
     where: { user_id: BigInt(userId) },
     select: { amount: true },
   });

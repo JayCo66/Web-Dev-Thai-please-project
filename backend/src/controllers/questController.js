@@ -22,6 +22,127 @@ const BINGO_LINES = [
   { id: 'D2', type: 'DIAG', name: 'แนวทแยงขวาไปซ้าย (／)', positions: [4, 8, 12, 16, 20] },
 ];
 
+// Rebalanced Tokenomics (ADR-0001 & ADR-0002): 20 Tokens per line
+const BINGO_LINE_BONUS_TOKENS = 20;
+
+/**
+ * Calculate standard board token yield
+ */
+function calculateBoardYield(budget = 63, linesCount = 12) {
+  const cellTokens = budget * 2;
+  const donationTokens = 10;
+  const lineTokens = linesCount * BINGO_LINE_BONUS_TOKENS;
+  return {
+    cellTokens,
+    donationTokens,
+    lineTokens,
+    totalTokens: cellTokens + donationTokens + lineTokens,
+  };
+}
+
+/**
+ * Format concise, punchy title for small Bingo grid cells so text fits without truncation
+ */
+function formatShortQuestTitle(title, isDonation = false) {
+  if (isDonation) return 'บริจาคเพื่อสังคม';
+  let s = (title || '').replace(/\s+/g, ' ').trim();
+
+  // 1. หมวดอาหารและเครื่องดื่ม
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่มต่างร้าน/g, 'อาหารต่างร้าน');
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่มตอนเช้า/g, 'อาหารมื้อเช้า');
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่มมื้อกลางวัน/g, 'อาหารกลางวัน');
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่มช่วงบ่าย/g, 'อาหารช่วงบ่าย');
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่มใน/g, 'อาหาร');
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่มรวมครบ/g, 'อาหารรวม');
+  s = s.replace(/ใช้จ่ายหมวดอาหารและเครื่องดื่ม/g, 'หมวดอาหาร');
+  s = s.replace(/จ่ายครั้งเดียวหมวดอาหารและเครื่องดื่มมูลค่าตั้งแต่/g, 'บิลอาหาร');
+
+  // 2. หมวดสินค้าทั่วไป
+  s = s.replace(/ใช้จ่ายหมวดสินค้าทั่วไปต่างร้าน/g, 'สินค้าต่างร้าน');
+  s = s.replace(/ใช้จ่ายหมวดสินค้าทั่วไปวันธรรมดา/g, 'สินค้าวันธรรมดา');
+  s = s.replace(/ใช้จ่ายหมวดสินค้าทั่วไปใน/g, 'สินค้า');
+  s = s.replace(/ใช้จ่ายหมวดสินค้าทั่วไปรวมครบ/g, 'สินค้ารวม');
+  s = s.replace(/ใช้จ่ายหมวดสินค้าทั่วไป/g, 'สินค้าทั่วไป');
+  s = s.replace(/จ่ายครั้งเดียวหมวดสินค้าทั่วไปมูลค่าตั้งแต่/g, 'บิลสินค้า');
+
+  // 3. ร้านเดิม / ร้านใหม่ / ต่างร้าน
+  s = s.replace(/ใช้จ่ายร้านเดิมซ้ำในหมวดอาหารและเครื่องดื่ม/g, 'ร้านอาหารเดิม');
+  s = s.replace(/ใช้จ่ายร้านเดิมซ้ำในหมวดสินค้าทั่วไป/g, 'ร้านสินค้าเดิม');
+  s = s.replace(/ใช้จ่ายร้านเดิมวันเสาร์-อาทิตย์ซ้ำ/g, 'ร้านเดิม ส.-อา.');
+  s = s.replace(/ใช้จ่ายร้านเดิมซ้ำ/g, 'ร้านเดิมซ้ำ');
+  s = s.replace(/ลองใช้จ่ายร้านที่ไม่เคยไปมาก่อน/g, 'ลองร้านใหม่');
+  s = s.replace(/ใช้จ่ายต่างร้าน/g, 'ต่างร้าน');
+  s = s.replace(/ใช้จ่ายร้านเดียวรวมครบ/g, 'ร้านเดียวรวม');
+
+  // 4. เวลา / วัน
+  s = s.replace(/ใช้จ่ายช่วงเช้า/g, 'ช่วงเช้า');
+  s = s.replace(/ใช้จ่ายช่วงกลางวัน/g, 'มื้อกลางวัน');
+  s = s.replace(/ใช้จ่ายช่วงบ่าย/g, 'ช่วงบ่าย');
+  s = s.replace(/ใช้จ่ายวันเสาร์-อาทิตย์/g, 'เสาร์-อาทิตย์');
+  s = s.replace(/ใช้จ่ายวันธรรมดา/g, 'วันธรรมดา');
+  s = s.replace(/ใช้จ่ายวันศุกร์/g, 'วันศุกร์');
+  s = s.replace(/ใช้จ่ายติดต่อกัน/g, 'ติดต่อกัน');
+
+  // 5. ยอดเงิน / ทั่วไป
+  s = s.replace(/ใช้จ่ายรวมครบ/g, 'ยอดรวม');
+  s = s.replace(/จ่ายครั้งเดียวมูลค่าตั้งแต่/g, 'บิลเดียว');
+  s = s.replace(/ใช้จ่ายครบ/g, 'ใช้จ่ายครบ');
+
+  // 6. คำฟุ่มเฟือย
+  s = s.replace(/วันที่ต่างกัน/g, 'วันต่างกัน');
+
+  return s.trim();
+}
+
+/**
+ * Evaluate progress increment for a specific cell based on transaction details
+ */
+function evaluateQuestIncrement(cell, transaction) {
+  const totalAmount = Number(transaction.total_amount || 0);
+  const shopCat = (transaction.shops?.category || '').toLowerCase();
+  const isFood = shopCat.includes('food') || shopCat.includes('อาหาร') || shopCat.includes('เครื่องดื่ม') || shopCat.includes('cafe');
+  const isGoods = !isFood;
+  const date = transaction.paid_at ? new Date(transaction.paid_at) : new Date();
+  // Ensure time evaluation strictly uses Thailand Time (UTC+7) regardless of server host timezone
+  const utcMs = date.getTime() + (date.getTimezoneOffset() * 60000);
+  const thaiDate = new Date(utcMs + (7 * 3600000));
+  const paidHour = thaiDate.getHours();
+  const paidDay = thaiDate.getDay();
+  const isMorning = paidHour < 11;
+  const isLunch = paidHour >= 11 && paidHour < 14;
+  const isAfternoon = paidHour >= 14 && paidHour < 18;
+  const isWeekday = paidDay >= 1 && paidDay <= 5;
+  const isWeekend = paidDay === 0 || paidDay === 6;
+
+  let increment = 0;
+  if (cell.quest_code === 'TX_COUNT_ANY') {
+    increment = 1;
+  } else if (cell.quest_code === 'SPEND_TOTAL_ANY') {
+    increment = Math.floor(totalAmount);
+  } else if (cell.quest_code === 'CATEGORY_COUNT_FD' || cell.quest_code === 'FD_ANY') {
+    if (isFood) increment = 1;
+  } else if (cell.quest_code === 'CATEGORY_COUNT_GD' || cell.quest_code === 'GD_ANY') {
+    if (isGoods) increment = 1;
+  } else if (cell.quest_code === 'DAYPART_MORNING' || cell.quest_code === 'FD_MORNING') {
+    if (isMorning) increment = 1;
+  } else if (cell.quest_code === 'DAYPART_LUNCH' || cell.quest_code === 'FD_LUNCH') {
+    if (isLunch) increment = 1;
+  } else if (cell.quest_code === 'DAYPART_AFTERNOON' || cell.quest_code === 'FD_AFTERNOON') {
+    if (isAfternoon) increment = 1;
+  } else if (cell.quest_code === 'WEEKDAY_COUNT' || cell.quest_code === 'GD_WEEKDAY') {
+    if (isWeekday) increment = 1;
+  } else if (cell.quest_code === 'WEEKEND_COUNT') {
+    if (isWeekend) increment = 1;
+  } else if (cell.quest_code === 'SINGLE_TICKET_ANY') {
+    if (totalAmount >= cell.target_value) {
+      increment = Math.max(0, cell.target_value - (cell.progress || 0));
+    }
+  } else if (cell.quest_code === 'DISTINCT_MERCHANTS_ANY') {
+    increment = 1;
+  }
+  return increment;
+}
+
 /**
  * Helper to check lines status
  */
@@ -142,7 +263,7 @@ async function generateFourMonthlyBoards(userId, monthKey) {
     // Initial cells: ALL start at progress 0, status IN_PROGRESS
     const cells = generated.bingo_board_5x5.map((c) => {
       const isDonation = c.family === 'DONATION' || c.position === 12;
-      const tokenReward = isDonation ? 50 : (c.level || 1) * 10;
+      const tokenReward = isDonation ? 10 : (c.level || 1) * 2;
 
       return {
         position: c.position,
@@ -157,6 +278,7 @@ async function generateFourMonthlyBoards(userId, monthKey) {
         status: 'IN_PROGRESS',
         token_reward: tokenReward,
         title: isDonation ? 'บริจาคให้มูลนิธิ 1 ครั้ง' : c.title,
+        short_title: formatShortQuestTitle(isDonation ? 'บริจาคเพื่อสังคม' : c.title, isDonation),
         reason: isDonation ? 'ร่วมบริจาคช่วยเหลือสังคมผ่าน e-Donation ไม่นับรวม budget' : c.reason,
         reason_source: isDonation ? 'SERVER_DATA' : (c.reason_source || 'AI_TYPHOON'),
         level_adjusted: c.level_adjusted || false,
@@ -230,6 +352,14 @@ async function getOrInitializeUserBoards(userId, monthKey = getCurrentMonthKey()
   if (!boards) {
     boards = await generateFourMonthlyBoards(userId, monthKey);
     userMonthlyBoardsStore.set(storeKey, boards);
+  } else {
+    for (const b of boards) {
+      for (const cell of b.cells) {
+        if (!cell.short_title) {
+          cell.short_title = formatShortQuestTitle(cell.title, cell.quest_code === 'DONATION' || cell.position === 12);
+        }
+      }
+    }
   }
   return boards;
 }
@@ -289,7 +419,7 @@ async function syncDonationProgress(userId, donationAmount, donationId) {
   let bingoBonusTokens = 0;
   if (newCompletedLines > oldCompletedLines) {
     const lineDiff = newCompletedLines - oldCompletedLines;
-    bingoBonusTokens = lineDiff * 100;
+    bingoBonusTokens = lineDiff * BINGO_LINE_BONUS_TOKENS;
     try {
       await prisma.token_transactions.create({
         data: {
@@ -345,8 +475,12 @@ async function syncPaymentProgress(userId, transaction) {
   const shopCat = (transaction.shops?.category || '').toLowerCase();
   const isFood = shopCat.includes('food') || shopCat.includes('อาหาร') || shopCat.includes('เครื่องดื่ม') || shopCat.includes('cafe');
   const isGoods = !isFood;
-  const paidHour = new Date(transaction.paid_at || Date.now()).getHours();
-  const paidDay = new Date(transaction.paid_at || Date.now()).getDay();
+  const date = transaction.paid_at ? new Date(transaction.paid_at) : new Date();
+  // Ensure time evaluation strictly uses Thailand Time (UTC+7) regardless of server host timezone
+  const utcMs = date.getTime() + (date.getTimezoneOffset() * 60000);
+  const thaiDate = new Date(utcMs + (7 * 3600000));
+  const paidHour = thaiDate.getHours();
+  const paidDay = thaiDate.getDay();
   const isMorning = paidHour < 11;
   const isLunch = paidHour >= 11 && paidHour < 14;
   const isAfternoon = paidHour >= 14 && paidHour < 18;
@@ -356,35 +490,9 @@ async function syncPaymentProgress(userId, transaction) {
   for (const cell of activeBoard.cells) {
     if (cell.status === 'COMPLETED') continue;
 
-    let increment = 0;
-    if (cell.quest_code === 'TX_COUNT_ANY') {
-      increment = 1;
-    } else if (cell.quest_code === 'SPEND_TOTAL_ANY') {
-      increment = Math.floor(totalAmount);
-    } else if (cell.quest_code === 'CATEGORY_COUNT_FD' || cell.quest_code === 'FD_ANY') {
-      if (isFood) increment = 1;
-    } else if (cell.quest_code === 'CATEGORY_COUNT_GD' || cell.quest_code === 'GD_ANY') {
-      if (isGoods) increment = 1;
-    } else if (cell.quest_code === 'DAYPART_MORNING' || cell.quest_code === 'FD_MORNING') {
-      if (isMorning) increment = 1;
-    } else if (cell.quest_code === 'DAYPART_LUNCH' || cell.quest_code === 'FD_LUNCH') {
-      if (isLunch) increment = 1;
-    } else if (cell.quest_code === 'DAYPART_AFTERNOON' || cell.quest_code === 'FD_AFTERNOON') {
-      if (isAfternoon) increment = 1;
-    } else if (cell.quest_code === 'WEEKDAY_COUNT' || cell.quest_code === 'GD_WEEKDAY') {
-      if (isWeekday) increment = 1;
-    } else if (cell.quest_code === 'WEEKEND_COUNT') {
-      if (isWeekend) increment = 1;
-    } else if (cell.quest_code === 'SINGLE_TICKET_ANY') {
-      if (totalAmount >= cell.target_value) {
-        cell.progress = cell.target_value;
-      }
-    } else if (cell.quest_code === 'DISTINCT_MERCHANTS_ANY') {
-      increment = 1;
-    }
-
+    const increment = evaluateQuestIncrement(cell, transaction);
     if (increment > 0) {
-      cell.progress = Math.min(cell.target_value, cell.progress + increment);
+      cell.progress = Math.min(cell.target_value, (cell.progress || 0) + increment);
     }
 
     if (cell.progress >= cell.target_value) {
@@ -417,7 +525,7 @@ async function syncPaymentProgress(userId, transaction) {
   let bingoBonusTokens = 0;
   if (newCompletedLines > oldCompletedLines) {
     const lineDiff = newCompletedLines - oldCompletedLines;
-    bingoBonusTokens = lineDiff * 100;
+    bingoBonusTokens = lineDiff * BINGO_LINE_BONUS_TOKENS;
     try {
       await prisma.token_transactions.create({
         data: {
@@ -668,7 +776,7 @@ async function progressCell(req, res) {
 
     if (newLinesCompleted > oldLinesCompleted) {
       const diff = newLinesCompleted - oldLinesCompleted;
-      bingoBonusTokens = diff * 100;
+      bingoBonusTokens = diff * BINGO_LINE_BONUS_TOKENS;
 
       try {
         await prisma.token_transactions.create({
@@ -742,6 +850,11 @@ async function resetBoard(req, res) {
 }
 
 module.exports = {
+  BINGO_LINES,
+  BINGO_LINE_BONUS_TOKENS,
+  calculateBoardYield,
+  analyzeBingoLines,
+  evaluateQuestIncrement,
   generateBoard,
   getActiveBoard,
   setActiveBoard,

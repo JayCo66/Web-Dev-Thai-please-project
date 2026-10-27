@@ -1,6 +1,38 @@
 const prisma = require('../config/prisma');
 
 /**
+ * Calculate Co-Payment (60/40) with daily subsidy cap
+ * @param {number} totalAmount - Total transaction amount
+ * @param {number} usedSubsidyToday - Subsidy already used today by the citizen
+ * @param {number} maxDailyCap - Daily maximum government subsidy (default 150.00)
+ * @returns {{ totalAmount: number, govSubsidy: number, userPayment: number, remainingCapAfter: number }}
+ */
+function calculateCoPay(totalAmount, usedSubsidyToday = 0, maxDailyCap = 150.00) {
+  const parsedTotal = Math.round(Number(totalAmount) * 100) / 100;
+  if (!parsedTotal || parsedTotal <= 0) {
+    const error = new Error('กรุณากรอกยอดเงินที่ต้องการชำระให้ถูกต้อง (มากกว่า 0 บาท)');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const safeUsed = Math.max(0, Number(usedSubsidyToday) || 0);
+  const remainingCap = Math.max(0, Math.round((maxDailyCap - safeUsed) * 100) / 100);
+
+  // Government pays 60%, but capped by remaining daily cap
+  const potentialGovSubsidy = Math.round(parsedTotal * 0.60 * 100) / 100;
+  const govSubsidy = Math.min(potentialGovSubsidy, remainingCap);
+  const userPayment = Math.round((parsedTotal - govSubsidy) * 100) / 100;
+  const remainingCapAfter = Math.round((remainingCap - govSubsidy) * 100) / 100;
+
+  return {
+    totalAmount: parsedTotal,
+    govSubsidy,
+    userPayment,
+    remainingCapAfter,
+  };
+}
+
+/**
  * GET /api/v1/transactions/shops
  * Get active participating shops for checkout
  */
@@ -66,16 +98,23 @@ async function createPayment(req, res) {
       });
     }
 
-    // Co-Payment 60/40 Calculation:
-    // Government subsidizes 60%, Citizen pays 40%
-    // Standard daily subsidy cap: max 150 THB/day
-    const maxDailyGovSubsidy = 150.00;
-    let govSubsidy = Math.round(totalAmount * 0.60 * 100) / 100;
-    if (govSubsidy > maxDailyGovSubsidy) {
-      govSubsidy = maxDailyGovSubsidy;
-    }
+    // Co-Payment 60/40 Calculation with daily subsidy cap (max 150 THB/day per citizen)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-    const userPayment = Math.round((totalAmount - govSubsidy) * 100) / 100;
+    const todaySubsidyAggregate = await prisma.transactions.aggregate({
+      where: {
+        user_id: userId,
+        status: 'COMPLETED',
+        paid_at: { gte: startOfToday },
+      },
+      _sum: {
+        government_amount: true,
+      },
+    });
+
+    const usedSubsidyToday = Number(todaySubsidyAggregate._sum.government_amount || 0);
+    const { govSubsidy, userPayment } = calculateCoPay(totalAmount, usedSubsidyToday, 150.00);
 
     // Record into the transactions table
     const newTransaction = await prisma.transactions.create({
@@ -167,6 +206,7 @@ async function getMyTransactions(req, res) {
 }
 
 module.exports = {
+  calculateCoPay,
   getShops,
   createPayment,
   getMyTransactions,

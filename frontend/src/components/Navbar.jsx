@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   ChevronRight,
   QrCode,
-  Gift
+  Gift,
+  Grid
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -84,6 +85,13 @@ export default function Navbar() {
           >
             <Gift size={16} />
             <span>ไทยช่วยไทยพลัส</span>
+          </Link>
+          <Link
+            to="/bingo"
+            className={`nav-pill-link ${location.pathname === '/bingo' ? 'active' : ''}`}
+          >
+            <Grid size={16} />
+            <span>ภารกิจบิงโก</span>
           </Link>
         </nav>
 
@@ -194,17 +202,15 @@ export default function Navbar() {
           <span>บริจาค</span>
         </Link>
 
-        <button
-          type="button"
-          className="bottom-nav-item"
-          onClick={() => setProfileDrawerOpen(true)}
-          aria-label="เมนูบัญชีผู้ใช้"
+        <Link
+          to="/bingo"
+          className={`bottom-nav-item ${location.pathname === '/bingo' ? 'active' : ''}`}
         >
           <div className="bottom-nav-icon">
-            <User size={19} />
+            <Grid size={19} />
           </div>
-          <span>บัญชี</span>
-        </button>
+          <span>บิงโก</span>
+        </Link>
       </nav>
 
       {/* Mobile Profile & Actions Sheet */}
@@ -406,6 +412,31 @@ export default function Navbar() {
                   <span>ไทยช่วยไทยพลัส (แลกรางวัล & ลุ้นโชค)</span>
                 </div>
                 <ChevronRight size={17} color="#B45309" />
+              </Link>
+
+              <Link
+                to="/bingo"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  minHeight: 46,
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  borderRadius: 'var(--radius-sm)',
+                  textDecoration: 'none',
+                  color: '#1E40AF',
+                  fontSize: 13.5,
+                  fontWeight: 700
+                }}
+                onClick={() => setProfileDrawerOpen(false)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Grid size={17} color="#1D4ED8" />
+                  <span>ภารกิจบิงโก 5x5 (Typhoon AI)</span>
+                </div>
+                <ChevronRight size={17} color="#1D4ED8" />
               </Link>
 
               <button

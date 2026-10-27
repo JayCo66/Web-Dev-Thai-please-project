@@ -174,9 +174,9 @@ export default function ThaiPlus() {
 
   // Enter Lucky Draw
   const handleConfirmLuckyDraw = async () => {
-    let cost = 20;
-    if (selectedPackage === 3) cost = 50;
-    if (selectedPackage === 5) cost = 80;
+    let cost = 25;
+    if (selectedPackage === 3) cost = 60;
+    if (selectedPackage === 5) cost = 90;
 
     if (tokens < cost) {
       alert(`Impact Tokens ของคุณไม่พอ (ต้องการ ${cost} Tokens แต่คุณมี ${tokens} Tokens) คุณสามารถกดรับโทเค็นจำลองฟรีได้`);
@@ -784,7 +784,7 @@ export default function ThaiPlus() {
                         {enteringDraw
                           ? 'กำลังลงชื่อ...'
                           : `ลงชื่อลุ้นโชค (${
-                              selectedPackage === 1 ? 20 : selectedPackage === 3 ? 50 : 80
+                              selectedPackage === 1 ? 25 : selectedPackage === 3 ? 60 : 90
                             } Tokens)`}
                       </span>
                     </button>

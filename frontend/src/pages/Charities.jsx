@@ -13,8 +13,7 @@ import {
   FileText,
   Clock,
   X,
-  Gift,
-  Grid
+  ShieldCheck
 } from 'lucide-react';
 
 export default function Charities() {
@@ -155,87 +154,32 @@ export default function Charities() {
   const userBalance = parseFloat(wallet?.balance || '500.00');
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header */}
-      <header className="app-header">
-        <div className="header-brand">
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}>
-            <div className="header-logo" style={{ width: 34, height: 34, fontSize: 16 }}>
-              <ArrowLeft size={18} />
-            </div>
-            <div>
-              <div className="header-title">มูลนิธิและโครงการเพื่อสังคม</div>
-              <div className="header-tag">Social Impact & e-Donation</div>
-            </div>
-          </Link>
-        </div>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      {/* Official App Header */}
+      <Navbar />
 
-        <div className="header-user">
-          {/* Link to Bingo */}
-          <Link
-            to="/bingo"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              background: '#EEF2FF',
-              border: '1px solid #C7D2FE',
-              borderRadius: 999,
-              color: '#4338CA',
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: 'none',
-            }}
-          >
-            <Grid size={15} color="#4F46E5" />
-            <span>ภารกิจบิงโก 5x5</span>
-          </Link>
-
-          {/* Link to ThaiPlus */}
-          <Link
-            to="/plus"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              background: '#FEF3C7',
-              border: '1px solid #FDE68A',
-              borderRadius: 999,
-              color: '#92400E',
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: 'none',
-            }}
-          >
-            <Gift size={15} color="#D97706" />
-            <span>ไทยช่วยไทยพลัส (ใช้ Token)</span>
-          </Link>
-
-          {/* Tokens Pill */}
-          <Link
-            to="/plus"
-            className="token-pill"
-            style={{ textDecoration: 'none', cursor: 'pointer' }}
-            title="คลิกเพื่อไปหน้าใช้โทเค็น"
-          >
-            <Coins size={16} />
-            <span>{tokens} Tokens</span>
-          </Link>
-
-          {/* Simulated Wallet Balance Pill */}
-          <div className="balance-pill" title="ยอดเงินจำลองในกระเป๋าของคุณ">
-            <Wallet size={16} />
-            <span>ยอดคงเหลือ: ฿{userBalance.toFixed(2)}</span>
-            <button
-              type="button"
-              className="btn-topup-mini"
-              onClick={() => resetBalance(500)}
-              title="รีเซ็ตหรือเติมเงินจำลองเป็น 500 บาทสำหรับการทดสอบ"
-            >
-              + เติม ฿500
-            </button>
+      {/* Main Content */}
+      <main className="home-container">
+        {/* Banner Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0A192F 0%, #0369A1 100%)',
+          color: '#FFFFFF',
+          borderRadius: 'var(--radius-lg)',
+          padding: '22px 20px',
+          marginBottom: 20
+        }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'rgba(255, 255, 255, 0.14)',
+            padding: '4px 10px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: 12,
+            fontWeight: 600,
+            marginBottom: 10
+          }}>
+            <ShieldCheck size={13} /> ระบบ e-Donation กรมสรรพากร
           </div>
           <h1 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 6 }}>
             ระบบบริจาคอิเล็กทรอนิกส์เพื่อสังคม

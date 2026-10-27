@@ -2,6 +2,33 @@ const prisma = require('../config/prisma');
 const { getUserTotalTokens } = require('../services/authService');
 
 /**
+ * Calculate cost in tokens for Lucky Draw tickets (Soft Sink)
+ * 1 ticket: 25 tokens
+ * 3 tickets: 60 tokens (save 15)
+ * 5 tickets: 90 tokens (save 35)
+ * Other: count * 25 tokens
+ */
+function calculateLuckyDrawCost(count) {
+  const parsed = parseInt(count, 10);
+  if (isNaN(parsed) || parsed <= 0) {
+    const error = new Error('กรุณาระบุจำนวนสิทธิ์ชิงโชคที่ถูกต้อง');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (parsed === 1) return 25;
+  if (parsed === 3) return 60;
+  if (parsed === 5) return 90;
+  return parsed * 25;
+}
+
+/**
+ * Check if citizen has quota remaining for monthly hard sinks (e.g. 50 THB voucher)
+ */
+function checkMonthlyHardSinkQuota(monthlyRedemptions, maxLimit = 1) {
+  return Number(monthlyRedemptions || 0) < maxLimit;
+}
+
+/**
  * GET /api/v1/rewards
  * Get list of available rewards and lucky draw campaigns
  */
@@ -61,7 +88,7 @@ exports.getRewards = async (req, res) => {
       subtitle: 'ใช้ Impact Tokens ลงชื่อลุ้นรับรางวัลมูลค่ารวมกว่า 300,000 บาท',
       drawDate: '31 มีนาคม 2026 (เวลา 18:00 น.)',
       status: 'OPEN_FOR_ENTRY',
-      costPerTicket: 20,
+      costPerTicket: 25,
       prizes: [
         { rank: 1, name: 'ทองคำแท่ง หนัก 1 บาท', value: '45,000 บาท', quantity: 2, icon: 'Crown' },
         { rank: 2, name: 'สมาร์ทโฟน iPhone 16 Pro 256GB', value: '39,900 บาท', quantity: 3, icon: 'Smartphone' },
@@ -70,9 +97,9 @@ exports.getRewards = async (req, res) => {
         { rank: 5, name: 'Gift Voucher ห้างสรรพสินค้า 2,000 บาท', value: '2,000 บาท', quantity: 20, icon: 'ShoppingBag' },
       ],
       packages: [
-        { tickets: 1, tokens: 20, label: '1 สิทธิ์ (20 Tokens)', badge: null },
-        { tickets: 3, tokens: 50, label: '3 สิทธิ์ (50 Tokens)', badge: 'ประหยัด 10 Tokens' },
-        { tickets: 5, tokens: 80, label: '5 สิทธิ์ (80 Tokens)', badge: 'คุ้มสุด! ประหยัด 20 Tokens' },
+        { tickets: 1, tokens: 25, label: '1 สิทธิ์ (25 Tokens)', badge: null },
+        { tickets: 3, tokens: 60, label: '3 สิทธิ์ (60 Tokens)', badge: 'ประหยัด 15 Tokens' },
+        { tickets: 5, tokens: 90, label: '5 สิทธิ์ (90 Tokens)', badge: 'คุ้มสุด! ประหยัด 35 Tokens' },
       ],
     };
 
@@ -119,26 +146,49 @@ exports.redeemReward = async (req, res) => {
       });
     }
 
-    // Check user's current token balance
-    const currentTokens = await getUserTotalTokens(userId);
-    if (currentTokens < reward.token_cost) {
-      return res.status(400).json({
-        success: false,
-        error: `Impact Tokens ของคุณไม่เพียงพอ (ต้องการ ${reward.token_cost} Tokens แต่คุณมี ${currentTokens} Tokens)`,
+    // Enforce Monthly Hard Sink Quota (ADR-0001 & ADR-0002):
+    // Max 1 cash discount voucher (50 THB / 500 Tokens) per citizen per calendar month
+    if ((reward.reward_type === 'COUPON' || reward.reward_type === 'DISCOUNT') && reward.token_cost >= 500) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const recentRedemptions = await prisma.token_transactions.count({
+        where: {
+          user_id: userId,
+          type: 'REDEEM_REWARD',
+          amount: { lte: -500 },
+          created_at: { gte: startOfMonth },
+        },
       });
+
+      if (!checkMonthlyHardSinkQuota(recentRedemptions, 1)) {
+        return res.status(400).json({
+          success: false,
+          error: 'คุณใช้สิทธิ์แลกคูปองส่วนลด 50 บาทครบโควตาประจำเดือนนี้แล้ว (จำกัด 1 สิทธิ์/คน/เดือน) เพื่อเปิดโอกาสให้ผู้อื่นอย่างทั่วถึง',
+        });
+      }
     }
 
-    // Deduct tokens via token_transactions (negative amount)
-    await prisma.token_transactions.create({
-      data: {
-        user_id: userId,
-        amount: -reward.token_cost,
-        type: 'REDEEM_REWARD',
-      },
-    });
+    // Deduct tokens inside an atomic transaction to prevent race conditions / double-spending
+    const { newTokens } = await prisma.$transaction(async (tx) => {
+      const currentTokens = await getUserTotalTokens(userId, tx);
+      if (currentTokens < reward.token_cost) {
+        const error = new Error(`Impact Tokens ของคุณไม่เพียงพอ (ต้องการ ${reward.token_cost} Tokens แต่คุณมี ${currentTokens} Tokens)`);
+        error.statusCode = 400;
+        throw error;
+      }
 
-    // Calculate new token balance
-    const newTokens = await getUserTotalTokens(userId);
+      await tx.token_transactions.create({
+        data: {
+          user_id: userId,
+          amount: -reward.token_cost,
+          type: 'REDEEM_REWARD',
+        },
+      });
+
+      return { newTokens: currentTokens - reward.token_cost };
+    });
 
     // Generate unique Voucher Code and Barcode Number
     const randomHex = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -169,6 +219,12 @@ exports.redeemReward = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        error: error.message,
+      });
+    }
     console.error('Error redeeming reward:', error);
     return res.status(500).json({
       success: false,
@@ -186,40 +242,29 @@ exports.enterLuckyDraw = async (req, res) => {
     const userId = BigInt(req.user.userId);
     const { rewardId, ticketsCount = 1, campaignId = 'LUCKY-2026-M10' } = req.body;
 
+    // Calculate package price using rebalanced tokenomics (ADR-0001 & ADR-0002)
     const count = parseInt(ticketsCount, 10);
-    if (isNaN(count) || count <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'กรุณาระบุจำนวนสิทธิ์ชิงโชคที่ถูกต้อง',
+    const totalCost = calculateLuckyDrawCost(ticketsCount);
+
+    // Deduct tokens atomically inside transaction
+    const { newTokens } = await prisma.$transaction(async (tx) => {
+      const currentTokens = await getUserTotalTokens(userId, tx);
+      if (currentTokens < totalCost) {
+        const error = new Error(`Impact Tokens ของคุณไม่เพียงพอ (ต้องการ ${totalCost} Tokens แต่คุณมี ${currentTokens} Tokens)`);
+        error.statusCode = 400;
+        throw error;
+      }
+
+      await tx.token_transactions.create({
+        data: {
+          user_id: userId,
+          amount: -totalCost,
+          type: 'REDEEM_REWARD',
+        },
       });
-    }
 
-    // Determine package price
-    let totalCost = 0;
-    if (count === 1) totalCost = 20;
-    else if (count === 3) totalCost = 50;
-    else if (count === 5) totalCost = 80;
-    else totalCost = count * 20;
-
-    // Check user's token balance
-    const currentTokens = await getUserTotalTokens(userId);
-    if (currentTokens < totalCost) {
-      return res.status(400).json({
-        success: false,
-        error: `Impact Tokens ของคุณไม่เพียงพอ (ต้องการ ${totalCost} Tokens แต่คุณมี ${currentTokens} Tokens)`,
-      });
-    }
-
-    // Deduct tokens
-    await prisma.token_transactions.create({
-      data: {
-        user_id: userId,
-        amount: -totalCost,
-        type: 'REDEEM_REWARD',
-      },
+      return { newTokens: currentTokens - totalCost };
     });
-
-    const newTokens = await getUserTotalTokens(userId);
 
     // Generate ticket numbers
     const tickets = [];
@@ -246,6 +291,12 @@ exports.enterLuckyDraw = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        error: error.message,
+      });
+    }
     console.error('Error entering lucky draw:', error);
     return res.status(500).json({
       success: false,
@@ -425,3 +476,6 @@ exports.faucetTokens = async (req, res) => {
     });
   }
 };
+
+exports.calculateLuckyDrawCost = calculateLuckyDrawCost;
+exports.checkMonthlyHardSinkQuota = checkMonthlyHardSinkQuota;

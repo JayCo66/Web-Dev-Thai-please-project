@@ -11,7 +11,7 @@ import {
   ArrowRight,
   CreditCard,
   Gift,
-  Grid
+  Grid,
   ShieldCheck,
   Eye,
   EyeOff,
@@ -19,7 +19,7 @@ import {
   Clock,
   PlusCircle,
   Building2,
-  Gift
+  Sparkles
 } from 'lucide-react';
 
 export default function Home() {
@@ -120,14 +120,44 @@ export default function Home() {
         </section>
 
         {/* ========================================================
-            BANKING QUICK ACTION GRID (4 Main Financial Actions)
+            HERO SCAN / QUICK PAY BUTTON FOR SENIORS & GENERAL USERS
             ======================================================== */}
-        <div className="financial-quick-grid" role="navigation" aria-label="เมนูด่วน">
+        <Link to="/payment" className="hero-scan-card" aria-label="สแกนจ่ายคนละครึ่ง">
+          <div className="hero-scan-left">
+            <div className="hero-scan-icon-wrap">
+              <QrCode size={28} strokeWidth={2.5} />
+            </div>
+            <div>
+              <div className="hero-scan-title">
+                สแกนจ่าย คนละครึ่ง (60/40)
+              </div>
+              <div className="hero-scan-desc">
+                รัฐช่วยจ่าย 60% สูงสุด 150 บาท/วัน ประชาชนจ่าย 40% ที่ร้านค้าชุมชน
+              </div>
+            </div>
+          </div>
+          <div className="hero-scan-btn">
+            <span>สแกนจ่าย</span>
+            <ArrowRight size={16} />
+          </div>
+        </Link>
+
+        {/* ========================================================
+            BANKING QUICK ACTION GRID (4 Clean Thumb Buttons)
+            ======================================================== */}
+        <div className="financial-quick-grid" role="navigation" aria-label="บริการหลัก">
           <Link to="/payment" className="quick-action-item">
             <div className="quick-action-icon-box">
               <QrCode size={20} />
             </div>
-            <span className="quick-action-label">คนละครึ่ง 60/40</span>
+            <span className="quick-action-label">คนละครึ่ง</span>
+          </Link>
+
+          <Link to="/bingo" className="quick-action-item">
+            <div className="quick-action-icon-box" style={{ background: '#EEF2FF', color: '#4F46E5' }}>
+              <Grid size={20} />
+            </div>
+            <span className="quick-action-label">เกมบิงโก</span>
           </Link>
 
           <Link to="/rewards" className="quick-action-item">
@@ -137,118 +167,100 @@ export default function Home() {
             <span className="quick-action-label">แลกรางวัล</span>
           </Link>
 
-          {/* Link to Bingo Board */}
-          <Link
-            to="/bingo"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '7px 14px',
-              background: '#EEF2FF',
-              border: '1px solid #C7D2FE',
-              borderRadius: 999,
-              color: '#4338CA',
-              fontSize: 13.5,
-              fontWeight: 700,
-              textDecoration: 'none',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <Grid size={16} color="#4F46E5" />
-            <span>ภารกิจบิงโก 5x5</span>
-          </Link>
-
           <Link to="/charities" className="quick-action-item">
             <div className="quick-action-icon-box" style={{ background: '#E0F2FE', color: '#0369A1' }}>
               <HeartHandshake size={20} />
             </div>
             <span className="quick-action-label">บริจาคภาษี</span>
           </Link>
-
-          <button
-            type="button"
-            className="quick-action-item"
-            onClick={() => resetBalance(500)}
-            style={{ border: '1px solid var(--border-light)', width: '100%' }}
-          >
-            <div className="quick-action-icon-box" style={{ background: '#ECFDF5', color: '#059669' }}>
-              <Wallet size={20} />
-            </div>
-            <span className="quick-action-label">เติมเงิน ฿500</span>
-          </button>
         </div>
 
         {/* ========================================================
-            FINANCIAL SERVICE CARDS (Payment, Rewards & Social Impact)
+            FRIENDLY BINGO GAME BANNER
             ======================================================== */}
-        <section aria-label="บริการสิทธิประโยชน์">
-          {/* Card 1: Co-Pay 60/40 */}
-          <Link to="/payment" className="financial-service-card">
-            <div className="service-card-left">
-              <div className="service-icon-box">
-                <CreditCard size={22} />
-              </div>
-              <div>
-                <h2 className="service-card-title">
-                  ชำระเงินร้านค้าคนละครึ่งพลีส (Co-Payment 60/40)
-                </h2>
-                <p className="service-card-desc">
-                  รัฐบาลช่วยจ่าย 60% สูงสุด 150 บาทต่อวัน ประชาชนจ่ายเพียง 40% บันทึกตรงเข้าบัญชีผู้ประกอบการ
-                </p>
-              </div>
+        <Link
+          to="/bingo"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 14,
+            background: 'linear-gradient(135deg, #0A192F 0%, #1E3A8A 100%)',
+            color: '#FFFFFF',
+            borderRadius: 'var(--radius-xl)',
+            padding: '20px 22px',
+            textDecoration: 'none',
+            boxShadow: '0 6px 20px rgba(10, 25, 47, 0.18)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            marginBottom: 20,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 240 }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: 'rgba(255, 255, 255, 0.14)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FDE047',
+                flexShrink: 0
+              }}
+            >
+              <Grid size={26} />
             </div>
-            <div className="service-card-btn">
-              <span>ไปชำระเงิน</span>
-              <ArrowRight size={15} />
-            </div>
-          </Link>
-
-          {/* Card 2: ThaiPlus Rewards & Lucky Draw */}
-          <Link to="/rewards" className="financial-service-card">
-            <div className="service-card-left">
-              <div className="service-icon-box" style={{ background: '#FEF3C7', color: '#B45309' }}>
-                <Gift size={22} />
+            <div>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'rgba(254, 243, 199, 0.2)',
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: '#FDE68A',
+                  marginBottom: 3,
+                }}
+              >
+                <Sparkles size={11} /> สนุกกับการทำภารกิจ
               </div>
-              <div>
-                <h2 className="service-card-title">
-                  ไทยช่วยไทยพลัส (แลกของรางวัล & ชิงโชคทองคำ)
-                </h2>
-                <p className="service-card-desc">
-                  ใช้ Impact Tokens แลกคูปองส่วนลดร้านค้า, สินค้าพรีเมียมชุมชน หรือลงชื่อชิงโชครางวัลใหญ่ประจำงวด
-                </p>
-              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, margin: '2px 0', color: '#FFFFFF' }}>
+                เกมบิงโกคนละครึ่ง 5x5
+              </h2>
+              <p style={{ fontSize: 12.5, opacity: 0.88, margin: 0, lineHeight: 1.4 }}>
+                ทำภารกิจง่ายๆ จากการใช้จ่ายหรือทำบุญ ครบแถวรับโบนัส +100 โทเค็นทันที
+              </p>
             </div>
-            <div className="service-card-btn" style={{ background: 'linear-gradient(135deg, #B45309 0%, #D97706 100%)' }}>
-              <span>ไปหน้าแลกรางวัล</span>
-              <ArrowRight size={15} />
-            </div>
-          </Link>
-
-          {/* Card 3: Social Impact Charities (e-Donation) */}
-          <Link to="/charities" className="financial-service-card">
-            <div className="service-card-left">
-              <div className="service-icon-box accent-teal">
-                <Building2 size={22} />
-              </div>
-              <div>
-                <h2 className="service-card-title">
-                  ระบบบริจาคอิเล็กทรอนิกส์เพื่อสังคม (e-Donation)
-                </h2>
-                <p className="service-card-desc">
-                  ส่งต่อความช่วยเหลือแก่มูลนิธิที่ได้รับการรับรอง พร้อมรับเลขอ้างอิงกรมสรรพากรเพื่อลดหย่อนภาษีเงินได้
-                </p>
-              </div>
-            </div>
-            <div className="service-card-btn" style={{ background: 'linear-gradient(135deg, #0369A1 0%, #0284C7 100%)' }}>
-              <span>ร่วมบริจาค</span>
-              <ArrowRight size={15} />
-            </div>
-          </Link>
-        </section>
+          </div>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontWeight: 800,
+              fontSize: 13,
+              background: '#FFFFFF',
+              color: '#1E40AF',
+              padding: '8px 16px',
+              borderRadius: 999,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+            }}
+          >
+            <span>เข้าเล่นบิงโก</span>
+            <ArrowRight size={14} />
+          </div>
+        </Link>
 
         {/* ========================================================
-            ACCOUNT INFORMATION METRICS
+            ACCOUNT INFORMATION METRICS (Compact & Simple)
             ======================================================== */}
         <section className="banking-info-grid" aria-label="ข้อมูลบัญชี">
           <div className="banking-info-card">
@@ -256,7 +268,7 @@ export default function Home() {
               <span>เจ้าของบัญชี</span>
               <User size={16} color="var(--bank-royal)" />
             </div>
-            <div className="banking-info-value" style={{ fontSize: 17 }}>
+            <div className="banking-info-value" style={{ fontSize: 16 }}>
               {user?.fullName}
             </div>
             <div className="banking-info-desc">
@@ -275,7 +287,20 @@ export default function Home() {
               ฿{wallet?.totalQuota || '3,000.00'}
             </div>
             <div className="banking-info-desc">
-              วงเงินสนับสนุนรวมตลอดระยะเวลาโครงการ
+              วงเงินสนับสนุนรวมตลอดทั้งโครงการ
+            </div>
+          </div>
+
+          <div className="banking-info-card">
+            <div className="banking-info-header">
+              <span>Impact Tokens สะสม</span>
+              <Coins size={16} color="var(--accent-gold)" />
+            </div>
+            <div className="banking-info-value" style={{ color: 'var(--accent-gold)' }}>
+              {tokens}
+            </div>
+            <div className="banking-info-desc">
+              คะแนนสะสมสำหรับแลกของรางวัลและชิงโชค
             </div>
             <Link
               to="/rewards"
@@ -283,71 +308,17 @@ export default function Home() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4,
-                fontSize: 12.5,
-                fontWeight: 600,
+                fontSize: 12,
+                fontWeight: 700,
                 color: '#D97706',
                 textDecoration: 'none',
+                marginTop: 4,
               }}
             >
-              <span>ใช้ Token แลกของ & ลุ้นโชค</span>
-              <ArrowRight size={13} />
+              <span>ไปหน้าแลกรางวัล</span>
+              <ArrowRight size={12} />
             </Link>
           </div>
-
-          <div className="banking-info-card">
-            <div className="banking-info-header">
-              <span>Impact Tokens</span>
-              <Coins size={16} color="var(--accent-gold)" />
-            </div>
-            <div className="banking-info-value" style={{ color: 'var(--accent-gold)' }}>
-              {tokens}
-            </div>
-            <div className="banking-info-desc">
-              คะแนนสะสมความดีสำหรับร่วมกิจกรรมและรับสิทธิพิเศษ
-            </div>
-          </div>
-        </div>
-
-        {/* AI Bingo Mission Board Banner */}
-        <Link
-          to="/bingo"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: 'linear-gradient(135deg, #1E1B4B 0%, #4338CA 50%, #6366F1 100%)',
-            color: '#FFFFFF',
-            borderRadius: 'var(--radius-xl)',
-            padding: '24px 28px',
-            textDecoration: 'none',
-            boxShadow: '0 8px 24px rgba(79, 70, 229, 0.35)',
-            marginBottom: 18,
-            transition: 'all 0.2s ease',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Grid size={28} color="#FDE047" />
-            </div>
-            <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(238, 242, 255, 0.25)', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#E0E7FF', marginBottom: 4 }}>
-                <Sparkles size={12} /> ขับเคลื่อนด้วย Typhoon AI v2.5
-              </div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>
-                🎯 ภารกิจบิงโก 5x5: ทำภารกิจพิชิตแถวบิงโกลุ้นรับโทเค็น
-              </h3>
-              <p style={{ fontSize: 13.5, opacity: 0.9 }}>
-                กระดานภารกิจ 25 ช่องที่ออกแบบเฉพาะบุคคล | ศูนย์กลางบริจาคใจฟู + 12 เส้นทางบิงโกรับโบนัสสะสมโทเค็น
-              </p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14, background: 'rgba(255,255,255,0.25)', padding: '8px 18px', borderRadius: 999, whiteSpace: 'nowrap' }}>
-            <span>เปิดกระดานบิงโก</span>
-            <ArrowRight size={16} />
-          </div>
-        </Link>
         </section>
 
         {/* ========================================================
