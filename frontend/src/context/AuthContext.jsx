@@ -23,19 +23,20 @@ export function AuthProvider({ children }) {
       try {
         const response = await api.get('/users/me');
         if (response.data && response.data.success) {
-          const { user, tokens, wallet, shop } = response.data.data;
-          setUser(user);
-          setTokens(tokens || 0);
+          const d = response.data.data;
+          const userObj = d.user || d;
+          setUser(userObj);
+          setTokens(d.tokens ?? userObj.tokens ?? 0);
 
           // Restore or initialize simulated wallet balance
           const savedBalance = localStorage.getItem('user_simulated_balance');
-          const effectiveBalance = savedBalance !== null ? savedBalance : (wallet?.balance || '500.00');
+          const effectiveBalance = savedBalance !== null ? savedBalance : (d.wallet?.balance || '500.00');
           setWallet({
-            ...(wallet || {}),
+            ...(d.wallet || {}),
             balance: effectiveBalance,
           });
 
-          setShop(shop || null);
+          setShop(d.shop || null);
         }
       } catch (error) {
         console.warn('Session expired or invalid, logging out:', error);
@@ -176,10 +177,11 @@ export function AuthProvider({ children }) {
     try {
       const response = await api.get('/users/me');
       if (response.data && response.data.success) {
-        const { user, tokens } = response.data.data;
-        setUser(user);
-        setTokens(tokens || 0);
-        return { success: true, tokens, user };
+        const d = response.data.data;
+        const userObj = d.user || d;
+        setUser(userObj);
+        setTokens(d.tokens ?? userObj.tokens ?? 0);
+        return { success: true, tokens: d.tokens, user: userObj };
       }
     } catch (err) {
       console.warn('Failed to refresh user:', err);

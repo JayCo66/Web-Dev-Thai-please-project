@@ -154,7 +154,7 @@ export default function Login() {
                   disabled={loading}
                 />
               </div>
-              <div className="form-hint" style={{ fontSize: 12, marginTop: 4, color: 'var(--text-tertiary)' }}>
+              <div className="form-hint" style={{ fontSize: 12, marginTop: 4, color: 'var(--text-secondary)' }}>
                 สามารถใช้เบอร์โทรศัพท์ (เช่น 0812345678) หรืออีเมลที่ลงทะเบียนไว้
               </div>
             </div>

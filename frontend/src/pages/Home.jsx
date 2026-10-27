@@ -17,8 +17,7 @@ import {
   QrCode,
   PlusCircle,
   Trophy,
-  Sparkles,
-  Info
+  Sparkles
 } from 'lucide-react';
 
 export default function Home() {
@@ -199,7 +198,7 @@ export default function Home() {
           </Link>
 
           <Link to="/bingo" className="quick-action-item" aria-label="เกมบิงโกภารกิจ 5x5">
-            <div className="quick-action-icon-box" style={{ background: '#EEF2FF', color: '#4F46E5' }}>
+            <div className="quick-action-icon-box" style={{ background: '#E0F2FE', color: '#0284C7' }}>
               <Grid size={22} />
             </div>
             <span className="quick-action-label">เกมบิงโก</span>
@@ -242,7 +241,7 @@ export default function Home() {
                   เกมบิงโกคนละครึ่ง (5x5)
                 </h2>
                 <p className="dashboard-bingo-desc">
-                  ช้อปปิ้งร้านค้าชุมชนหรือร่วมบริจาค ครบแถวรับโบนัส +100 โทเค็นทันที
+                  ช้อปปิ้งร้านค้าชุมชนหรือร่วมบริจาค ครบแถวรับโบนัส +20 โทเค็นทันที
                 </p>
               </div>
             </div>
@@ -276,51 +275,7 @@ export default function Home() {
         </Link>
 
         {/* ========================================================
-            5. SENIOR & CITIZEN 3-STEP GUIDE (Simple & Practical)
-            ======================================================== */}
-        <section className="dashboard-steps-section" aria-label="วิธีใช้งานง่ายๆ ใน 3 ขั้นตอน">
-          <div className="dashboard-section-header">
-            <h2 className="dashboard-section-title">
-              <Info size={18} color="var(--bank-royal)" />
-              <span>วิธีใช้งานคนละครึ่งง่ายๆ</span>
-            </h2>
-          </div>
-
-          <div className="dashboard-steps-grid">
-            <div className="step-card">
-              <div className="step-num-badge">1</div>
-              <div className="step-content">
-                <div className="step-title">เลือกร้านค้าชุมชน</div>
-                <div className="step-desc">
-                  มองหาป้ายร้านค้าที่มีสัญลักษณ์ คนละครึ่ง 60/40 หรือร้านค้าใกล้บ้านคุณ
-                </div>
-              </div>
-            </div>
-
-            <div className="step-card">
-              <div className="step-num-badge">2</div>
-              <div className="step-content">
-                <div className="step-title">สแกนจ่ายผ่านแอป</div>
-                <div className="step-desc">
-                  รัฐร่วมจ่าย 60% สูงสุด 150 บาทต่อวัน ประชาชนจ่ายเองเพียง 40%
-                </div>
-              </div>
-            </div>
-
-            <div className="step-card">
-              <div className="step-num-badge">3</div>
-              <div className="step-content">
-                <div className="step-title">รับเหรียญรางวัล</div>
-                <div className="step-desc">
-                  ทุกการใช้จ่ายได้รับเหรียญ Impact Tokens สะสมแลกของรางวัลและชิงโชค
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================
-            6. CITIZEN ACCOUNT & PROJECT QUOTA SUMMARY
+            5. CITIZEN ACCOUNT & PROJECT QUOTA SUMMARY
             ======================================================== */}
         <section className="citizen-summary-grid" aria-label="ข้อมูลผู้ลงทะเบียนและวงเงินโครงการ">
           <div className="citizen-summary-card">

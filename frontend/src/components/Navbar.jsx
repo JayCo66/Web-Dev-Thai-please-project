@@ -45,19 +45,19 @@ export default function Navbar() {
   return (
     <>
       {/* Top Application Header */}
-      <header className="app-header">
+      <header className="app-header" role="banner">
         <div className="header-brand">
-          <Link to="/" className="brand-link" aria-label="กลับสู่หน้าหลัก">
-            <div className="header-logo">TP</div>
+          <Link to="/" className="brand-link" aria-label="ไทยช่วยไทยพลีส กลับสู่หน้าหลัก">
+            <div className="header-logo" aria-hidden="true">TP</div>
             <div className="brand-text-group">
-              <div className="header-title">ไทยช่วยไทย<span>พลีส</span></div>
+              <div className="header-title">ไทยช่วยไทย<span className="accent-text">พลีส</span></div>
               <div className="header-tag">กระเป๋าเงินดิจิทัล & บริการคนละครึ่ง 60/40</div>
             </div>
           </Link>
         </div>
 
         {/* Desktop Nav Links */}
-        <nav className="desktop-nav" aria-label="Desktop Navigation">
+        <nav className="desktop-nav" aria-label="การนำทางหลักบนคอมพิวเตอร์">
           <Link
             to="/"
             className={`nav-pill-link ${location.pathname === '/' ? 'active' : ''}`}
@@ -100,7 +100,7 @@ export default function Navbar() {
           {/* Simulated Balance Pill */}
           <div className="balance-pill" title="ยอดเงินในกระเป๋าจำลอง">
             <Wallet size={16} />
-            <span>฿{userBalance.toFixed(2)}</span>
+            <span className="tabular-num">฿{userBalance.toFixed(2)}</span>
             <button
               type="button"
               className="btn-topup-mini"
@@ -117,10 +117,10 @@ export default function Navbar() {
             to="/plus"
             className="token-pill"
             title="Impact Tokens สะสม (คลิกเพื่อแลกรางวัล)"
-            style={{ textDecoration: 'none', cursor: 'pointer' }}
+            aria-label={`Impact Tokens สะสม ${tokens} เหรียญ คลิกเพื่อแลกรางวัล`}
           >
             <Coins size={15} />
-            <span>{tokens} Tokens</span>
+            <span className="tabular-num">{tokens} Tokens</span>
           </Link>
 
           {/* Role Badge */}
@@ -140,54 +140,80 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Header Right (Compact Balance + Profile Trigger) */}
-        <div className="mobile-header-actions mobile-only">
-          <div className="balance-pill-compact" title="ยอดเงินจำลอง">
-            <Wallet size={14} />
-            <span>฿{userBalance.toFixed(0)}</span>
-          </div>
+        {/* Mobile Header Right (Tokens + Balance + Profile Trigger) */}
+        <div className="mobile-header-actions mobile-only" aria-label="สถานะเหรียญและยอดเงิน">
+          {/* Tokens Pill (Impact Tokens) */}
+          <Link
+            to="/plus"
+            className="mobile-header-pill mobile-token-pill"
+            title="Impact Tokens สะสม (แตะเพื่อแลกรางวัล)"
+            aria-label={`เหรียญ Impact Tokens สะสม: ${tokens} เหรียญ แตะเพื่อแลกของรางวัล`}
+          >
+            <Coins size={14} className="pill-icon text-amber" />
+            <span className="pill-val tabular-num">{tokens}</span>
+          </Link>
 
+          {/* Balance Pill (Wallet Money) */}
+          <button
+            type="button"
+            className="mobile-header-pill mobile-balance-pill"
+            onClick={() => setProfileDrawerOpen(true)}
+            title="ยอดเงินในกระเป๋าจำลอง (แตะเพื่อดูรายละเอียดหรือเติมเงิน)"
+            aria-label={`ยอดเงินคงเหลือในกระเป๋า: ฿${userBalance.toFixed(0)} บาท แตะเพื่อดูรายละเอียด`}
+          >
+            <Wallet size={14} className="pill-icon text-royal" />
+            <span className="pill-val tabular-num">฿{userBalance.toFixed(0)}</span>
+          </button>
+
+          {/* User Profile Avatar Trigger */}
           <button
             type="button"
             className="btn-mobile-profile"
             onClick={() => setProfileDrawerOpen(true)}
-            aria-label="เปิดเมนูบัญชีผู้ใช้"
+            aria-label="เปิดเมนูบัญชีผู้ใช้และจัดการกระเป๋าเงิน"
+            title="บัญชีผู้ใช้งาน"
           >
-            <User size={18} />
+            {user?.fullName ? (
+              <span className="avatar-initial">{user.fullName.charAt(0)}</span>
+            ) : (
+              <User size={18} />
+            )}
           </button>
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Banking Style with Center FAB) */}
-      <nav className="mobile-bottom-nav" aria-label="เมนูหลัก">
+      {/* Mobile Bottom Navigation Bar (Docked Mobile Footer Nav) */}
+      <nav className="mobile-bottom-nav" aria-label="เมนูหลักด้านล่าง">
         <Link
           to="/"
           className={`bottom-nav-item ${location.pathname === '/' ? 'active' : ''}`}
+          aria-label="หน้าหลัก"
         >
           <div className="bottom-nav-icon">
-            <Home size={19} />
+            <Home size={20} />
           </div>
-          <span>หน้าหลัก</span>
+          <span className="bottom-nav-label">หน้าหลัก</span>
         </Link>
 
         <Link
           to="/rewards"
           className={`bottom-nav-item ${location.pathname === '/rewards' || location.pathname === '/plus' || location.pathname === '/thai-plus' ? 'active' : ''}`}
+          aria-label="แลกของรางวัลและชิงโชค"
         >
           <div className="bottom-nav-icon">
-            <Gift size={19} />
+            <Gift size={20} />
           </div>
-          <span>แลกรางวัล</span>
+          <span className="bottom-nav-label">แลกรางวัล</span>
         </Link>
 
         {/* Center Prominent FAB for 60/40 Co-Pay (Banking Scan/Pay style) */}
         <Link
           to="/payment"
           className={`bottom-nav-item bottom-nav-fab-center ${location.pathname === '/payment' ? 'active' : ''}`}
-          aria-label="คนละครึ่ง 60/40 สแกนจ่าย"
+          aria-label="คนละครึ่ง 60/40 สแกนชำระเงิน"
         >
           <div className="bottom-nav-fab-btn">
-            <QrCode size={24} strokeWidth={2.4} />
+            <QrCode size={24} strokeWidth={2.3} />
           </div>
           <span className="bottom-nav-fab-label">คนละครึ่ง</span>
         </Link>
@@ -195,273 +221,181 @@ export default function Navbar() {
         <Link
           to="/charities"
           className={`bottom-nav-item ${location.pathname === '/charities' ? 'active' : ''}`}
+          aria-label="ร่วมบริจาค e-Donation ลดหย่อนภาษี"
         >
           <div className="bottom-nav-icon">
-            <HeartHandshake size={19} />
+            <HeartHandshake size={20} />
           </div>
-          <span>บริจาค</span>
+          <span className="bottom-nav-label">บริจาค</span>
         </Link>
 
         <Link
           to="/bingo"
           className={`bottom-nav-item ${location.pathname === '/bingo' ? 'active' : ''}`}
+          aria-label="เกมบิงโกภารกิจ 5x5"
         >
           <div className="bottom-nav-icon">
-            <Grid size={19} />
+            <Grid size={20} />
           </div>
-          <span>บิงโก</span>
+          <span className="bottom-nav-label">บิงโก</span>
         </Link>
       </nav>
 
-      {/* Mobile Profile & Actions Sheet */}
+      {/* Mobile Profile & Actions Sheet (Slide-Up Drawer with dvh support) */}
       {profileDrawerOpen && (
         <div
           className="drawer-overlay"
           onClick={() => setProfileDrawerOpen(false)}
           role="dialog"
           aria-modal="true"
+          aria-label="เมนูบัญชีผู้ใช้งานและจัดการกระเป๋าเงิน"
         >
           <div className="drawer-panel" onClick={(e) => e.stopPropagation()}>
+            {/* Sheet Grab Handle on Mobile */}
+            <div className="drawer-grab-handle" aria-hidden="true" />
+
             <div className="drawer-header">
               <div className="drawer-title">
-                <ShieldCheck size={19} color="var(--bank-royal)" />
+                <ShieldCheck size={20} color="var(--bank-royal)" />
                 <span>บัญชีผู้ใช้งาน</span>
               </div>
               <button
                 type="button"
                 className="btn-close-drawer"
                 onClick={() => setProfileDrawerOpen(false)}
-                aria-label="ปิดเมนู"
+                aria-label="ปิดเมนูบัญชี"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
             {/* User Profile Card */}
-            <div style={{
-              background: 'var(--bank-royal-light)',
-              border: '1px solid var(--bank-royal-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: 16,
-              marginBottom: 16,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12
-            }}>
-              <div style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--btn-primary-gradient)',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                fontWeight: 700,
-                flexShrink: 0
-              }}>
+            <div className="drawer-profile-card">
+              <div className="drawer-profile-avatar">
                 {user?.fullName ? user.fullName.charAt(0) : 'U'}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
+              <div className="drawer-profile-info">
+                <div className="drawer-profile-name">
                   {user?.fullName || 'ผู้ใช้งาน'}
                 </div>
                 <span className={`role-badge ${getRoleClass(user?.role)}`}>
                   {getRoleName(user?.role)}
                 </span>
                 {user?.maskedCitizenId && (
-                  <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+                  <div className="drawer-profile-meta">
                     เลขบัตร ปชช: {user.maskedCitizenId}
                   </div>
                 )}
                 {user?.maskedPhone && (
-                  <div style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>
+                  <div className="drawer-profile-meta">
                     เบอร์โทรศัพท์: {user.maskedPhone}
                   </div>
                 )}
                 {shop && (
-                  <div style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>
+                  <div className="drawer-profile-meta">
                     ร้านค้า: <strong>{shop.shopName}</strong> ({shop.category})
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Quick Balances in Drawer */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
-              <div style={{ background: '#FFFFFF', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
-                <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                  <Wallet size={14} color="var(--bank-royal)" />
+            {/* Quick Balances in Drawer (Money & Tokens) */}
+            <div className="drawer-balances-grid">
+              <div className="drawer-balance-card">
+                <div className="drawer-card-label">
+                  <Wallet size={15} color="var(--bank-royal)" />
                   <span>ยอดเงินกระเป๋า</span>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--bank-royal)' }}>
+                <div className="drawer-card-val text-royal tabular-num">
                   ฿{userBalance.toFixed(2)}
                 </div>
                 <button
                   type="button"
-                  style={{
-                    marginTop: 6,
-                    padding: '6px 10px',
-                    minHeight: 34,
-                    width: '100%',
-                    background: 'var(--bank-royal-light)',
-                    border: '1px solid var(--bank-royal-border)',
-                    color: 'var(--bank-royal)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 4
-                  }}
+                  className="btn-drawer-topup"
                   onClick={() => resetBalance(500)}
+                  aria-label="เติมเงินจำลอง 500 บาท"
                 >
-                  <PlusCircle size={13} /> เติมจำลอง ฿500
+                  <PlusCircle size={14} /> เติมจำลอง ฿500
                 </button>
               </div>
 
-              <div style={{ background: '#FFFFFF', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
-                <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                  <Coins size={14} color="var(--accent-gold)" />
+              <div className="drawer-balance-card">
+                <div className="drawer-card-label">
+                  <Coins size={15} color="var(--accent-gold)" />
                   <span>Impact Tokens</span>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent-gold)' }}>
+                <div className="drawer-card-val text-amber tabular-num">
                   {tokens}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 8 }}>
-                  สิทธิร่วมบริจาคโครงการ
-                </div>
+                <Link
+                  to="/plus"
+                  className="drawer-token-link"
+                  onClick={() => setProfileDrawerOpen(false)}
+                  aria-label="ไปที่หน้าแลกของรางวัล"
+                >
+                  <span>แลกของรางวัล &gt;</span>
+                </Link>
               </div>
             </div>
 
             {/* Action Buttons in Drawer */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="drawer-actions-list">
               <Link
                 to="/payment"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  minHeight: 46,
-                  background: '#FFFFFF',
-                  border: '1px solid var(--border-light)',
-                  borderRadius: 'var(--radius-sm)',
-                  textDecoration: 'none',
-                  color: 'var(--text-primary)',
-                  fontSize: 13.5,
-                  fontWeight: 600
-                }}
+                className="drawer-action-btn"
                 onClick={() => setProfileDrawerOpen(false)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <CreditCard size={17} color="var(--bank-royal)" />
+                <div className="drawer-action-left">
+                  <CreditCard size={18} color="var(--bank-royal)" />
                   <span>ชำระเงินคนละครึ่ง (สิทธิ 60/40)</span>
                 </div>
-                <ChevronRight size={17} color="var(--text-tertiary)" />
+                <ChevronRight size={18} color="var(--text-tertiary)" />
               </Link>
 
               <Link
                 to="/charities"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  minHeight: 46,
-                  background: '#FFFFFF',
-                  border: '1px solid var(--border-light)',
-                  borderRadius: 'var(--radius-sm)',
-                  textDecoration: 'none',
-                  color: 'var(--text-primary)',
-                  fontSize: 13.5,
-                  fontWeight: 600
-                }}
+                className="drawer-action-btn"
                 onClick={() => setProfileDrawerOpen(false)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <HeartHandshake size={17} color="var(--bank-royal)" />
+                <div className="drawer-action-left">
+                  <HeartHandshake size={18} color="var(--bank-royal)" />
                   <span>บริจาค e-Donation ลดหย่อนภาษี</span>
                 </div>
-                <ChevronRight size={17} color="var(--text-tertiary)" />
+                <ChevronRight size={18} color="var(--text-tertiary)" />
               </Link>
 
               <Link
                 to="/plus"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  minHeight: 46,
-                  background: '#FEF3C7',
-                  border: '1px solid #FDE68A',
-                  borderRadius: 'var(--radius-sm)',
-                  textDecoration: 'none',
-                  color: '#92400E',
-                  fontSize: 13.5,
-                  fontWeight: 700
-                }}
+                className="drawer-action-btn highlight-gold"
                 onClick={() => setProfileDrawerOpen(false)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Gift size={17} color="#D97706" />
+                <div className="drawer-action-left">
+                  <Gift size={18} color="#D97706" />
                   <span>ไทยช่วยไทยพลัส (แลกรางวัล & ลุ้นโชค)</span>
                 </div>
-                <ChevronRight size={17} color="#B45309" />
+                <ChevronRight size={18} color="#B45309" />
               </Link>
 
               <Link
                 to="/bingo"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  minHeight: 46,
-                  background: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
-                  borderRadius: 'var(--radius-sm)',
-                  textDecoration: 'none',
-                  color: '#1E40AF',
-                  fontSize: 13.5,
-                  fontWeight: 700
-                }}
+                className="drawer-action-btn highlight-blue"
                 onClick={() => setProfileDrawerOpen(false)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Grid size={17} color="#1D4ED8" />
+                <div className="drawer-action-left">
+                  <Grid size={18} color="#1D4ED8" />
                   <span>ภารกิจบิงโก 5x5 (Typhoon AI)</span>
                 </div>
-                <ChevronRight size={17} color="#1D4ED8" />
+                <ChevronRight size={18} color="#1D4ED8" />
               </Link>
 
               <button
                 type="button"
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  minHeight: 46,
-                  background: '#FEF2F2',
-                  border: '1px solid #FECACA',
-                  color: 'var(--fin-danger)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  marginTop: 4
-                }}
+                className="drawer-logout-btn"
                 onClick={() => {
                   setProfileDrawerOpen(false);
                   logout();
                 }}
+                aria-label="ออกจากระบบ"
               >
                 <LogOut size={16} />
                 <span>ออกจากระบบ</span>
