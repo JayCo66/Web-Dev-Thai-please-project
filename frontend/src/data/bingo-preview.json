@@ -1,0 +1,738 @@
+{
+  "board": {
+    "period_days": 30,
+    "cells": 24,
+    "budget": 63,
+    "levels": [
+      1,
+      3
+    ],
+    "center_quest": "DONATION"
+  },
+  "user_profile": {
+    "mode": "purchases_and_bingo_history",
+    "period": {
+      "from": "2026-09-26",
+      "to": "2026-10-25"
+    },
+    "transactions_last_period": 27,
+    "active_days_last_period": 13,
+    "spend_last_period": 2970,
+    "distinct_merchants_last_period": 15,
+    "category_mix_last_period": {
+      "food_drink": 15,
+      "general_goods": 12,
+      "other": 0
+    },
+    "transactions_by_period": [
+      27,
+      14,
+      15
+    ],
+    "confidence": 0.9,
+    "bingo_history": {
+      "boards_played": 1,
+      "cells_offered": 22,
+      "cells_completed": 20,
+      "completion_rate": 0.909,
+      "avg_level_offered": 2.9,
+      "avg_level_completed": 2.7,
+      "completion_rate_by_family": {
+        "TIME": 1,
+        "VARIETY": 0.75,
+        "SPEND": 0.857,
+        "ACTIVITY": 1
+      }
+    }
+  },
+  "quests": [
+    {
+      "quest_code": "TX_COUNT_ANY",
+      "text": "ใช้จ่ายครบ {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        4,
+        6,
+        8,
+        10,
+        13,
+        16,
+        20,
+        24,
+        28,
+        34
+      ],
+      "achieved_last_period": 27,
+      "achieved_period_before": 14,
+      "safe_level": 8,
+      "bingo_history": {
+        "offered": 1,
+        "completed": 1,
+        "highest_completed_level": 4,
+        "last_level": 4,
+        "last_status": "COMPLETED"
+      }
+    },
+    {
+      "quest_code": "STREAK_DAYS_ANY",
+      "text": "ใช้จ่ายติดต่อกัน {n} วัน",
+      "family": "ACTIVITY",
+      "unit": "วัน",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        12,
+        14
+      ],
+      "achieved_last_period": 4,
+      "achieved_period_before": 2,
+      "safe_level": 3,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "REPEAT_MERCHANT_ANY",
+      "text": "ใช้จ่ายร้านเดิมซ้ำ {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        12,
+        15
+      ],
+      "achieved_last_period": 5,
+      "achieved_period_before": 3,
+      "safe_level": 4,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "REPEAT_MERCHANT_FD",
+      "text": "ใช้จ่ายร้านเดิมซ้ำในหมวดอาหารและเครื่องดื่ม {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12
+      ],
+      "achieved_last_period": 4,
+      "achieved_period_before": 2,
+      "safe_level": 3,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "REPEAT_MERCHANT_GD",
+      "text": "ใช้จ่ายร้านเดิมซ้ำในหมวดสินค้าทั่วไป {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "achieved_last_period": 4,
+      "achieved_period_before": 2,
+      "safe_level": 3,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "REPEAT_MERCHANT_WEEKEND",
+      "text": "ใช้จ่ายร้านเดิมวันเสาร์-อาทิตย์ซ้ำ {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "achieved_last_period": 4,
+      "achieved_period_before": 2,
+      "safe_level": 3,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "DISTINCT_MERCHANTS_ANY",
+      "text": "ใช้จ่ายต่างร้าน {n} ร้าน",
+      "family": "VARIETY",
+      "unit": "ร้าน",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        14,
+        17
+      ],
+      "achieved_last_period": 15,
+      "achieved_period_before": 9,
+      "safe_level": 9,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "DISTINCT_MERCHANTS_FD",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่มต่างร้าน {n} ร้าน",
+      "family": "VARIETY",
+      "unit": "ร้าน",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12
+      ],
+      "achieved_last_period": 8,
+      "achieved_period_before": 5,
+      "safe_level": 7,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "DISTINCT_MERCHANTS_GD",
+      "text": "ใช้จ่ายหมวดสินค้าทั่วไปต่างร้าน {n} ร้าน",
+      "family": "VARIETY",
+      "unit": "ร้าน",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "achieved_last_period": 7,
+      "achieved_period_before": 4,
+      "safe_level": 7,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "NEW_MERCHANTS_ANY",
+      "text": "ลองใช้จ่ายร้านที่ไม่เคยไปมาก่อน {n} ร้าน",
+      "family": "VARIETY",
+      "unit": "ร้าน",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        15
+      ],
+      "achieved_last_period": 6,
+      "achieved_period_before": 3,
+      "safe_level": 6,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "CATEGORY_COUNT_FD",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่ม {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        16,
+        19,
+        23,
+        28
+      ],
+      "achieved_last_period": 15,
+      "achieved_period_before": 8,
+      "safe_level": 6,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "CATEGORY_COUNT_GD",
+      "text": "ใช้จ่ายหมวดสินค้าทั่วไป {n} ครั้ง",
+      "family": "ACTIVITY",
+      "unit": "ครั้ง",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        12
+      ],
+      "achieved_last_period": 12,
+      "achieved_period_before": 6,
+      "safe_level": 10,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "CATEGORY_DAYS_FD",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่มใน {n} วันที่ต่างกัน",
+      "family": "ACTIVITY",
+      "unit": "วัน",
+      "ladder": [
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        17,
+        20,
+        23
+      ],
+      "achieved_last_period": 10,
+      "achieved_period_before": 6,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "CATEGORY_DAYS_GD",
+      "text": "ใช้จ่ายหมวดสินค้าทั่วไปใน {n} วันที่ต่างกัน",
+      "family": "ACTIVITY",
+      "unit": "วัน",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        12
+      ],
+      "achieved_last_period": 8,
+      "achieved_period_before": 4,
+      "safe_level": 8,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "DAYPART_MORNING",
+      "text": "ใช้จ่ายช่วงเช้า {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        15,
+        18
+      ],
+      "achieved_last_period": 6,
+      "achieved_period_before": 3,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "DAYPART_LUNCH",
+      "text": "ใช้จ่ายช่วงกลางวัน {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        15,
+        18
+      ],
+      "achieved_last_period": 8,
+      "achieved_period_before": 4,
+      "safe_level": 6,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "DAYPART_AFTERNOON",
+      "text": "ใช้จ่ายช่วงบ่าย {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        15,
+        18
+      ],
+      "achieved_last_period": 7,
+      "achieved_period_before": 4,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "WEEKEND_COUNT",
+      "text": "ใช้จ่ายวันเสาร์-อาทิตย์ {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        14,
+        17
+      ],
+      "achieved_last_period": 9,
+      "achieved_period_before": 4,
+      "safe_level": 6,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "WEEKDAY_COUNT",
+      "text": "ใช้จ่ายวันธรรมดา {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        14,
+        17,
+        20,
+        24,
+        28
+      ],
+      "achieved_last_period": 18,
+      "achieved_period_before": 10,
+      "safe_level": 7,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "FRIDAY_COUNT",
+      "text": "ใช้จ่ายวันศุกร์ {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "achieved_last_period": 5,
+      "achieved_period_before": 2,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "FD_MORNING",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่มตอนเช้า {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        15
+      ],
+      "achieved_last_period": 4,
+      "achieved_period_before": 2,
+      "safe_level": 4,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "FD_LUNCH",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่มมื้อกลางวัน {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        12,
+        15
+      ],
+      "achieved_last_period": 6,
+      "achieved_period_before": 3,
+      "safe_level": 6,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "FD_AFTERNOON",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่มช่วงบ่าย {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        12
+      ],
+      "achieved_last_period": 5,
+      "achieved_period_before": 3,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "GD_WEEKDAY",
+      "text": "ใช้จ่ายหมวดสินค้าทั่วไปวันธรรมดา {n} ครั้ง",
+      "family": "TIME",
+      "unit": "ครั้ง",
+      "ladder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "achieved_last_period": 8,
+      "achieved_period_before": 4,
+      "safe_level": 8,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SPEND_TOTAL_ANY",
+      "text": "ใช้จ่ายรวมครบ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        300,
+        500,
+        800,
+        1200,
+        1700,
+        2300,
+        3000,
+        4000,
+        5500,
+        8000
+      ],
+      "achieved_last_period": 2970,
+      "achieved_period_before": 1500,
+      "safe_level": 6,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SPEND_TOTAL_FD",
+      "text": "ใช้จ่ายหมวดอาหารและเครื่องดื่มรวมครบ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        250,
+        400,
+        650,
+        1000,
+        1400,
+        1900,
+        2500,
+        3400,
+        4600,
+        6500
+      ],
+      "achieved_last_period": 1700,
+      "achieved_period_before": 850,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SPEND_TOTAL_GD",
+      "text": "ใช้จ่ายหมวดสินค้าทั่วไปรวมครบ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        100,
+        200,
+        300,
+        450,
+        650,
+        900,
+        1200,
+        1600,
+        2200,
+        3000
+      ],
+      "achieved_last_period": 1270,
+      "achieved_period_before": 650,
+      "safe_level": 7,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SINGLE_TICKET_ANY",
+      "text": "จ่ายครั้งเดียวมูลค่าตั้งแต่ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        100,
+        150,
+        200,
+        300,
+        400,
+        600,
+        800,
+        1200,
+        1800,
+        2500
+      ],
+      "achieved_last_period": 450,
+      "achieved_period_before": 250,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SINGLE_TICKET_FD",
+      "text": "จ่ายครั้งเดียวหมวดอาหารและเครื่องดื่มมูลค่าตั้งแต่ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        80,
+        120,
+        160,
+        220,
+        300,
+        400,
+        550,
+        750,
+        1000,
+        1400
+      ],
+      "achieved_last_period": 350,
+      "achieved_period_before": 200,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SINGLE_TICKET_GD",
+      "text": "จ่ายครั้งเดียวหมวดสินค้าทั่วไปมูลค่าตั้งแต่ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        100,
+        150,
+        220,
+        300,
+        420,
+        600,
+        850,
+        1200,
+        1700,
+        2400
+      ],
+      "achieved_last_period": 450,
+      "achieved_period_before": 250,
+      "safe_level": 5,
+      "bingo_history": null
+    },
+    {
+      "quest_code": "SPEND_SINGLE_MERCHANT",
+      "text": "ใช้จ่ายร้านเดียวรวมครบ {n} บาท",
+      "family": "SPEND",
+      "unit": "บาท",
+      "ladder": [
+        150,
+        250,
+        400,
+        600,
+        850,
+        1150,
+        1500,
+        2000,
+        2800,
+        4000
+      ],
+      "achieved_last_period": 800,
+      "achieved_period_before": 450,
+      "safe_level": 4,
+      "bingo_history": null
+    }
+  ]
+}

@@ -120,6 +120,9 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="home-container">
+        <Link to="/bingo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '24px 28px', marginBottom: 24, borderRadius: 20, background: '#254fb0', color: 'white', textDecoration: 'none' }}>
+          <div><div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 20, fontWeight: 600 }}><Sparkles size={23} /> บิงโกของฉัน</div><p style={{ fontSize: 13, marginTop: 5, opacity: .8 }}>25 ช่องแห่งโอกาส ค้นพบภารกิจที่ใช่และส่งต่อสิ่งดี ๆ</p></div><ArrowRight size={24} />
+        </Link>
         {/* Welcome Hero Banner */}
         <div className="hero-banner">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 999, fontSize: 13, marginBottom: 12 }}>

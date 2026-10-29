@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Charities from './pages/Charities';
 import Payment from './pages/Payment';
+import Bingo from './pages/Bingo';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/bingo" element={<ProtectedRoute><Bingo /></ProtectedRoute>} />
 
           {/* Protected Routes */}
           <Route

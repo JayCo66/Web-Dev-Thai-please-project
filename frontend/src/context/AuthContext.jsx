@@ -23,8 +23,9 @@ export function AuthProvider({ children }) {
       try {
         const response = await api.get('/users/me');
         if (response.data && response.data.success) {
-          const { user, tokens, wallet, shop } = response.data.data;
-          setUser(user);
+          const profile = response.data.data;
+          const { tokens, wallet, shop, activeBoard, ...userFields } = profile;
+          setUser(profile.user ?? userFields);
           setTokens(tokens || 0);
 
           // Restore or initialize simulated wallet balance
