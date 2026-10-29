@@ -93,6 +93,13 @@ export default function Navbar() {
             <Grid size={16} />
             <span>ภารกิจบิงโก</span>
           </Link>
+          <Link
+            to="/profile"
+            className={`nav-pill-link ${location.pathname === '/profile' ? 'active' : ''}`}
+          >
+            <User size={16} />
+            <span>โปรไฟล์</span>
+          </Link>
         </nav>
 
         {/* Desktop User Section */}
@@ -123,10 +130,15 @@ export default function Navbar() {
             <span className="tabular-num">{tokens} Tokens</span>
           </Link>
 
-          {/* Role Badge */}
-          <span className={`role-badge ${getRoleClass(user?.role)}`}>
+          {/* Role Badge (Link to profile) */}
+          <Link
+            to="/profile"
+            className={`role-badge ${getRoleClass(user?.role)}`}
+            title="ดูข้อมูลโปรไฟล์ผู้ใช้งาน"
+            style={{ textDecoration: 'none', cursor: 'pointer' }}
+          >
             {getRoleName(user?.role)}
-          </span>
+          </Link>
 
           {/* Logout Button */}
           <button
@@ -296,6 +308,24 @@ export default function Navbar() {
                     ร้านค้า: <strong>{shop.shopName}</strong> ({shop.category})
                   </div>
                 )}
+                <div style={{ marginTop: 8 }}>
+                  <Link
+                    to="/profile"
+                    onClick={() => setProfileDrawerOpen(false)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: 'var(--bank-royal)',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    <span>ดูโปรไฟล์ทั้งหมด</span>
+                    <ChevronRight size={14} />
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -340,6 +370,18 @@ export default function Navbar() {
 
             {/* Action Buttons in Drawer */}
             <div className="drawer-actions-list">
+              <Link
+                to="/profile"
+                className="drawer-action-btn highlight-blue"
+                onClick={() => setProfileDrawerOpen(false)}
+              >
+                <div className="drawer-action-left">
+                  <User size={18} color="var(--bank-royal)" />
+                  <span>ข้อมูลโปรไฟล์และสิทธิผู้ใช้งาน</span>
+                </div>
+                <ChevronRight size={18} color="var(--bank-royal)" />
+              </Link>
+
               <Link
                 to="/payment"
                 className="drawer-action-btn"

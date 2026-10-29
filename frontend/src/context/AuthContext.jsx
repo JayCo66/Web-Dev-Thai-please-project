@@ -166,6 +166,36 @@ export function AuthProvider({ children }) {
     return newBalance;
   };
 
+  // Add / Top-up simulated balance (adds to existing balance so it can exceed 500)
+  const addBalance = (amount = 500) => {
+    const numAmount = parseFloat(amount) || 0;
+    const currentBalance = parseFloat(wallet?.balance || '0.00');
+    const newBalance = (currentBalance + numAmount).toFixed(2);
+
+    localStorage.setItem('user_simulated_balance', newBalance);
+    setWallet((prev) => ({
+      ...(prev || {}),
+      balance: newBalance,
+    }));
+    return newBalance;
+  };
+
+  // Set exact balance if a hard reset to a specific amount is required
+  const setExactBalance = (amount = 500) => {
+    const val = parseFloat(amount).toFixed(2);
+    localStorage.setItem('user_simulated_balance', val);
+    setWallet((prev) => ({
+      ...(prev || {}),
+      balance: val,
+    }));
+    return val;
+  };
+
+  // Reset or top-up demo balance (adds to current balance so "+ เติม ฿500" increments without 500 ceiling)
+  const resetBalance = (amount = 500) => {
+    return addBalance(amount);
+  };
+
   // Add impact tokens
   const addTokens = (amount) => {
     setTokens((prev) => prev + amount);
@@ -197,16 +227,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Reset demo balance
-  const resetBalance = (amount = 500) => {
-    const val = parseFloat(amount).toFixed(2);
-    localStorage.setItem('user_simulated_balance', val);
-    setWallet((prev) => ({
-      ...(prev || {}),
-      balance: val,
-    }));
-  };
-
   // Logout
   const logout = () => {
     localStorage.removeItem('token');
@@ -231,6 +251,8 @@ export function AuthProvider({ children }) {
     registerCitizen,
     registerMerchant,
     deductBalance,
+    addBalance,
+    setExactBalance,
     addTokens,
     deductTokens,
     setTokensBalance,

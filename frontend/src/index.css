@@ -5022,3 +5022,1167 @@ button, input, select, textarea {
 
 
 
+
+/* ==========================================================================
+   USER PROFILE PAGE STYLES (หน้าโปรไฟล์ผู้ใช้งาน)
+   ========================================================================== */
+.profile-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  box-shadow: var(--shadow-flat);
+  transition: all 0.15s ease;
+}
+
+.btn-profile-back:hover {
+  background: var(--bank-royal-light);
+  border-color: var(--bank-royal-border);
+  color: var(--bank-royal);
+}
+
+.profile-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--fin-success-bg);
+  color: var(--fin-success);
+  border: 1px solid var(--fin-success-border);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.profile-hero-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 640px) {
+  .profile-hero-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 16px;
+  }
+}
+
+.profile-hero-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-hero-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--card-gradient-wallet);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: var(--shadow-flat);
+}
+
+.profile-hero-avatar-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: #059669;
+  border: 2px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-hero-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-hero-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.profile-hero-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.profile-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.profile-tag-pill.success {
+  background: var(--fin-success-bg);
+  color: var(--fin-success);
+  border: 1px solid var(--fin-success-border);
+}
+
+.profile-tag-pill.info {
+  background: var(--bank-royal-light);
+  color: var(--bank-royal);
+  border: 1px solid var(--bank-royal-border);
+}
+
+.profile-feedback-alert {
+  background: var(--fin-success-bg);
+  border: 1px solid var(--fin-success-border);
+  color: #065F46;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.profile-card-section {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-flat);
+}
+
+@media (max-width: 640px) {
+  .profile-card-section {
+    padding: 16px;
+  }
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.profile-section-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.profile-section-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .profile-info-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+.profile-info-item {
+  background: var(--card-surface-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.profile-info-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.profile-info-val-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.profile-info-value {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.btn-copy-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-mini:hover {
+  border-color: var(--bank-royal);
+  color: var(--bank-royal);
+}
+
+.profile-quota-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .profile-quota-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.profile-quota-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-quota-card.highlight-royal {
+  background: #F8FAFC;
+  border-color: var(--bank-royal-border);
+}
+
+.profile-quota-card.highlight-gold {
+  background: #FFFBEB;
+  border-color: var(--accent-gold-border);
+}
+
+.profile-quota-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.profile-quota-amount {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.profile-quota-amount.text-dark {
+  color: var(--text-primary);
+}
+
+.profile-quota-desc {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.profile-quota-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-decoration: none;
+}
+
+.btn-topup-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bank-royal);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.btn-topup-card:hover {
+  opacity: 0.9;
+}
+
+.profile-security-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-sec-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.profile-sec-row strong {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.profile-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 24px;
+}
+
+.btn-profile-primary {
+  flex: 1;
+  min-width: 180px;
+  background: var(--bank-royal);
+  color: #FFFFFF;
+  border-radius: var(--radius-md);
+  padding: 13px 20px;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--shadow-flat);
+  transition: background 0.15s ease;
+}
+
+.btn-profile-primary:hover {
+  background: var(--bank-royal-hover);
+}
+
+.btn-profile-secondary {
+  flex: 1;
+  min-width: 150px;
+  background: #FFFFFF;
+  border: 1px solid var(--bank-royal-border);
+  color: var(--bank-royal);
+  border-radius: var(--radius-md);
+  padding: 13px 20px;
+  font-size: 14.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-profile-secondary:hover {
+  background: var(--bank-royal-light);
+}
+
+.btn-profile-logout {
+  background: var(--fin-danger-bg);
+  border: 1px solid var(--fin-danger-border);
+  color: var(--fin-danger);
+  border-radius: var(--radius-md);
+  padding: 13px 20px;
+  font-size: 14.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-profile-logout:hover {
+  background: #FEE2E2;
+}
+
+.financial-quick-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ==========================================================================
+   ENHANCED WALLET AMOUNTS & HERO ACTION BANNERS
+   ========================================================================== */
+.wallet-balance-amount {
+  font-size: clamp(34px, 7.5vw, 48px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.15;
+  color: #FFFFFF;
+}
+
+.wallet-token-amount {
+  font-size: clamp(20px, 4.5vw, 26px);
+  font-weight: 800;
+  color: #FDE047;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.wallet-token-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FEF08A;
+}
+
+/* Hero Rewards & Charity Action Banners */
+.hero-rewards-banner {
+  background: linear-gradient(135deg, #0A192F 0%, #1E3A8A 50%, #854D0E 100%) !important;
+  border-color: rgba(253, 230, 138, 0.28) !important;
+  box-shadow: 0 8px 22px rgba(133, 77, 14, 0.22) !important;
+}
+
+.hero-rewards-banner:hover {
+  border-color: rgba(253, 230, 138, 0.5) !important;
+  box-shadow: 0 12px 28px rgba(133, 77, 14, 0.32) !important;
+}
+
+.hero-charity-banner {
+  background: linear-gradient(135deg, #0A192F 0%, #1E3A8A 55%, #0369A1 100%) !important;
+  border-color: rgba(186, 230, 253, 0.28) !important;
+  box-shadow: 0 8px 22px rgba(3, 105, 161, 0.22) !important;
+}
+
+.hero-charity-banner:hover {
+  border-color: rgba(186, 230, 253, 0.5) !important;
+  box-shadow: 0 12px 28px rgba(3, 105, 161, 0.32) !important;
+}
+
+.hero-scan-icon-wrap.icon-gold {
+  background: #FFFBEB;
+  color: #B45309;
+}
+
+.hero-scan-icon-wrap.icon-cyan {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.hero-scan-btn.btn-gold {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.hero-scan-btn.btn-gold:hover {
+  background: #FDE68A;
+}
+
+.hero-scan-btn.btn-cyan {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.hero-scan-btn.btn-cyan:hover {
+  background: #BAE6FD;
+}
+
+.hero-pill-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero-pill-tag.tag-gold {
+  background: rgba(254, 243, 199, 0.22);
+  color: #FDE68A;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+}
+
+.hero-pill-tag.tag-cyan {
+  background: rgba(224, 242, 254, 0.22);
+  color: #BAE6FD;
+  border: 1px solid rgba(186, 230, 253, 0.4);
+}
+
+/* ==========================================================================
+   2x2 SQUARE ACTION GRID (4 เหลี่ยมจัตุรัส)
+   ========================================================================== */
+.square-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 640px) {
+  .square-actions-grid {
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+}
+
+.square-action-card {
+  border-radius: var(--radius-xl);
+  padding: 16px 14px;
+  color: #FFFFFF;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(10, 25, 47, 0.22);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: 220px;
+}
+
+@media (min-width: 640px) {
+  .square-action-card {
+    padding: 22px 20px;
+    min-height: 250px;
+  }
+}
+
+.square-action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(10, 25, 47, 0.35);
+}
+
+.square-action-card:active {
+  transform: scale(0.98);
+}
+
+/* Card Background Themes */
+.card-bingo {
+  background: linear-gradient(145deg, #0A192F 0%, #152E58 50%, #1E3A8A 100%);
+  border: 1.5px solid rgba(147, 197, 253, 0.28);
+}
+
+.card-scan {
+  background: linear-gradient(145deg, #0A192F 0%, #172554 45%, #1D4ED8 100%);
+  border: 1.5px solid rgba(191, 219, 254, 0.28);
+}
+
+.card-rewards {
+  background: linear-gradient(145deg, #0A192F 0%, #1E3A8A 45%, #854D0E 100%);
+  border: 1.5px solid rgba(253, 230, 138, 0.3);
+}
+
+.card-charity {
+  background: linear-gradient(145deg, #0A192F 0%, #1E3A8A 50%, #0369A1 100%);
+  border: 1.5px solid rgba(186, 230, 253, 0.3);
+}
+
+/* Card Header: Icon & Pill Tag */
+.square-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.square-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 600px) {
+  .square-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+}
+
+.square-card-icon.icon-blue {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.square-card-icon.icon-royal {
+  background: #FFFFFF;
+  color: #1E40AF;
+}
+
+.square-card-icon.icon-gold {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.square-card-icon.icon-cyan {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+/* Pill Tags */
+.square-pill-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .square-pill-tag {
+    font-size: 9.5px;
+    padding: 2px 6px;
+  }
+}
+
+.square-pill-tag.tag-blue {
+  background: rgba(239, 246, 255, 0.18);
+  color: #BFDBFE;
+  border: 1px solid rgba(191, 219, 254, 0.3);
+}
+
+.square-pill-tag.tag-royal {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.square-pill-tag.tag-gold {
+  background: rgba(254, 243, 199, 0.2);
+  color: #FDE68A;
+  border: 1px solid rgba(253, 230, 138, 0.35);
+}
+
+.square-pill-tag.tag-cyan {
+  background: rgba(224, 242, 254, 0.2);
+  color: #BAE6FD;
+  border: 1px solid rgba(186, 230, 253, 0.35);
+}
+
+/* Titles & Descriptions */
+.square-card-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 600px) {
+  .square-card-title {
+    font-size: 13.5px;
+  }
+}
+
+.square-card-desc {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.35;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .square-card-desc {
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+}
+
+/* Card Highlights (Subtext tag) */
+.square-card-highlight {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.square-card-highlight.text-royal {
+  color: #BFDBFE;
+}
+
+.square-card-highlight.text-gold {
+  color: #FDE68A;
+}
+
+.square-card-highlight.text-cyan {
+  color: #BAE6FD;
+}
+
+/* Progress Box for Bingo in Square Card */
+.square-card-progress-box {
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.square-card-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+}
+
+.square-card-progress-bar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.square-card-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34D399 0%, #10B981 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+/* Bottom CTA Button inside Square Card */
+.square-card-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: all 0.15s ease;
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .square-card-btn {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+}
+
+.square-card-btn.btn-blue {
+  background: #FFFFFF;
+  color: #1E3A8A;
+}
+
+.square-card-btn.btn-royal {
+  background: #FFFFFF;
+  color: #1E40AF;
+}
+
+.square-card-btn.btn-gold {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.square-card-btn.btn-cyan {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.square-action-card:hover .square-card-btn {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* ==========================================================================
+   SOLID COLOR THEME (NO GRADIENTS - สีพื้นหลังเรียบ สะอาด สไตล์มินิมอล)
+   ========================================================================== */
+:root {
+  --card-gradient-wallet: #0F275A;
+}
+
+.financial-wallet-card {
+  background: #0F275A !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 4 Square Action Cards: Solid White Surfaces */
+.square-action-card {
+  background: #FFFFFF !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  border: 1.5px solid var(--border-light);
+}
+
+.square-action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+/* Card Solid Borders & Accent Glows */
+.card-bingo {
+  background: #FFFFFF !important;
+  border: 1.5px solid #DBEAFE !important;
+}
+.card-bingo:hover {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 10px 24px rgba(29, 78, 216, 0.14) !important;
+}
+
+.card-scan {
+  background: #FFFFFF !important;
+  border: 1.5px solid #BFDBFE !important;
+}
+.card-scan:hover {
+  border-color: #2563EB !important;
+  box-shadow: 0 10px 24px rgba(30, 64, 175, 0.14) !important;
+}
+
+.card-rewards {
+  background: #FFFFFF !important;
+  border: 1.5px solid #FDE68A !important;
+}
+.card-rewards:hover {
+  border-color: #D97706 !important;
+  box-shadow: 0 10px 24px rgba(180, 83, 9, 0.14) !important;
+}
+
+.card-charity {
+  background: #FFFFFF !important;
+  border: 1.5px solid #BAE6FD !important;
+}
+.card-charity:hover {
+  border-color: #0284C7 !important;
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.14) !important;
+}
+
+/* Titles & Descriptions in Solid White Cards */
+.square-card-title {
+  color: #0F172A !important;
+  font-weight: 800;
+}
+
+.square-card-desc {
+  color: #475569 !important;
+}
+
+/* Solid Clean Highlights */
+.square-card-highlight.text-royal {
+  color: #1D4ED8 !important;
+  font-weight: 700;
+}
+
+.square-card-highlight.text-gold {
+  color: #B45309 !important;
+  font-weight: 700;
+}
+
+.square-card-highlight.text-cyan {
+  color: #0369A1 !important;
+  font-weight: 700;
+}
+
+/* Solid Progress Bar for Bingo */
+.square-card-progress-meta {
+  color: #475569 !important;
+  font-weight: 700;
+}
+
+.square-card-progress-bar {
+  background: #E2E8F0 !important;
+}
+
+.square-card-progress-fill {
+  background: #10B981 !important;
+}
+
+/* Solid High-Contrast CTA Buttons */
+.square-card-btn.btn-blue {
+  background: #1D4ED8 !important;
+  color: #FFFFFF !important;
+}
+
+.square-card-btn.btn-royal {
+  background: #1E40AF !important;
+  color: #FFFFFF !important;
+}
+
+.square-card-btn.btn-gold {
+  background: #D97706 !important;
+  color: #FFFFFF !important;
+}
+
+.square-card-btn.btn-cyan {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+}
+
+.square-card-btn:hover {
+  opacity: 0.94;
+}
+
+
+/* ==========================================================================
+   WALLET MAIN LAYOUT: LEFT (BALANCE) & RIGHT (STACKED QUOTA + TOKENS)
+   ========================================================================== */
+.wallet-main-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .wallet-main-layout {
+    grid-template-columns: 1.15fr 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+}
+
+.wallet-balance-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wallet-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .wallet-right-col {
+    padding-left: 20px;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+  }
+}
+
+.wallet-meta-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Bottom Action Row: Top-up button placed at the bottom-right (ขวาล่าง) */
+.wallet-bottom-action-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.wallet-bottom-action-row .btn-wallet-topup {
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   HIGH-CONTRAST SQUARE CARD PILL TAGS (สีตัวอักษรและพื้นหลังทางขวาบน เข้ม คมชัด อ่านง่าย)
+   ========================================================================== */
+.square-pill-tag {
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  padding: 4px 10px !important;
+  border-radius: var(--radius-full) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 480px) {
+  .square-pill-tag {
+    font-size: 10px !important;
+    padding: 3px 7px !important;
+  }
+}
+
+.square-pill-tag.tag-blue {
+  background: #EFF6FF !important;
+  color: #1E40AF !important;
+  border: 1.5px solid #93C5FD !important;
+}
+
+.square-pill-tag.tag-royal {
+  background: #EEF2FF !important;
+  color: #1E3A8A !important;
+  border: 1.5px solid #A5B4FC !important;
+}
+
+.square-pill-tag.tag-gold {
+  background: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1.5px solid #FCD34D !important;
+}
+
+.square-pill-tag.tag-cyan {
+  background: #E0F2FE !important;
+  color: #0369A1 !important;
+  border: 1.5px solid #7DD3FC !important;
+}
+
+.square-card-icon.icon-royal {
+  background: #EFF6FF !important;
+  color: #1E40AF !important;
+  border: 1px solid #DBEAFE !important;
+}
+
+
+/* ==========================================================================
+   FULL-WIDTH BINGO BOARD & 12-LINES POPUP MODAL TRIGGER
+   ========================================================================== */
+.bingo-layout-full {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.btn-trigger-lines-modal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  min-height: 42px;
+  background: #FFFFFF;
+  border: 1.5px solid #FCD34D;
+  border-radius: var(--radius-full);
+  color: #78350F;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.12);
+  transition: all 0.18s ease;
+  touch-action: manipulation;
+}
+
+.btn-trigger-lines-modal:hover {
+  background: #FEF3C7;
+  border-color: #D97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);
+}
+
+.btn-trigger-lines-modal:active {
+  transform: translateY(0);
+}
+
+/* Expanded Full-Width Board Dimensions */
+.bingo-layout-full .bingo-board-wrapper {
+  padding: 22px;
+  border-radius: var(--radius-xl);
+}
+
+@media (min-width: 641px) {
+  .bingo-layout-full .bingo-header-letters {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .bingo-layout-full .bingo-grid-5x5 {
+    gap: 12px;
+  }
+
+  .bingo-layout-full .bingo-cell {
+    min-height: 125px;
+    padding: 12px 10px;
+  }
+
+  .bingo-layout-full .bingo-cell-title-desktop {
+    font-size: 13.5px;
+    line-height: 1.35;
+    margin-top: 4px;
+  }
+
+  .bingo-layout-full .bingo-cell-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+}
