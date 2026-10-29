@@ -141,12 +141,13 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper" style={{ minHeight: '100dvh' }}>
       <div className="auth-card" style={{ maxWidth: 560 }}>
         {/* Brand Header */}
         <div className="brand-header">
           <div className="brand-badge">
-            <UserPlus size={14} /> ลงทะเบียนเข้าร่วมโครงการ
+            <UserPlus size={14} />
+            <span>ลงทะเบียนเข้าร่วมโครงการ</span>
           </div>
           <h1 className="brand-title">
             ไทยช่วยไทย<span>พลีส</span>
@@ -156,27 +157,31 @@ export default function Register() {
           </p>
         </div>
 
-        {/* Type Switcher */}
-        <div className="tab-switcher">
+        {/* Type Switcher (Touch-friendly min 48px) */}
+        <div className="tab-switcher" role="tablist">
           <button
             type="button"
             className={`tab-btn ${registerType === 'citizen' ? 'active' : ''}`}
             onClick={() => { setRegisterType('citizen'); setError(''); }}
+            style={{ minHeight: 48, fontSize: 13.5 }}
           >
-            <User size={16} /> ประชาชนทั่วไป
+            <User size={16} />
+            <span>ประชาชนทั่วไป</span>
           </button>
           <button
             type="button"
             className={`tab-btn ${registerType === 'merchant' ? 'active' : ''}`}
             onClick={() => { setRegisterType('merchant'); setError(''); }}
+            style={{ minHeight: 48, fontSize: 13.5 }}
           >
-            <Store size={16} /> ร้านค้า / ผู้ประกอบการ
+            <Store size={16} />
+            <span>ร้านค้า / ผู้ประกอบการ</span>
           </button>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="alert alert-danger">
+          <div className="alert alert-danger" style={{ marginBottom: 16 }}>
             <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>{error}</div>
           </div>
@@ -185,15 +190,15 @@ export default function Register() {
         {/* Form 1: Citizen Registration */}
         {registerType === 'citizen' && (
           <form onSubmit={handleCitizenSubmit}>
-            <div className="alert alert-info" style={{ background: '#ECFDF5', borderColor: '#A7F3D0', color: '#065F46' }}>
-              <Gift size={20} style={{ flexShrink: 0, color: '#059669' }} />
-              <div>
+            <div className="alert alert-info" style={{ marginBottom: 18 }}>
+              <Gift size={20} style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: 13, lineHeight: 1.45 }}>
                 <strong>สิทธิประโยชน์ต้อนรับ:</strong> รับฟรี <strong>50 Impact Tokens</strong> ทันทีเมื่อลงทะเบียนสำเร็จเพื่อนำไปร่วมบริจาคให้มูลนิธิหรือร่วมสนุกในกระดานบิงโก
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
                 เลขประจำตัวประชาชน (13 หลัก) <span className="req">*</span>
               </label>
               <div className="input-with-icon">
@@ -201,6 +206,7 @@ export default function Register() {
                 <input
                   type="text"
                   className="form-input"
+                  style={{ minHeight: 48, fontSize: 16 }}
                   placeholder="เลขบัตร ปชช. 13 หลัก"
                   maxLength={13}
                   value={citizenForm.citizenId}
@@ -209,13 +215,13 @@ export default function Register() {
                   disabled={loading}
                 />
               </div>
-              <div className="form-hint">
+              <div className="form-hint" style={{ fontSize: 12, marginTop: 4, color: 'var(--text-tertiary)' }}>
                 เข้ารหัส SHA-256 ตามมาตรฐาน PDPA ไม่จัดเก็บเลขบัตรประชาชนจริงแบบเปิดเผย
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
                 ชื่อ-นามสกุล จริง <span className="req">*</span>
               </label>
               <div className="input-with-icon">
@@ -223,7 +229,8 @@ export default function Register() {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="เช่น นายรักชาติ ยิ่งชีพ"
+                  style={{ minHeight: 48, fontSize: 16 }}
+                  placeholder="เช่น นายสมชาย ใจดี"
                   value={citizenForm.fullName}
                   onChange={(e) => setCitizenForm({ ...citizenForm, fullName: e.target.value })}
                   required
@@ -232,8 +239,8 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
                 เบอร์โทรศัพท์มือถือ (10 หลัก) <span className="req">*</span>
               </label>
               <div className="input-with-icon">
@@ -241,6 +248,7 @@ export default function Register() {
                 <input
                   type="tel"
                   className="form-input"
+                  style={{ minHeight: 48, fontSize: 16 }}
                   placeholder="เช่น 0812345678"
                   maxLength={10}
                   value={citizenForm.phoneNumber}
@@ -251,14 +259,17 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">อีเมล (ไม่บังคับ)</label>
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                อีเมล (ไม่บังคับ)
+              </label>
               <div className="input-with-icon">
                 <Mail size={18} className="input-icon" />
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="your.email@example.com"
+                  style={{ minHeight: 48, fontSize: 16 }}
+                  placeholder="example@mail.com"
                   value={citizenForm.email}
                   onChange={(e) => setCitizenForm({ ...citizenForm, email: e.target.value })}
                   disabled={loading}
@@ -266,14 +277,17 @@ export default function Register() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="form-group">
-                <label className="form-label">รหัสผ่านเข้าสู่ระบบ</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                  รหัสผ่าน (Password)
+                </label>
                 <div className="input-with-icon">
                   <Lock size={18} className="input-icon" />
                   <input
                     type="password"
                     className="form-input"
+                    style={{ minHeight: 48, fontSize: 16 }}
                     placeholder="อย่างน้อย 6 ตัวอักษร"
                     value={citizenForm.password}
                     onChange={(e) => setCitizenForm({ ...citizenForm, password: e.target.value })}
@@ -282,14 +296,17 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">ยืนยันรหัสผ่าน</label>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                  ยืนยันรหัสผ่าน
+                </label>
                 <div className="input-with-icon">
                   <Lock size={18} className="input-icon" />
                   <input
                     type="password"
                     className="form-input"
-                    placeholder="พิมพ์รหัสผ่านซ้ำ"
+                    style={{ minHeight: 48, fontSize: 16 }}
+                    placeholder="กรอกรหัสผ่านซ้ำอีกครั้ง"
                     value={citizenForm.confirmPassword}
                     onChange={(e) => setCitizenForm({ ...citizenForm, confirmPassword: e.target.value })}
                     disabled={loading}
@@ -298,16 +315,19 @@ export default function Register() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="form-group">
-                <label className="form-label">PIN 6 หลัก (ทำธุรกรรม)</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                  รหัส PIN ยืนยันทำรายการ (6 หลัก)
+                </label>
                 <div className="input-with-icon">
                   <KeyRound size={18} className="input-icon" />
                   <input
                     type="password"
                     maxLength={6}
                     className="form-input"
-                    placeholder="เช่น 123456"
+                    style={{ minHeight: 48, fontSize: 16 }}
+                    placeholder="ตัวเลข 6 หลัก (เช่น 123456)"
                     value={citizenForm.pin}
                     onChange={(e) => setCitizenForm({ ...citizenForm, pin: e.target.value.replace(/\D/g, '') })}
                     disabled={loading}
@@ -315,39 +335,45 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">จังหวัดที่พำนัก</label>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                  จังหวัดที่อยู่
+                </label>
                 <div className="input-with-icon">
                   <MapPin size={18} className="input-icon" />
                   <select
                     className="form-select"
+                    style={{ minHeight: 48, fontSize: 15 }}
                     value={citizenForm.provinceCode}
                     onChange={(e) => setCitizenForm({ ...citizenForm, provinceCode: e.target.value })}
                     disabled={loading}
                   >
                     <option value="BKK">กรุงเทพมหานคร</option>
                     <option value="NPT">นครปฐม</option>
-                    <option value="NON">นนทบุรี</option>
-                    <option value="PTN">ปทุมธานี</option>
+                    <option value="NBI">นนทบุรี</option>
+                    <option value="PTE">ปทุมธานี</option>
                     <option value="SPK">สมุทรปราการ</option>
-                    <option value="CNX">เชียงใหม่</option>
-                    <option value="KKN">ขอนแก่น</option>
-                    <option value="HKT">ภูเก็ต</option>
-                    <option value="OTH">จังหวัดอื่นๆ</option>
+                    <option value="OTHER">จังหวัดอื่นๆ</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: 8 }}>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+              style={{ minHeight: 50, fontSize: 15.5, fontWeight: 800, width: '100%', marginTop: 8 }}
+            >
               {loading ? (
                 <>
                   <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-                  กำลังลงทะเบียน...
+                  <span>กำลังลงทะเบียน...</span>
                 </>
               ) : (
                 <>
-                  <UserPlus size={18} /> ยืนยันลงทะเบียนประชาชน
+                  <UserPlus size={18} />
+                  <span>ยืนยันการลงทะเบียนประชาชน</span>
                 </>
               )}
             </button>
@@ -357,16 +383,24 @@ export default function Register() {
         {/* Form 2: Merchant Registration */}
         {registerType === 'merchant' && (
           <form onSubmit={handleMerchantSubmit}>
-            <div className="form-group">
-              <label className="form-label">
-                ชื่อร้านค้า <span className="req">*</span>
+            <div className="alert alert-info" style={{ marginBottom: 18 }}>
+              <Store size={20} style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: 13, lineHeight: 1.45 }}>
+                <strong>สำหรับผู้ประกอบการร้านค้า:</strong> ลงทะเบียนเพื่อรับชำระเงินในโครงการคนละครึ่ง 60/40 และรับเงินสนับสนุนโอนเข้าบัญชีร้านค้าทันที
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                ชื่อร้านค้า / สถานประกอบการ <span className="req">*</span>
               </label>
               <div className="input-with-icon">
                 <Store size={18} className="input-icon" />
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="เช่น ร้านข้าวแกงปักษ์ใต้ คุณแม่"
+                  style={{ minHeight: 48, fontSize: 16 }}
+                  placeholder="เช่น ร้านข้าวมันไก่เฮียเจ๊ก นครปฐม"
                   value={merchantForm.shopName}
                   onChange={(e) => setMerchantForm({ ...merchantForm, shopName: e.target.value })}
                   required
@@ -375,32 +409,38 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                หมวดหมู่ร้านค้า <span className="req">*</span>
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                หมวดหมู่ประเภทร้านค้า <span className="req">*</span>
               </label>
-              <select
-                className="form-select"
-                style={{ paddingLeft: 14 }}
-                value={merchantForm.category}
-                onChange={(e) => setMerchantForm({ ...merchantForm, category: e.target.value })}
-                disabled={loading}
-              >
-                <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
-                <option value="สินค้าทั่วไปและของใช้">สินค้าทั่วไปและของใช้</option>
-                <option value="สินค้า OTOP และวิสาหกิจชุมชน">สินค้า OTOP และวิสาหกิจชุมชน</option>
-                <option value="บริการชุมชนและสุขภาพ">บริการชุมชนและสุขภาพ</option>
-              </select>
+              <div className="input-with-icon">
+                <MapPin size={18} className="input-icon" />
+                <select
+                  className="form-select"
+                  style={{ minHeight: 48, fontSize: 15 }}
+                  value={merchantForm.category}
+                  onChange={(e) => setMerchantForm({ ...merchantForm, category: e.target.value })}
+                  disabled={loading}
+                >
+                  <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
+                  <option value="สินค้า OTOP และชุมชน">สินค้า OTOP และชุมชน</option>
+                  <option value="ร้านค้าทั่วไป">ร้านค้าทั่วไป / ของใช้</option>
+                  <option value="บริการและสุขภาพ">บริการและสุขภาพ</option>
+                </select>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">ชื่อเจ้าของร้าน / ผู้ติดต่อ</label>
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                ชื่อผู้ติดต่อ / เจ้าของร้าน
+              </label>
               <div className="input-with-icon">
                 <User size={18} className="input-icon" />
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="เช่น นางวิภาวรรณ ชัยเจริญ"
+                  style={{ minHeight: 48, fontSize: 16 }}
+                  placeholder="เช่น นายมานะ ค้าขายดี"
                   value={merchantForm.contactName}
                   onChange={(e) => setMerchantForm({ ...merchantForm, contactName: e.target.value })}
                   disabled={loading}
@@ -408,15 +448,16 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                เบอร์โทรศัพท์ติดต่อร้านค้า <span className="req">*</span>
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                เบอร์โทรศัพท์ร้านค้า (10 หลัก) <span className="req">*</span>
               </label>
               <div className="input-with-icon">
                 <Phone size={18} className="input-icon" />
                 <input
                   type="tel"
                   className="form-input"
+                  style={{ minHeight: 48, fontSize: 16 }}
                   placeholder="เช่น 0891234567"
                   maxLength={10}
                   value={merchantForm.phoneNumber}
@@ -427,14 +468,17 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">อีเมลร้านค้า (ถ้ามี)</label>
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                อีเมลร้านค้า (ไม่บังคับ)
+              </label>
               <div className="input-with-icon">
                 <Mail size={18} className="input-icon" />
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="shop@example.com"
+                  style={{ minHeight: 48, fontSize: 16 }}
+                  placeholder="shop@mail.com"
                   value={merchantForm.email}
                   onChange={(e) => setMerchantForm({ ...merchantForm, email: e.target.value })}
                   disabled={loading}
@@ -442,15 +486,18 @@ export default function Register() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="form-group">
-                <label className="form-label">รหัสผ่าน</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                  รหัสผ่านร้านค้า (Password)
+                </label>
                 <div className="input-with-icon">
                   <Lock size={18} className="input-icon" />
                   <input
                     type="password"
                     className="form-input"
-                    placeholder="รหัสผ่านเข้าสู่ระบบ"
+                    style={{ minHeight: 48, fontSize: 16 }}
+                    placeholder="อย่างน้อย 6 ตัวอักษร"
                     value={merchantForm.password}
                     onChange={(e) => setMerchantForm({ ...merchantForm, password: e.target.value })}
                     disabled={loading}
@@ -458,14 +505,17 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">ยืนยันรหัสผ่าน</label>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                  ยืนยันรหัสผ่าน
+                </label>
                 <div className="input-with-icon">
                   <Lock size={18} className="input-icon" />
                   <input
                     type="password"
                     className="form-input"
-                    placeholder="พิมพ์รหัสผ่านซ้ำ"
+                    style={{ minHeight: 48, fontSize: 16 }}
+                    placeholder="กรอกรหัสผ่านซ้ำอีกครั้ง"
                     value={merchantForm.confirmPassword}
                     onChange={(e) => setMerchantForm({ ...merchantForm, confirmPassword: e.target.value })}
                     disabled={loading}
@@ -474,14 +524,17 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">ที่อยู่ร้านค้า / ตลาด</label>
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+                ที่อยู่ร้านค้า / ทำเลที่ตั้ง
+              </label>
               <div className="input-with-icon">
                 <MapPin size={18} className="input-icon" />
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="เลขที่ ถนน ซอย ตำบล อำเภอ จังหวัด"
+                  style={{ minHeight: 48, fontSize: 16 }}
+                  placeholder="เช่น 123/4 ถ.เทศา ต.พระปฐมเจดีย์ อ.เมือง จ.นครปฐม"
                   value={merchantForm.addressLine}
                   onChange={(e) => setMerchantForm({ ...merchantForm, addressLine: e.target.value })}
                   disabled={loading}
@@ -489,15 +542,21 @@ export default function Register() {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: 8 }}>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+              style={{ minHeight: 50, fontSize: 15.5, fontWeight: 800, width: '100%', marginTop: 8 }}
+            >
               {loading ? (
                 <>
                   <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-                  กำลังลงทะเบียนร้านค้า...
+                  <span>กำลังลงทะเบียนร้านค้า...</span>
                 </>
               ) : (
                 <>
-                  <Store size={18} /> ยืนยันลงทะเบียนร้านค้า
+                  <Store size={18} />
+                  <span>ยืนยันการลงทะเบียนร้านค้า</span>
                 </>
               )}
             </button>
@@ -505,10 +564,15 @@ export default function Register() {
         )}
 
         {/* Login Link */}
-        <div className="auth-footer">
-          มีบัญชีอยู่แล้วใช่หรือไม่?
-          <Link to="/login" className="auth-link">
-            เข้าสู่ระบบที่นี่ <ArrowRight size={14} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+        <div className="auth-footer" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border-light)' }}>
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>มีบัญชีผู้ใช้งานอยู่แล้ว?</span>
+          <Link
+            to="/login"
+            className="auth-link"
+            style={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700 }}
+          >
+            <span>เข้าสู่ระบบที่นี่</span>
+            <ArrowRight size={14} />
           </Link>
         </div>
       </div>

@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Charities from './pages/Charities';
 import Payment from './pages/Payment';
+import ThaiPlus from './pages/ThaiPlus';
 import Bingo from './pages/Bingo';
 
 function App() {
@@ -17,7 +18,6 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/bingo" element={<ProtectedRoute><Bingo /></ProtectedRoute>} />
 
           {/* Protected Routes */}
           <Route
@@ -41,6 +41,38 @@ function App() {
             element={
               <ProtectedRoute>
                 <Payment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/plus"
+            element={
+              <ProtectedRoute>
+                <ThaiPlus />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/thai-plus"
+            element={
+              <ProtectedRoute>
+                <ThaiPlus />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rewards"
+            element={
+              <ProtectedRoute>
+                <ThaiPlus />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bingo"
+            element={
+              <ProtectedRoute>
+                <Bingo />
               </ProtectedRoute>
             }
           />

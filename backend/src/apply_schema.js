@@ -40,7 +40,7 @@ async function applySchema() {
   }
 
   await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1;');
-  console.log('✅ All statements executed successfully!');
+  console.log('All statements executed successfully!');
 
   // Verify tables
   const tables = await prisma.$queryRawUnsafe('SHOW TABLES;');

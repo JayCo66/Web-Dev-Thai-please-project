@@ -1,6 +1,21 @@
 const prisma = require('../config/prisma');
 
 /**
+ * Calculate bonus Impact Tokens from donation amount (1 token per 20 THB, minimum 1 token)
+ * @param {number|string} amount 
+ * @returns {number}
+ */
+function calculateDonationBonusTokens(amount) {
+  const donationAmount = parseFloat(amount);
+  if (!donationAmount || donationAmount <= 0) {
+    const error = new Error('กรุณาระบุจำนวนเงินบริจาคที่ถูกต้อง (มากกว่า 0 บาท)');
+    error.statusCode = 400;
+    throw error;
+  }
+  return Math.max(1, Math.floor(donationAmount / 20));
+}
+
+/**
  * GET /api/v1/charities
  * List all active charities and foundations
  */
@@ -92,25 +107,39 @@ async function donateToCharity(req, res) {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const edonRef = `EDON-${dateStr}-${randomSuffix}`;
 
-    // Record donation in database
-    const newDonation = await prisma.donations.create({
-      data: {
-        charity_id: charity.charity_id,
-        user_id: userId,
-        amount: donationAmount,
-        edonation_ref: edonRef,
-      },
+    // Calculate bonus Impact Tokens (1 token for every 20 THB donated, min 1 token)
+    const bonusTokens = calculateDonationBonusTokens(donationAmount);
+
+    // Record donation and award bonus tokens atomically in a single transaction
+    const newDonation = await prisma.$transaction(async (tx) => {
+      const donation = await tx.donations.create({
+        data: {
+          charity_id: charity.charity_id,
+          user_id: userId,
+          amount: donationAmount,
+          edonation_ref: edonRef,
+        },
+      });
+
+      await tx.token_transactions.create({
+        data: {
+          user_id: userId,
+          amount: bonusTokens,
+          type: 'EARN_CELL',
+        },
+      });
+
+      return donation;
     });
 
-    // Award bonus Impact Tokens (1 token for every 20 THB donated)
-    const bonusTokens = Math.max(1, Math.floor(donationAmount / 20));
-    await prisma.token_transactions.create({
-      data: {
-        user_id: userId,
-        amount: bonusTokens,
-        type: 'EARN_CELL',
-      },
-    });
+    // Real-time Mission Checker: Synchronize Bingo Mission progress for citizen
+    let questUpdate = null;
+    try {
+      const { syncDonationProgress } = require('./questController');
+      questUpdate = await syncDonationProgress(userId.toString(), donationAmount, newDonation.donation_id);
+    } catch (questErr) {
+      console.warn('Could not sync quest progress on donation:', questErr.message);
+    }
 
     return res.status(201).json({
       success: true,
@@ -123,6 +152,7 @@ async function donateToCharity(req, res) {
         edonationRef: edonRef,
         bonusTokensAwarded: bonusTokens,
         donatedAt: newDonation.donated_at,
+        questUpdate,
       },
     });
   } catch (error) {
@@ -173,6 +203,7 @@ async function getMyDonations(req, res) {
 }
 
 module.exports = {
+  calculateDonationBonusTokens,
   getCharities,
   donateToCharity,
   getMyDonations,
