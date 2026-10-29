@@ -53,6 +53,7 @@ export default function Bingo() {
   const [highlightedLinePositions, setHighlightedLinePositions] = useState([]);
   const [activeLineId, setActiveLineId] = useState(null);
   const [bingoCelebration, setBingoCelebration] = useState(null);
+  const [showLinesModal, setShowLinesModal] = useState(false);
 
   // UX Toggles for Non-Tech / Elderly simplicity (Remembers preference in localStorage)
   const [showHelpGuide, setShowHelpGuide] = useState(false);
@@ -378,7 +379,7 @@ export default function Bingo() {
       <Navbar />
 
       {/* Main Banking App Shell (Using Home Page Container) */}
-      <main className="home-container" id="main-content" style={{ width: '100%', maxWidth: 960, boxSizing: 'border-box' }}>
+      <main className="home-container" id="main-content" style={{ width: '100%', maxWidth: 1040, boxSizing: 'border-box' }}>
         {/* Navigation Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0 8px', flexWrap: 'wrap', gap: 8 }}>
           <Link
@@ -437,10 +438,28 @@ export default function Bingo() {
           <div className="dashboard-bingo-progress-box" style={{ marginBottom: 16 }}>
             <div className="dashboard-bingo-progress-meta">
               <span>ความคืบหน้ากระดานนี้: {completedCellsCount} / 25 ช่อง ({progressPercent}%)</span>
-              <span style={{ color: '#FDE047', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
+              <button
+                type="button"
+                onClick={() => setShowLinesModal(true)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.16)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '3px 10px',
+                  color: '#FDE047',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  cursor: 'pointer'
+                }}
+                title="แตะเพื่อเปิดดูความคืบหน้า 12 เส้นบิงโก"
+                aria-label="เปิดดูความคืบหน้า 12 เส้นบิงโก"
+              >
                 <Trophy size={14} />
-                <span>{currentBoard?.bingoCount || 0} / 12 เส้นบิงโก</span>
-              </span>
+                <span>{currentBoard?.bingoCount || 0} / 12 เส้นบิงโก (กดดู)</span>
+              </button>
             </div>
             <div className="dashboard-bingo-progress-bar">
               <div
@@ -698,20 +717,32 @@ export default function Bingo() {
             </button>
           </div>
 
-          {/* Active Highlight Banner if a line is being inspected */}
-          {activeLineId && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FEF3C7', padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid #FDE68A', fontSize: 12.5, color: '#92400E' }}>
-              <span>กำลังดู: <strong>{currentBoard?.lines?.find(l => l.id === activeLineId)?.name || activeLineId}</strong></span>
-              <button
-                type="button"
-                onClick={handleClearHighlight}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#B45309', display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 700, fontSize: 11.5 }}
-                aria-label="ยกเลิกการเน้นแถว"
-              >
-                <X size={14} /> ยกเลิก
-              </button>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn-trigger-lines-modal"
+              onClick={() => setShowLinesModal(true)}
+              aria-label="เปิดดูความคืบหน้า 12 เส้นบิงโก"
+            >
+              <Trophy size={16} color="#D97706" />
+              <span>ความคืบหน้า 12 เส้นบิงโก ({currentBoard?.bingoCount || 0}/12 เส้น)</span>
+            </button>
+
+            {/* Active Highlight Banner if a line is being inspected */}
+            {activeLineId && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FEF3C7', padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid #FDE68A', fontSize: 12.5, color: '#92400E' }}>
+                <span>กำลังดู: <strong>{currentBoard?.lines?.find(l => l.id === activeLineId)?.name || activeLineId}</strong></span>
+                <button
+                  type="button"
+                  onClick={handleClearHighlight}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#B45309', display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 700, fontSize: 11.5 }}
+                  aria-label="ยกเลิกการเน้นแถว"
+                >
+                  <X size={14} /> ยกเลิก
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Loading / Error States */}
@@ -736,10 +767,8 @@ export default function Bingo() {
             </button>
           </div>
         ) : (
-          <div className="bingo-layout-grid">
-            {/* Left Content Area: Grid View or List View */}
-            <div>
-              {viewMode === 'GRID' ? (
+          <div className="bingo-layout-full">
+            {viewMode === 'GRID' ? (
                 /* Authentic 5x5 Game Board */
                 <div className="bingo-board-wrapper">
                   {/* B - I - N - G - O Header Badges */}
@@ -1159,101 +1188,6 @@ export default function Bingo() {
                   })}
                 </div>
               )}
-            </div>
-
-            {/* Right: 12 Lines Status Tracker (Home's citizen-summary-card style) */}
-            <aside className="bingo-lines-tracker-box" aria-label="ติดตาม 12 เส้นบิงโก">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <h3 style={{ fontSize: 15, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6, margin: 0, color: 'var(--text-primary)' }}>
-                  <Trophy size={18} color="#D97706" />
-                  <span>ความคืบหน้า 12 เส้นบิงโก</span>
-                </h3>
-              </div>
-
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.4 }}>
-                แตะที่แนวเส้นด้านล่างเพื่อดูตำแหน่ง 5 ช่องบนกระดาน (ช่องกึ่งกลาง FREE เชื่อมต่อได้ถึง 4 แนวเส้น)
-              </p>
-
-              {/* Lines List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 480, overflowY: 'auto', paddingRight: 2 }}>
-                {currentBoard?.lines?.map((line) => {
-                  const isCompleted = line.isCompleted;
-                  const isHighlighted = activeLineId === line.id;
-
-                  return (
-                    <button
-                      key={line.id}
-                      type="button"
-                      className={`bingo-line-row-btn ${isHighlighted ? 'is-active-highlight' : ''} ${isCompleted ? 'is-completed' : ''}`}
-                      onClick={() => handleToggleLineHighlight(line)}
-                      aria-pressed={isHighlighted}
-                      aria-label={`${line.name} สำเร็จ ${line.completedCount} จาก 5 ช่อง`}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 800,
-                              padding: '2px 6px',
-                              borderRadius: 4,
-                              background: isCompleted ? '#16A34A' : isHighlighted ? '#D97706' : '#E2E8F0',
-                              color: isCompleted || isHighlighted ? '#FFFFFF' : '#475569',
-                            }}
-                          >
-                            {line.id}
-                          </span>
-                          <span style={{ fontSize: 12.5, fontWeight: 700, color: isCompleted ? '#15803D' : 'var(--text-primary)' }}>
-                            {line.name}
-                          </span>
-                        </div>
-
-                        {isCompleted ? (
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#16A34A', display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Check size={12} strokeWidth={3} /> สำเร็จ (+20 โทเค็น)
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)' }}>
-                            {line.completedCount}/5 ช่อง (+20)
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Line Progress Fill */}
-                      <div className="bingo-progress-container" style={{ height: 4 }}>
-                        <div
-                          className="bingo-progress-fill"
-                          style={{
-                            width: `${line.progressPercent}%`,
-                            background: isCompleted ? '#16A34A' : '#1D4ED8',
-                          }}
-                        />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Bonus Hint Tip */}
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: '10px 12px',
-                  background: '#FEF3C7',
-                  border: '1px solid #FDE68A',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: 12,
-                  color: '#92400E',
-                  lineHeight: 1.45,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 2 }}>
-                  <Info size={14} color="#D97706" />
-                  <span>เคล็ดลับพิชิตบิงโก:</span>
-                </div>
-                <span>พิชิตช่องใจกลาง (ตำแหน่ง N3) จะช่วยเพิ่มแต้มให้แนวนอนที่ 3, แนวตั้งที่ 3, และแนวทแยงทั้ง 2 เส้นพร้อมกัน!</span>
-              </div>
-            </aside>
           </div>
         )}
 
@@ -1529,6 +1463,155 @@ export default function Bingo() {
       )}
 
       {/* ====================================================
+          MODAL: 12 LINES BINGO PROGRESS TRACKER POP-UP
+          ==================================================== */}
+      {showLinesModal && (
+        <div
+          className="bingo-modal-overlay"
+          onClick={() => setShowLinesModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-lines-title"
+        >
+          <div className="bingo-modal-sheet" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540 }}>
+            {/* Grab handle for mobile bottom sheet */}
+            <div className="bingo-modal-grab-handle" />
+
+            {/* Header: Title + Close Icon */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Trophy size={22} color="#D97706" />
+                </div>
+                <div>
+                  <h3 id="modal-lines-title" style={{ fontSize: 17, fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                    ความคืบหน้า 12 เส้นบิงโก
+                  </h3>
+                  <div style={{ fontSize: 12.5, color: '#D97706', fontWeight: 700 }}>
+                    สำเร็จแล้ว {currentBoard?.bingoCount || 0} / 12 เส้น (โบนัส +{(currentBoard?.bingoCount || 0) * 20} โทเค็น)
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLinesModal(false)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: 'var(--radius-full)',
+                  width: 36,
+                  height: 36,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-secondary)',
+                  touchAction: 'manipulation'
+                }}
+                aria-label="ปิดหน้าต่าง"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '4px 0 6px 0', lineHeight: 1.45 }}>
+              แตะที่แนวเส้นด้านล่างเพื่อเน้นตำแหน่ง 5 ช่องบนกระดานบิงโก (ช่อง FREE เชื่อมต่อได้ถึง 4 แนวเส้น)
+            </p>
+
+            {/* Lines List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxHeight: '60dvh', overflowY: 'auto', paddingRight: 4 }}>
+              {currentBoard?.lines?.map((line) => {
+                const isCompleted = line.isCompleted;
+                const isHighlighted = activeLineId === line.id;
+
+                return (
+                  <button
+                    key={line.id}
+                    type="button"
+                    className={`bingo-line-row-btn ${isHighlighted ? 'is-active-highlight' : ''} ${isCompleted ? 'is-completed' : ''}`}
+                    onClick={() => {
+                      handleToggleLineHighlight(line);
+                    }}
+                    aria-pressed={isHighlighted}
+                    aria-label={`${line.name} สำเร็จ ${line.completedCount} จาก 5 ช่อง`}
+                    style={{
+                      padding: '11px 13px',
+                      borderRadius: 'var(--radius-md)',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 800,
+                            padding: '3px 7px',
+                            borderRadius: 4,
+                            background: isCompleted ? '#16A34A' : isHighlighted ? '#D97706' : '#E2E8F0',
+                            color: isCompleted || isHighlighted ? '#FFFFFF' : '#475569',
+                          }}
+                        >
+                          {line.id}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: isCompleted ? '#15803D' : 'var(--text-primary)' }}>
+                          {line.name}
+                        </span>
+                      </div>
+
+                      {isCompleted ? (
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Check size={14} strokeWidth={3} /> สำเร็จ (+20 โทเค็น)
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                          {line.completedCount}/5 ช่อง (+20)
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Line Progress Fill */}
+                    <div className="bingo-progress-container" style={{ height: 5 }}>
+                      <div
+                        className="bingo-progress-fill"
+                        style={{
+                          width: `${line.progressPercent}%`,
+                          background: isCompleted ? '#16A34A' : '#1D4ED8',
+                        }}
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Footer Close Button */}
+            <button
+              type="button"
+              className="btn-modal-close"
+              onClick={() => setShowLinesModal(false)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                minHeight: 46,
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--bank-royal)',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: 14.5,
+                border: 'none',
+                cursor: 'pointer',
+                marginTop: 6
+              }}
+            >
+              {activeLineId ? 'ดูตำแหน่งที่เน้นบนกระดานบิงโก' : 'ปิดหน้าต่าง'}
+            </button>
+          </div>
+        </div>
+      )}
+
+            {/* ====================================================
           MODAL: BINGO CELEBRATION!
           ==================================================== */}
       {bingoCelebration && (

@@ -124,9 +124,10 @@ export default function ThaiPlus() {
   // Copied code feedback state
   const [copiedCode, setCopiedCode] = useState(false);
 
-  // Fetch initial rewards and campaign on mount
+  // Fetch initial rewards, campaign, and user redemptions from DB on mount
   useEffect(() => {
     fetchRewards();
+    fetchMyRedemptions();
   }, []);
 
   // Sync tickets & vouchers to localStorage
@@ -138,10 +139,12 @@ export default function ThaiPlus() {
     localStorage.setItem('user_thaiplus_vouchers', JSON.stringify(myVouchers));
   }, [myVouchers]);
 
-  // Load history when switching to HISTORY tab
+  // Load history when switching to HISTORY tab or redemptions when switching to MY_ITEMS
   useEffect(() => {
     if (activeTab === 'HISTORY') {
       fetchTokenHistory();
+    } else if (activeTab === 'MY_ITEMS') {
+      fetchMyRedemptions();
     }
   }, [activeTab]);
 
@@ -175,6 +178,42 @@ export default function ThaiPlus() {
       console.error('Error fetching token history:', err);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  // Fetch user's redeemed vouchers & tickets directly from MySQL Database
+  const fetchMyRedemptions = async () => {
+    try {
+      const res = await api.get('/rewards/my-redemptions');
+      if (res.data && res.data.success && res.data.data) {
+        if (Array.isArray(res.data.data.vouchers)) {
+          setMyVouchers(res.data.data.vouchers);
+        }
+        if (Array.isArray(res.data.data.tickets)) {
+          setMyTickets(res.data.data.tickets);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch user redemptions from DB:', err.message);
+    }
+  };
+
+  // Simulate using voucher at merchant
+  const handleUseVoucher = async (voucherCode) => {
+    if (!voucherCode) return;
+    try {
+      const res = await api.post('/rewards/use-voucher', { voucherCode });
+      if (res.data && res.data.success) {
+        alert(res.data.message || 'ใช้งานคูปองสำเร็จเรียบร้อยแล้ว');
+        if (viewVoucherModal) {
+          setViewVoucherModal((prev) => prev ? { ...prev, status: 'USED', usedAt: new Date().toISOString() } : null);
+        }
+        fetchMyRedemptions();
+      }
+    } catch (err) {
+      console.error('Error using voucher:', err);
+      const msg = err.response?.data?.error || 'เกิดข้อผิดพลาดในการใช้งานคูปอง';
+      alert(msg);
     }
   };
 
@@ -282,6 +321,7 @@ export default function ThaiPlus() {
         setMyVouchers((prev) => [newVoucher, ...prev]);
         setRedeemSuccessData(newVoucher);
         setSelectedReward(null);
+        fetchMyRedemptions();
       } else {
         alert(res.data.error || 'เกิดข้อผิดพลาดในการแลกของรางวัล');
       }
@@ -821,18 +861,47 @@ export default function ThaiPlus() {
                       <div key={idx} className="voucher-card-item">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                           <div>
-                            <span
-                              style={{
-                                fontSize: 11.5,
-                                fontWeight: 700,
-                                padding: '2px 8px',
-                                borderRadius: 999,
-                                background: '#EFF6FF',
-                                color: '#1E40AF',
-                              }}
-                            >
-                              {v.rewardType === 'PHYSICAL' ? 'สินค้าส่งถึงบ้าน' : 'คูปองดิจิทัล'}
-                            </span>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                              <span
+                                style={{
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  padding: '2px 8px',
+                                  borderRadius: 999,
+                                  background: '#EFF6FF',
+                                  color: '#1E40AF',
+                                }}
+                              >
+                                {v.rewardType === 'PHYSICAL' ? 'สินค้าส่งถึงบ้าน' : 'คูปองดิจิทัล'}
+                              </span>
+                              {v.status === 'USED' ? (
+                                <span
+                                  style={{
+                                    fontSize: 11.5,
+                                    fontWeight: 700,
+                                    padding: '2px 8px',
+                                    borderRadius: 999,
+                                    background: '#F1F5F9',
+                                    color: '#64748B',
+                                  }}
+                                >
+                                  ใช้งานแล้ว
+                                </span>
+                              ) : (
+                                <span
+                                  style={{
+                                    fontSize: 11.5,
+                                    fontWeight: 700,
+                                    padding: '2px 8px',
+                                    borderRadius: 999,
+                                    background: '#ECFDF5',
+                                    color: '#059669',
+                                  }}
+                                >
+                                  พร้อมใช้งาน
+                                </span>
+                              )}
+                            </div>
                             <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
                               {v.rewardName}
                             </h3>
@@ -1821,6 +1890,47 @@ export default function ThaiPlus() {
                 {viewVoucherModal.instructions || 'แสดงรหัสนี้แก่พนักงานที่หน้าร้านเพื่อรับสิทธิพิเศษ'}
               </div>
             </div>
+
+            {viewVoucherModal.status === 'USED' ? (
+              <div
+                style={{
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  marginBottom: 10,
+                }}
+              >
+                ✓ คูปองนี้ถูกใช้งานเรียบร้อยแล้ว {viewVoucherModal.usedAt && `(${new Date(viewVoucherModal.usedAt).toLocaleTimeString('th-TH')})`}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleUseVoucher(viewVoucherModal.voucherCode)}
+                style={{
+                  width: '100%',
+                  minHeight: 44,
+                  borderRadius: 'var(--radius-md)',
+                  border: '1.5px solid #059669',
+                  background: '#ECFDF5',
+                  color: '#059669',
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  cursor: 'pointer',
+                  marginBottom: 10,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <Check size={16} />
+                <span>จำลองการใช้งานคูปองนี้ที่หน้าร้าน</span>
+              </button>
+            )}
 
             <button
               type="button"

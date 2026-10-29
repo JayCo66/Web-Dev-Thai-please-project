@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Wallet,
   Coins,
-  QrCode,
   ArrowLeft,
   PlusCircle,
   LogOut,
@@ -329,64 +328,14 @@ export default function Profile() {
         </section>
 
         {/* ========================================================
-            3. DIGITAL ID & COMPLIANCE SUMMARY
-            ======================================================== */}
-        <section className="profile-card-section" aria-label="ความปลอดภัยและการคุ้มครองข้อมูล">
-          <div className="profile-section-header">
-            <div className="profile-section-icon" style={{ background: '#ECFDF5', color: '#059669' }}>
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <h2 className="profile-section-title">
-                การรักษาความปลอดภัยและข้อมูลส่วนบุคคล
-              </h2>
-              <p className="profile-section-subtitle">
-                มาตรฐานการคุ้มครองข้อมูลตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
-              </p>
-            </div>
-          </div>
-
-          <div className="profile-security-rows">
-            <div className="profile-sec-row">
-              <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0 }} />
-              <div>
-                <strong>การยืนยันตัวตนดิจิทัล (ThaiD DOPA)</strong>
-                <p>เชื่อมโยงอัตลักษณ์บุคคลระดับ IAL 2.3 ป้องกันการสวมสิทธิ 100%</p>
-              </div>
-            </div>
-
-            <div className="profile-sec-row">
-              <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0 }} />
-              <div>
-                <strong>การเข้ารหัสข้อมูลมาตรฐานสถาบันการเงิน</strong>
-                <p>ข้อมูลทั้งหมดเข้ารหัสด้วยเทคโนโลยี End-to-End Encryption สอดคล้องตามมาตรฐาน ETDA และเกณฑ์สถาบันการเงิน</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================
-            4. ACTIONS & LOGOUT
+            3. ACTIONS & LOGOUT
             ======================================================== */}
         <div className="profile-actions-bar">
-          <Link to="/payment" className="btn-profile-primary">
-            <QrCode size={18} />
-            <span>สแกนชำระเงินคนละครึ่ง</span>
-          </Link>
-
-          <button
-            type="button"
-            className="btn-profile-secondary"
-            onClick={handleTopup}
-          >
-            <PlusCircle size={18} />
-            <span>เติมเงินจำลอง ฿500</span>
-          </button>
-
           <button
             type="button"
             className="btn-profile-logout"
             onClick={logout}
+            style={{ width: '100%' }}
           >
             <LogOut size={18} />
             <span>ออกจากระบบ</span>

@@ -213,42 +213,158 @@ const BOARD_THEMES = [
 ];
 
 /**
- * Generate 4 distinct 5x5 boards for a citizen user for the current month
- * STRICT INDEPENDENCE RULE:
- * - Each board has its own completely isolated 25 cells.
- * - Board 0 starts as 'ACTIVE'.
- * - Boards 1, 2, 3 start as 'ACCEPTED' with progress = 0 on ALL cells!
- * - When user switches active board, duplicate quests start FRESH at 0!
+ * Try to load existing 4 boards and all 25 quests per board from MySQL Database
+ * Returns null if not generated yet for this month.
  */
-async function generateFourMonthlyBoards(userId, monthKey) {
+async function loadUserBoardsFromDB(userId, monthKey) {
+  try {
+    const dbBoards = await prisma.$queryRawUnsafe(
+      'SELECT * FROM bingo_boards WHERE user_id = ? ORDER BY board_id ASC LIMIT 4;',
+      BigInt(userId)
+    );
+
+    if (!dbBoards || dbBoards.length !== 4) return null;
+
+    const boardIds = dbBoards.map((b) => b.board_id);
+    const totalQuests = await prisma.user_quests.count({
+      where: { board_id: { in: boardIds } },
+    });
+
+    // Each of the 4 boards MUST have exactly 25 cells saved in user_quests (total 100)
+    if (totalQuests !== 100) return null;
+
+    // Load all 100 quest rows joined with master catalog
+    const rows = await prisma.$queryRawUnsafe(`
+      SELECT uq.*, bq.quest_code, bq.category AS family, bq.unit, bq.title AS master_title
+      FROM user_quests uq
+      LEFT JOIN bingo_quests bq ON uq.quest_id = bq.quest_id
+      WHERE uq.board_id IN (${boardIds.join(',')})
+      ORDER BY uq.board_id ASC, uq.position ASC;
+    `);
+
+    if (!rows || rows.length !== 100) return null;
+
+    const boards = [];
+    for (let i = 0; i < 4; i++) {
+      const dbBoard = dbBoards[i];
+      const themeInfo = BOARD_THEMES[i] || BOARD_THEMES[0];
+      const boardRows = rows.filter((r) => r.board_id.toString() === dbBoard.board_id.toString());
+      if (boardRows.length !== 25) return null;
+
+      const cells = boardRows.map((r) => {
+        const isDonation = r.position === 12 || r.family === 'DONATION' || r.quest_code === 'DONATION';
+        const qTitle = r.custom_title || (r.master_title ? r.master_title.replace('{n}', r.target_value) : (isDonation ? 'ร่วมบริจาคหรืออุดหนุนร้านค้าชุมชน 1 ครั้ง' : 'ภารกิจ'));
+
+        return {
+          position: r.position,
+          row: Math.floor(r.position / 5),
+          col: r.position % 5,
+          quest_code: r.quest_code || (isDonation ? 'DONATION' : 'CUSTOM'),
+          family: isDonation ? 'DONATION' : (r.family || 'ACTIVITY'),
+          unit: isDonation ? 'ครั้ง' : (r.unit || 'ครั้ง'),
+          level: Math.max(1, Math.round((r.token_reward || 2) / 2)),
+          target_value: r.target_value,
+          progress: r.progress,
+          status: r.status,
+          token_reward: r.token_reward,
+          completed_at: r.completed_at ? new Date(r.completed_at).toISOString() : null,
+          title: qTitle,
+          short_title: formatShortQuestTitle(isDonation ? 'บริจาค/อุดหนุนชุมชน' : qTitle, isDonation),
+          reason: r.reason || (isDonation ? 'ภารกิจใจกลางเพื่อสังคม: เลือกบริจาคผ่าน e-Donation หรือซื้อสินค้าจากร้านค้ารายย่อยชุมชน 1 ครั้ง' : 'ภารกิจประจำเดือน'),
+          reason_source: isDonation ? 'SERVER_DATA' : 'AI_TYPHOON',
+          level_adjusted: false,
+        };
+      });
+
+      const lines = analyzeBingoLines(cells);
+      const bingoCount = lines.filter((l) => l.isCompleted).length;
+      const completedCellsCount = cells.filter((c) => c.status === 'COMPLETED').length;
+
+      boards.push({
+        boardId: dbBoard.board_id.toString(),
+        boardIndex: i,
+        title: themeInfo.title,
+        subtitle: themeInfo.subtitle,
+        theme: dbBoard.theme || themeInfo.theme,
+        userId: userId.toString(),
+        periodDays: 30,
+        budget: 63,
+        totalCells: 25,
+        period: { from: `${monthKey}-01`, to: `${monthKey}-30` },
+        status: dbBoard.status,
+        activatedAt: dbBoard.started_at ? dbBoard.started_at.toISOString() : null,
+        cells,
+        lines,
+        bingoCount,
+        completedCellsCount,
+      });
+    }
+
+    console.log(`[Bingo Quest] Successfully loaded 4 boards (100 quests) from Database for user ${userId} (Month: ${monthKey}) - AI was NOT called!`);
+    return boards;
+  } catch (err) {
+    console.error('Error in loadUserBoardsFromDB:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Generate 4 boards with AI ONCE PER MONTH and persist all 100 quests to MySQL Database
+ */
+async function generateAndPersistFourMonthlyBoards(userId, monthKey, existingDbBoards = []) {
+  console.log(`[Bingo Quest] First time this month: Calling AI to generate 4 boards (100 quests) for user ${userId} (Month: ${monthKey})...`);
   const baseMock = getDefaultMockInput();
   const boards = [];
 
-  // Check or register boards in MySQL database
-  let dbBoards = [];
+  // 1. Ensure 4 bingo_boards exist in database with month_key and theme
+  let dbBoards = [...existingDbBoards];
   try {
-    dbBoards = await prisma.bingo_boards.findMany({
-      where: { user_id: BigInt(userId) },
-      orderBy: { board_id: 'asc' },
-    });
-
-    if (dbBoards.length === 0) {
+    if (dbBoards.length < 4) {
+      const needed = 4 - dbBoards.length;
+      const startIdx = dbBoards.length;
+      for (let i = 0; i < needed; i++) {
+        const themeInfo = BOARD_THEMES[startIdx + i];
+        await prisma.$executeRawUnsafe(
+          'INSERT INTO bingo_boards (user_id, board_size, status, generated_by_ai, line_select_mode, theme, month_key) VALUES (?, 5, ?, 1, "FULL_CARD", ?, ?);',
+          BigInt(userId), (startIdx + i) === 0 ? 'ACTIVE' : 'ACCEPTED', themeInfo.theme, monthKey
+        );
+      }
+      dbBoards = await prisma.$queryRawUnsafe(
+        'SELECT * FROM bingo_boards WHERE user_id = ? ORDER BY board_id ASC LIMIT 4;',
+        BigInt(userId)
+      );
+    } else {
       for (let i = 0; i < 4; i++) {
-        const created = await prisma.bingo_boards.create({
-          data: {
-            user_id: BigInt(userId),
-            board_size: 5,
-            status: i === 0 ? 'ACTIVE' : 'ACCEPTED',
-            generated_by_ai: true,
-          },
-        });
-        dbBoards.push(created);
+        const themeInfo = BOARD_THEMES[i];
+        await prisma.$executeRawUnsafe(
+          'UPDATE bingo_boards SET month_key = ?, theme = ? WHERE board_id = ?;',
+          monthKey, dbBoards[i].theme || themeInfo.theme, dbBoards[i].board_id
+        );
       }
     }
   } catch (dbErr) {
-    console.warn('DB bingo_boards query warning:', dbErr.message);
+    console.warn('DB bingo_boards setup warning:', dbErr.message);
   }
 
+  // 2. Fetch all master quests from bingo_quests to map quest_code -> quest_id
+  let masterQuests = [];
+  try {
+    masterQuests = await prisma.bingo_quests.findMany();
+  } catch (err) {
+    console.warn('Error fetching master bingo_quests:', err.message);
+  }
+
+  const questCodeMap = new Map();
+  masterQuests.forEach((q) => {
+    if (q.quest_code) {
+      questCodeMap.set(q.quest_code, q);
+    }
+  });
+
+  const defaultDonationQuest = masterQuests.find((q) => q.category === 'DONATION') || masterQuests[0];
+  const defaultQuest = masterQuests[0] || { quest_id: 1n };
+
+  // 3. Generate 4 boards with AI and persist each board's 25 quests
   for (let i = 0; i < 4; i++) {
     const themeInfo = BOARD_THEMES[i];
     const clonedInput = JSON.parse(JSON.stringify(baseMock));
@@ -259,68 +375,104 @@ async function generateFourMonthlyBoards(userId, monthKey) {
     ];
 
     const generated = await generateBingoMissionsWithAI(clonedInput);
+    const boardId = dbBoards[i].board_id;
 
-    // Initial cells: ALL start at progress 0, status IN_PROGRESS
-    const cells = generated.bingo_board_5x5.map((c) => {
+    // Delete any old quest rows for this board
+    try {
+      await prisma.$executeRawUnsafe('DELETE FROM user_quests WHERE board_id = ?;', boardId);
+    } catch (delErr) {
+      console.warn('Delete old user_quests warning:', delErr.message);
+    }
+
+    const memoryCells = [];
+    for (const c of generated.bingo_board_5x5) {
       const isDonation = c.family === 'DONATION' || c.position === 12;
       const tokenReward = isDonation ? 10 : (c.level || 1) * 2;
+      const targetValue = isDonation ? 1 : (c.target_value || 1);
+      const questCode = isDonation ? 'DONATION' : c.quest_code;
+      const masterQuest = questCodeMap.get(questCode) || (isDonation ? defaultDonationQuest : defaultQuest);
+      const qTitle = isDonation ? 'ร่วมบริจาคหรืออุดหนุนร้านค้าชุมชน 1 ครั้ง' : c.title;
+      const qReason = isDonation ? 'ภารกิจใจกลางเพื่อสังคม: เลือกบริจาคผ่าน e-Donation หรือซื้อสินค้าจากร้านค้ารายย่อยชุมชน 1 ครั้ง' : c.reason;
 
-      return {
+      // Persist to user_quests table in MySQL
+      try {
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO user_quests (board_id, quest_id, position, status, progress, target_value, token_reward, custom_title, reason)
+           VALUES (?, ?, ?, 'IN_PROGRESS', 0, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE 
+             quest_id = VALUES(quest_id),
+             target_value = VALUES(target_value),
+             token_reward = VALUES(token_reward),
+             custom_title = VALUES(custom_title),
+             reason = VALUES(reason); `,
+          boardId, masterQuest.quest_id, c.position, targetValue, tokenReward, qTitle, qReason
+        );
+      } catch (insertErr) {
+        console.error(`Failed to insert user_quest [board ${boardId}, pos ${c.position}]:`, insertErr.message);
+      }
+
+      memoryCells.push({
         position: c.position,
         row: Math.floor(c.position / 5),
         col: c.position % 5,
-        quest_code: isDonation ? 'DONATION' : c.quest_code,
+        quest_code: questCode,
         family: isDonation ? 'DONATION' : c.family,
         unit: isDonation ? 'ครั้ง' : c.unit,
         level: isDonation ? 1 : c.level,
-        target_value: isDonation ? 1 : c.target_value,
+        target_value: targetValue,
         progress: 0,
         status: 'IN_PROGRESS',
         token_reward: tokenReward,
-        title: isDonation ? 'ร่วมบริจาคหรืออุดหนุนร้านค้าชุมชน 1 ครั้ง' : c.title,
-        short_title: formatShortQuestTitle(isDonation ? 'บริจาค/อุดหนุนชุมชน' : c.title, isDonation),
-        reason: isDonation ? 'ภารกิจใจกลางเพื่อสังคม: เลือกบริจาคผ่าน e-Donation หรือซื้อสินค้าจากร้านค้ารายย่อยชุมชน 1 ครั้ง' : c.reason,
+        title: qTitle,
+        short_title: formatShortQuestTitle(isDonation ? 'บริจาค/อุดหนุนชุมชน' : qTitle, isDonation),
+        reason: qReason,
         reason_source: isDonation ? 'SERVER_DATA' : (c.reason_source || 'AI_TYPHOON'),
         level_adjusted: c.level_adjusted || false,
-      };
-    });
+      });
+    }
 
-    const lines = analyzeBingoLines(cells);
+    const lines = analyzeBingoLines(memoryCells);
     const initialStatus = dbBoards[i]?.status || (i === 0 ? 'ACTIVE' : 'ACCEPTED');
 
     boards.push({
-      boardId: dbBoards[i]?.board_id ? dbBoards[i].board_id.toString() : `BOARD-${userId}-${monthKey}-T${i + 1}`,
+      boardId: boardId.toString(),
       boardIndex: i,
       title: themeInfo.title,
       subtitle: themeInfo.subtitle,
       theme: themeInfo.theme,
-      userId,
+      userId: userId.toString(),
       periodDays: 30,
       budget: generated.budget || 63,
       totalCells: 25,
       period: generated.period,
       status: initialStatus,
       activatedAt: initialStatus === 'ACTIVE' ? new Date().toISOString() : null,
-      cells,
+      cells: memoryCells,
       lines,
       bingoCount: 0,
       completedCellsCount: 0,
     });
   }
 
-  // Populate Board 0 initial progress from past user activities if available
+  // Initial sync from donations/tx if available
   try {
     const donations = await prisma.donations.findMany({ where: { user_id: BigInt(userId) } });
     const txs = await prisma.transactions.findMany({ where: { user_id: BigInt(userId), status: 'COMPLETED' }, include: { shops: true } });
 
     const b0 = boards[0];
+    const b0Id = BigInt(b0.boardId);
+
     if (donations.length > 0) {
       const donCell = b0.cells.find((c) => c.position === 12);
       if (donCell) {
         donCell.progress = donations.length;
         if (donCell.progress >= donCell.target_value) {
           donCell.status = 'COMPLETED';
-          donCell.completed_at = donations[donations.length - 1].donated_at;
+          donCell.completed_at = donations[donations.length - 1].donated_at.toISOString();
+          await prisma.$executeRawUnsafe(
+            "UPDATE user_quests SET progress = ?, status = 'COMPLETED', completed_at = ? WHERE board_id = ? AND position = 12;",
+            donCell.progress, donations[donations.length - 1].donated_at, b0Id
+          );
         }
       }
     }
@@ -329,7 +481,13 @@ async function generateFourMonthlyBoards(userId, monthKey) {
       const txCell = b0.cells.find((c) => c.quest_code === 'TX_COUNT_ANY');
       if (txCell) {
         txCell.progress = txs.length;
-        if (txCell.progress >= txCell.target_value) txCell.status = 'COMPLETED';
+        if (txCell.progress >= txCell.target_value) {
+          txCell.status = 'COMPLETED';
+          await prisma.$executeRawUnsafe(
+            "UPDATE user_quests SET progress = ?, status = 'COMPLETED' WHERE board_id = ? AND position = ?;",
+            txCell.progress, b0Id, txCell.position
+          );
+        }
       }
     }
 
@@ -340,27 +498,44 @@ async function generateFourMonthlyBoards(userId, monthKey) {
     console.warn('Initial b0 sync warning:', err.message);
   }
 
+  console.log(`[Bingo Quest] All 4 boards (100 quests) generated by AI and successfully saved to MySQL Database for user ${userId}!`);
   return boards;
 }
 
 /**
- * Get or initialize the 4 monthly boards for a user
+ * Get or initialize the 4 monthly boards for a user.
+ * Enforces rule: AI generates quests ONCE PER MONTH.
+ * Once saved in DB, subsequent visits load directly from DB without calling AI.
  */
 async function getOrInitializeUserBoards(userId, monthKey = getCurrentMonthKey()) {
   const storeKey = `${userId}-${monthKey}`;
+
+  // 1. Check in-memory store for instant response
   let boards = userMonthlyBoardsStore.get(storeKey);
-  if (!boards) {
-    boards = await generateFourMonthlyBoards(userId, monthKey);
-    userMonthlyBoardsStore.set(storeKey, boards);
-  } else {
-    for (const b of boards) {
-      for (const cell of b.cells) {
-        if (!cell.short_title) {
-          cell.short_title = formatShortQuestTitle(cell.title, cell.quest_code === 'DONATION' || cell.position === 12);
-        }
-      }
-    }
+  if (boards && boards.length === 4) {
+    return boards;
   }
+
+  // 2. Check Database: If already generated and saved for this month, load from DB (NO AI!)
+  boards = await loadUserBoardsFromDB(userId, monthKey);
+  if (boards && boards.length === 4) {
+    userMonthlyBoardsStore.set(storeKey, boards);
+    return boards;
+  }
+
+  // 3. First time this month: Call AI once and save all 100 quests to Database
+  let dbBoards = [];
+  try {
+    dbBoards = await prisma.$queryRawUnsafe(
+      'SELECT * FROM bingo_boards WHERE user_id = ? ORDER BY board_id ASC LIMIT 4;',
+      BigInt(userId)
+    );
+  } catch (err) {
+    console.warn('DB find boards warning:', err.message);
+  }
+
+  boards = await generateAndPersistFourMonthlyBoards(userId, monthKey, dbBoards);
+  userMonthlyBoardsStore.set(storeKey, boards);
   return boards;
 }
 
@@ -390,6 +565,18 @@ async function syncDonationProgress(userId, donationAmount, donationId) {
     if (donationCell.progress >= donationCell.target_value) {
       donationCell.status = 'COMPLETED';
       donationCell.completed_at = new Date().toISOString();
+    }
+
+    // Persist donation progress to user_quests table
+    if (activeBoard.boardId && !isNaN(activeBoard.boardId)) {
+      try {
+        await prisma.$executeRawUnsafe(
+          'UPDATE user_quests SET progress = ?, status = ?, completed_at = ? WHERE board_id = ? AND position = ?;',
+          donationCell.progress, donationCell.status, donationCell.completed_at ? new Date(donationCell.completed_at) : null, BigInt(activeBoard.boardId), donationCell.position
+        );
+      } catch (dbErr) {
+        console.warn('DB user_quests donation sync warning:', dbErr.message);
+      }
     }
 
     if (oldStatus !== 'COMPLETED' && donationCell.status === 'COMPLETED') {
@@ -512,6 +699,18 @@ async function syncPaymentProgress(userId, transaction) {
         });
       } catch (err) {
         console.warn('Token award warning:', err.message);
+      }
+
+      // Persist completed cell to user_quests
+      if (activeBoard.boardId && !isNaN(activeBoard.boardId)) {
+        try {
+          await prisma.$executeRawUnsafe(
+            'UPDATE user_quests SET progress = ?, status = ?, completed_at = ? WHERE board_id = ? AND position = ?;',
+            cell.progress, cell.status, cell.completed_at ? new Date(cell.completed_at) : null, BigInt(activeBoard.boardId), cell.position
+          );
+        } catch (dbErr) {
+          console.warn('DB user_quests cell sync warning:', dbErr.message);
+        }
       }
     }
   }
@@ -774,6 +973,18 @@ async function progressCell(req, res) {
       }
     }
 
+    // Persist progress to MySQL user_quests table
+    if (board.boardId && !isNaN(board.boardId)) {
+      try {
+        await prisma.$executeRawUnsafe(
+          'UPDATE user_quests SET progress = ?, status = ?, completed_at = ? WHERE board_id = ? AND position = ?;',
+          cell.progress, cell.status, cell.completed_at ? new Date(cell.completed_at) : null, BigInt(board.boardId), pos
+        );
+      } catch (dbErr) {
+        console.warn('DB user_quests progress update warning:', dbErr.message);
+      }
+    }
+
     // Grant tokens if completed
     let tokensAwarded = 0;
     if (cell.status === 'COMPLETED') {
@@ -885,4 +1096,7 @@ module.exports = {
   resetBoard,
   syncDonationProgress,
   syncPaymentProgress,
+  getOrInitializeUserBoards,
+  loadUserBoardsFromDB,
+  userMonthlyBoardsStore,
 };

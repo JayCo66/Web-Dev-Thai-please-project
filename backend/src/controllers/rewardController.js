@@ -170,8 +170,22 @@ exports.redeemReward = async (req, res) => {
       }
     }
 
-    // Deduct tokens inside an atomic transaction to prevent race conditions / double-spending
-    const { newTokens } = await prisma.$transaction(async (tx) => {
+    // Generate unique Voucher Code and Barcode Number
+    const randomHex = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const voucherCode = `TP-${reward.reward_type.substring(0, 3)}-${randomHex}`;
+    const barcodeNumber = '885' + Math.floor(100000000 + Math.random() * 900000000).toString();
+
+    // Expiry date (45 days from now)
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 45);
+
+    const instructions =
+      reward.reward_type === 'PHYSICAL'
+        ? 'เจ้าหน้าที่จะติดต่อกลับผ่านเบอร์โทรศัพท์ที่ลงทะเบียนไว้ เพื่อยืนยันที่อยู่จัดส่งพัสดุ (ส่งฟรีทั่วไทย)'
+        : 'แสดงรหัสคูปองนี้แก่พนักงานที่หน้าร้านค้าชุมชนหรือเครือข่ายไทยช่วยไทยที่ร่วมรายการ';
+
+    // Deduct tokens AND persist redemption to MySQL reward_redemptions inside atomic transaction
+    const { newTokens, redemptionId } = await prisma.$transaction(async (tx) => {
       const currentTokens = await getUserTotalTokens(userId, tx);
       if (currentTokens < reward.token_cost) {
         const error = new Error(`Impact Tokens ของคุณไม่เพียงพอ (ต้องการ ${reward.token_cost} Tokens แต่คุณมี ${currentTokens} Tokens)`);
@@ -187,22 +201,28 @@ exports.redeemReward = async (req, res) => {
         },
       });
 
-      return { newTokens: currentTokens - reward.token_cost };
+      await tx.$executeRawUnsafe(
+        `INSERT INTO reward_redemptions (
+          user_id, reward_id, reward_name, reward_type, token_cost,
+          voucher_code, barcode_number, status, instructions, redeemed_at, expires_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, NOW(), ?);`,
+        userId, reward.reward_id, reward.name, reward.reward_type, reward.token_cost,
+        voucherCode, barcodeNumber, instructions, expiryDate
+      );
+
+      const [inserted] = await tx.$queryRawUnsafe('SELECT LAST_INSERT_ID() AS id;');
+      const idStr = inserted && inserted.id ? inserted.id.toString() : null;
+
+      return { newTokens: currentTokens - reward.token_cost, redemptionId: idStr };
     });
 
-    // Generate unique Voucher Code and Barcode Number
-    const randomHex = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const voucherCode = `TP-${reward.reward_type.substring(0, 3)}-${randomHex}`;
-    const barcodeNumber = '885' + Math.floor(100000000 + Math.random() * 900000000).toString();
-
-    // Expiry date (45 days from now)
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 45);
+    console.log(`[Reward] User ${userId} successfully redeemed "${reward.name}" (Voucher: ${voucherCode}) saved in DB!`);
 
     return res.status(201).json({
       success: true,
       message: `แลกรับ "${reward.name}" สำเร็จ!`,
       data: {
+        redemptionId,
         rewardId: reward.reward_id.toString(),
         rewardName: reward.name,
         rewardType: reward.reward_type,
@@ -210,12 +230,10 @@ exports.redeemReward = async (req, res) => {
         remainingTokens: newTokens,
         voucherCode,
         barcodeNumber,
+        status: 'ACTIVE',
         redeemedAt: new Date().toISOString(),
         expiresAt: expiryDate.toISOString(),
-        instructions:
-          reward.reward_type === 'PHYSICAL'
-            ? 'เจ้าหน้าที่จะติดต่อกลับผ่านเบอร์โทรศัพท์ที่ลงทะเบียนไว้ เพื่อยืนยันที่อยู่จัดส่งพัสดุ (ส่งฟรีทั่วไทย)'
-            : 'แสดงรหัสคูปองนี้แก่พนักงานที่หน้าร้านค้าชุมชนหรือเครือข่ายไทยช่วยไทยที่ร่วมรายการ',
+        instructions,
       },
     });
   } catch (error) {
@@ -246,7 +264,20 @@ exports.enterLuckyDraw = async (req, res) => {
     const count = parseInt(ticketsCount, 10);
     const totalCost = calculateLuckyDrawCost(ticketsCount);
 
-    // Deduct tokens atomically inside transaction
+    const drawExpiryDate = new Date('2026-03-31T23:59:59');
+
+    // Generate ticket numbers
+    const tickets = [];
+    for (let i = 0; i < count; i++) {
+      const ticketNum = 'TP-LUCK-' + Math.floor(100000 + Math.random() * 900000).toString();
+      tickets.push({
+        ticketNumber: ticketNum,
+        campaignId,
+        issuedAt: new Date().toISOString(),
+      });
+    }
+
+    // Deduct tokens atomically inside transaction AND save each ticket to MySQL reward_redemptions
     const { newTokens } = await prisma.$transaction(async (tx) => {
       const currentTokens = await getUserTotalTokens(userId, tx);
       if (currentTokens < totalCost) {
@@ -263,19 +294,21 @@ exports.enterLuckyDraw = async (req, res) => {
         },
       });
 
+      const perTicketCost = Math.round(totalCost / count);
+      for (const t of tickets) {
+        await tx.$executeRawUnsafe(
+          `INSERT INTO reward_redemptions (
+            user_id, reward_id, reward_name, reward_type, token_cost,
+            ticket_number, campaign_id, status, instructions, redeemed_at, expires_at
+          ) VALUES (?, NULL, 'สิทธิ์ชิงโชคไทยช่วยไทยพลัส', 'LUCKY_DRAW', ?, ?, ?, 'ACTIVE', 'รอลุ้นรางวัลใหญ่ประจำงวด 31 มีนาคม 2026', NOW(), ?);`,
+          userId, perTicketCost, t.ticketNumber, campaignId, drawExpiryDate
+        );
+      }
+
       return { newTokens: currentTokens - totalCost };
     });
 
-    // Generate ticket numbers
-    const tickets = [];
-    for (let i = 0; i < count; i++) {
-      const ticketNum = 'TP-LUCK-' + Math.floor(100000 + Math.random() * 900000).toString();
-      tickets.push({
-        ticketNumber: ticketNum,
-        campaignId,
-        issuedAt: new Date().toISOString(),
-      });
-    }
+    console.log(`[LuckyDraw] User ${userId} entered ${count} lucky tickets (Campaign: ${campaignId}) saved in DB!`);
 
     return res.status(201).json({
       success: true,
@@ -345,6 +378,9 @@ exports.instantSpin = async (req, res) => {
     const chosenIndex = Math.floor(Math.random() * outcomes.length);
     const chosen = outcomes[chosenIndex];
 
+    let bonusVoucher = null;
+    let bonusTickets = [];
+
     // If won tokens, grant tokens back
     if (chosen.type === 'TOKENS' && chosen.value > 0) {
       await prisma.token_transactions.create({
@@ -354,6 +390,49 @@ exports.instantSpin = async (req, res) => {
           type: 'EARN_CELL',
         },
       });
+    } else if (chosen.type === 'COUPON') {
+      const randomHex = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const bonusCode = `TP-WHEEL-${randomHex}`;
+      const bonusBarcode = '885' + Math.floor(100000000 + Math.random() * 900000000).toString();
+      const bonusExpiry = new Date();
+      bonusExpiry.setDate(bonusExpiry.getDate() + 30);
+      const instructions = 'คูปองรางวัลพิเศษจากวงล้อเสี่ยงโชค แสดงหน้าร้านเพื่อรับสิทธิพิเศษ';
+
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO reward_redemptions (
+          user_id, reward_id, reward_name, reward_type, token_cost,
+          voucher_code, barcode_number, status, instructions, redeemed_at, expires_at
+        ) VALUES (?, NULL, ?, 'COUPON', 0, ?, ?, 'ACTIVE', ?, NOW(), ?);`,
+        userId, chosen.label, bonusCode, bonusBarcode, instructions, bonusExpiry
+      );
+
+      bonusVoucher = {
+        rewardName: chosen.label,
+        rewardType: 'COUPON',
+        voucherCode: bonusCode,
+        barcodeNumber: bonusBarcode,
+        status: 'ACTIVE',
+        redeemedAt: new Date().toISOString(),
+        expiresAt: bonusExpiry.toISOString(),
+        instructions,
+      };
+    } else if (chosen.type === 'LUCKY_TICKETS' && chosen.value > 0) {
+      const drawExpiryDate = new Date('2026-03-31T23:59:59');
+      for (let i = 0; i < chosen.value; i++) {
+        const ticketNum = 'TP-LUCK-' + Math.floor(100000 + Math.random() * 900000).toString();
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO reward_redemptions (
+            user_id, reward_id, reward_name, reward_type, token_cost,
+            ticket_number, campaign_id, status, instructions, redeemed_at, expires_at
+          ) VALUES (?, NULL, 'สิทธิ์ชิงโชค (รางวัลวงล้อ)', 'LUCKY_DRAW', 0, ?, 'LUCKY-2026-M10', 'ACTIVE', 'สิทธิ์ลุ้นรางวัลใหญ่จากการหมุนวงล้อ', NOW(), ?);`,
+          userId, ticketNum, drawExpiryDate
+        );
+        bonusTickets.push({
+          ticketNumber: ticketNum,
+          campaignId: 'LUCKY-2026-M10',
+          issuedAt: new Date().toISOString(),
+        });
+      }
     }
 
     const finalTokens = await getUserTotalTokens(userId);
@@ -363,7 +442,11 @@ exports.instantSpin = async (req, res) => {
       message: `ผลการหมุนวงล้อ: ${chosen.label}`,
       data: {
         outcomeIndex: chosenIndex,
-        prize: chosen,
+        prize: {
+          ...chosen,
+          bonusVoucher,
+          bonusTickets,
+        },
         spinCost,
         remainingTokens: finalTokens,
       },
@@ -477,5 +560,138 @@ exports.faucetTokens = async (req, res) => {
   }
 };
 
+
+/**
+ * GET /api/v1/rewards/my-redemptions
+ * Get user's redeemed vouchers and lucky draw tickets directly from MySQL Database
+ */
+exports.getMyRedemptions = async (req, res) => {
+  try {
+    const userId = BigInt(req.user.userId);
+
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM reward_redemptions WHERE user_id = ? ORDER BY redeemed_at DESC;`,
+      userId
+    );
+
+    const vouchers = [];
+    const tickets = [];
+
+    rows.forEach((r) => {
+      if (r.reward_type === 'LUCKY_DRAW') {
+        tickets.push({
+          redemptionId: r.redemption_id.toString(),
+          ticketNumber: r.ticket_number,
+          campaignId: r.campaign_id || 'LUCKY-2026-M10',
+          campaignTitle: 'ไทยช่วยไทยพลัส สัญจรลุ้นโชคใหญ่',
+          drawDate: '31 มีนาคม 2026 (เวลา 18:00 น.)',
+          issuedAt: r.redeemed_at ? new Date(r.redeemed_at).toISOString() : null,
+          status: r.status,
+        });
+      } else {
+        vouchers.push({
+          redemptionId: r.redemption_id.toString(),
+          rewardId: r.reward_id ? r.reward_id.toString() : null,
+          rewardName: r.reward_name,
+          rewardType: r.reward_type,
+          tokensSpent: r.token_cost,
+          voucherCode: r.voucher_code,
+          barcodeNumber: r.barcode_number,
+          status: r.status,
+          instructions: r.instructions || 'แสดงรหัสนี้แก่พนักงานที่หน้าร้านเพื่อรับสิทธิพิเศษ',
+          redeemedAt: r.redeemed_at ? new Date(r.redeemed_at).toISOString() : null,
+          expiresAt: r.expires_at ? new Date(r.expires_at).toISOString() : null,
+          usedAt: r.used_at ? new Date(r.used_at).toISOString() : null,
+        });
+      }
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        totalVouchers: vouchers.length,
+        totalTickets: tickets.length,
+        vouchers,
+        tickets,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching my redemptions:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'เกิดข้อผิดพลาดในการดึงข้อมูลการแลกรางวัลจากฐานข้อมูล',
+    });
+  }
+};
+
+/**
+ * POST /api/v1/rewards/use-voucher
+ * Mark a redeemed voucher as USED at the merchant
+ */
+exports.useVoucher = async (req, res) => {
+  try {
+    const userId = BigInt(req.user.userId);
+    const { voucherCode, redemptionId } = req.body;
+
+    if (!voucherCode && !redemptionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'กรุณาระบุรหัสคูปองหรือรหัสการแลกรางวัล',
+      });
+    }
+
+    let rows;
+    if (voucherCode) {
+      rows = await prisma.$queryRawUnsafe(
+        `SELECT * FROM reward_redemptions WHERE voucher_code = ? AND user_id = ?;`,
+        voucherCode, userId
+      );
+    } else {
+      rows = await prisma.$queryRawUnsafe(
+        `SELECT * FROM reward_redemptions WHERE redemption_id = ? AND user_id = ?;`,
+        BigInt(redemptionId), userId
+      );
+    }
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'ไม่พบคูปองนี้ หรือคูปองไม่ใช่ของคุณ',
+      });
+    }
+
+    const item = rows[0];
+    if (item.status === 'USED') {
+      return res.status(400).json({
+        success: false,
+        error: 'คูปองนี้ถูกใช้งานไปแล้ว',
+      });
+    }
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE reward_redemptions SET status = 'USED', used_at = NOW() WHERE redemption_id = ?;`,
+      item.redemption_id
+    );
+
+    return res.json({
+      success: true,
+      message: `ใช้งานคูปอง "${item.reward_name}" เรียบร้อยแล้ว`,
+      data: {
+        redemptionId: item.redemption_id.toString(),
+        voucherCode: item.voucher_code,
+        status: 'USED',
+        usedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('Error using voucher:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'เกิดข้อผิดพลาดในการใช้งานคูปอง',
+    });
+  }
+};
+
 exports.calculateLuckyDrawCost = calculateLuckyDrawCost;
+
 exports.checkMonthlyHardSinkQuota = checkMonthlyHardSinkQuota;

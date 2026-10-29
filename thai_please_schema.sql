@@ -203,6 +203,37 @@ CREATE TABLE rewards (
     PRIMARY KEY (reward_id)
 ) ENGINE=InnoDB;
 
+-- ------------------------------------------------------------
+-- 11. ตารางบันทึกประวัติการแลกของรางวัลและสิทธิ์ชิงโชค (Reward Redemptions)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reward_redemptions (
+    redemption_id   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id         BIGINT UNSIGNED NOT NULL,
+    reward_id       BIGINT UNSIGNED NULL,
+    reward_name     VARCHAR(255) NOT NULL,
+    reward_type     VARCHAR(50) NOT NULL DEFAULT 'COUPON',
+    token_cost      INT NOT NULL DEFAULT 0,
+    voucher_code    VARCHAR(100) UNIQUE NULL,
+    barcode_number  VARCHAR(100) NULL,
+    status          VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    ticket_number   VARCHAR(100) UNIQUE NULL,
+    campaign_id     VARCHAR(100) NULL,
+    instructions    TEXT NULL,
+    redeemed_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at      DATETIME NULL,
+    used_at         DATETIME NULL,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (redemption_id),
+    KEY idx_redemptions_user (user_id),
+    KEY idx_redemptions_reward (reward_id),
+    KEY idx_redemptions_code (voucher_code),
+    KEY idx_redemptions_ticket (ticket_number),
+    KEY idx_redemptions_status (status),
+    CONSTRAINT fk_redemptions_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_redemptions_reward FOREIGN KEY (reward_id) REFERENCES rewards (reward_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================
 -- ข้อมูลเริ่มต้นสำหรับทดสอบระบบ (Initial Seed Data)
 -- ============================================================
