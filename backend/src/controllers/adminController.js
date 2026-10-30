@@ -11,6 +11,7 @@ async function getAdminStats(req, res) {
       roleCounts,
       totalShops,
       activeShops,
+      pendingShops,
       totalRewards,
       activeRewards,
       txAggregate,
@@ -23,7 +24,8 @@ async function getAdminStats(req, res) {
         _count: { user_id: true },
       }),
       prisma.shops.count(),
-      prisma.shops.count({ where: { is_active: true } }),
+      prisma.shops.count({ where: { is_active: true, status: 'APPROVED' } }),
+      prisma.shops.count({ where: { status: 'PENDING' } }),
       prisma.rewards.count(),
       prisma.rewards.count({ where: { is_active: true } }),
       prisma.transactions.aggregate({
@@ -60,7 +62,8 @@ async function getAdminStats(req, res) {
         shops: {
           total: totalShops,
           active: activeShops,
-          inactive: totalShops - activeShops,
+          pending: pendingShops,
+          inactive: totalShops - activeShops - pendingShops,
         },
         rewards: {
           total: totalRewards,
@@ -494,7 +497,7 @@ async function getAdminUsers(req, res) {
  */
 async function getAdminShops(req, res) {
   try {
-    const { search, category } = req.query;
+    const { search, category, status } = req.query;
 
     const where = {};
     if (category && category.trim()) {
@@ -508,11 +511,14 @@ async function getAdminShops(req, res) {
         { address: { contains: q } },
       ];
     }
+    if (status && ['PENDING', 'APPROVED', 'REJECTED'].includes(status.toUpperCase())) {
+      where.status = status.toUpperCase();
+    }
 
     const [shopsList, txStatsByShop] = await Promise.all([
       prisma.shops.findMany({
         where,
-        orderBy: [{ is_active: 'desc' }, { shop_id: 'desc' }],
+        orderBy: [{ status: 'asc' }, { is_active: 'desc' }, { shop_id: 'desc' }],
         include: {
           users: {
             select: {
@@ -549,6 +555,9 @@ async function getAdminShops(req, res) {
         category: s.category,
         address: s.address || '-',
         isActive: Boolean(s.is_active),
+        status: s.status,
+        reviewNote: s.review_note,
+        reviewedAt: s.reviewed_at,
         createdAt: s.created_at,
         owner: s.users
           ? {
@@ -618,6 +627,54 @@ async function toggleShopStatus(req, res) {
   }
 }
 
+/**
+ * POST /api/admin/shops/:id/review
+ * Government decision on a registered shop: { decision: 'APPROVE' | 'REJECT', note }
+ * Only a PENDING shop can be decided, so a double click or two officers cannot overwrite each other.
+ */
+async function reviewShop(req, res) {
+  try {
+    const shopId = BigInt(req.params.id);
+    const decision = String(req.body.decision || '').toUpperCase();
+    const note = typeof req.body.note === 'string' ? req.body.note.trim().slice(0, 255) : '';
+
+    if (!['APPROVE', 'REJECT'].includes(decision)) {
+      return res.status(400).json({ success: false, error: 'คำสั่งไม่ถูกต้อง (APPROVE หรือ REJECT)' });
+    }
+    if (decision === 'REJECT' && !note) {
+      return res.status(400).json({ success: false, error: 'กรุณาระบุเหตุผลที่ไม่อนุมัติ เพื่อให้ร้านค้าทราบ' });
+    }
+
+    const result = await prisma.shops.updateMany({
+      where: { shop_id: shopId, status: 'PENDING' },
+      data: {
+        status: decision === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+        review_note: note || null,
+        reviewed_at: new Date(),
+        reviewed_by: BigInt(req.user.userId),
+      },
+    });
+
+    if (result.count === 0) {
+      const exists = await prisma.shops.findUnique({ where: { shop_id: shopId }, select: { shop_name: true, status: true } });
+      return res.status(exists ? 409 : 404).json({
+        success: false,
+        error: exists ? 'ร้านนี้ถูกพิจารณาไปแล้ว' : 'ไม่พบร้านค้า',
+      });
+    }
+
+    const shop = await prisma.shops.findUnique({ where: { shop_id: shopId } });
+    return res.json({
+      success: true,
+      message: `${decision === 'APPROVE' ? 'อนุมัติ' : 'ไม่อนุมัติ'}ร้าน "${shop.shop_name}" เรียบร้อยแล้ว`,
+      data: { shopId: shop.shop_id.toString(), status: shop.status },
+    });
+  } catch (error) {
+    console.error('Error reviewing shop:', error);
+    return res.status(500).json({ success: false, error: 'เกิดข้อผิดพลาดในการพิจารณาร้านค้า' });
+  }
+}
+
 module.exports = {
   getAdminStats,
   getAdminRewards,
@@ -628,5 +685,6 @@ module.exports = {
   getAdminUsers,
   getAdminShops,
   toggleShopStatus,
+  reviewShop,
 };
 

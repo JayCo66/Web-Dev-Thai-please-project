@@ -11,8 +11,20 @@ const {
   maskEmail,
 } = require('../utils/security');
 
+const { MERCHANT_CATEGORIES } = require('./merchantCategories');
+
 const JWT_SECRET = process.env.JWT_SECRET || 'thai_please_super_secret_jwt_key_2026';
 const JWT_EXPIRES_IN = '7d';
+
+function formatShopInfo(shop) {
+  return {
+    shopId: shop.shop_id.toString(),
+    shopName: shop.shop_name,
+    category: shop.category,
+    status: shop.status,
+    reviewNote: shop.review_note,
+  };
+}
 
 function generateToken(user) {
   return jwt.sign(
@@ -154,6 +166,7 @@ async function registerCitizen({
 
 /**
  * Register Merchant
+ * Creates the owner account and a shop that waits for government approval; it cannot take payments until then.
  */
 async function registerMerchant({
   shopName,
@@ -164,44 +177,48 @@ async function registerMerchant({
   addressLine,
   category = 'อาหารและเครื่องดื่ม',
 }) {
-  if (!shopName || shopName.trim().length < 2) {
-    const error = new Error('กรุณาระบุชื่อร้านค้า');
+  const fail = (message) => {
+    const error = new Error(message);
     error.statusCode = 400;
     throw error;
-  }
+  };
 
-  const cleanPhone = phoneNumber ? String(phoneNumber).replace(/\D/g, '') : null;
+  if (!shopName || shopName.trim().length < 2) fail('กรุณาระบุชื่อร้านค้า');
+  if (!MERCHANT_CATEGORIES.some((c) => c.category_name === category)) fail('กรุณาเลือกหมวดหมู่ร้านค้าจากรายการ');
+
+  const cleanPhone = phoneNumber ? String(phoneNumber).replace(/\D/g, '') : '';
+  if (cleanPhone.length !== 10) fail('เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลัก (เช่น 0812345678)');
   const cleanEmail = email && email.trim() ? email.trim().toLowerCase() : null;
+  if (!password || password.length < 8) fail('กรุณาตั้งรหัสผ่านอย่างน้อย 8 ตัวอักษรเพื่อใช้เข้าสู่ระบบร้านค้า');
 
-  let user = null;
-  if (cleanPhone) {
-    user = await prisma.users.findUnique({ where: { phone_number: cleanPhone } });
-  }
-  if (!user && cleanEmail) {
-    user = await prisma.users.findUnique({ where: { email: cleanEmail } });
-  }
+  // A registration must never hand out a token for an account that already exists.
+  const taken = await prisma.users.findFirst({
+    where: { OR: [{ phone_number: cleanPhone }, ...(cleanEmail ? [{ email: cleanEmail }] : [])] },
+  });
+  if (taken) fail('เบอร์โทรหรืออีเมลนี้ถูกใช้งานในระบบแล้ว กรุณาเข้าสู่ระบบ หรือใช้ข้อมูลอื่นสมัครร้านค้า');
 
-  if (!user) {
-    const passwordHash = password ? await hashPassword(password) : null;
-    user = await prisma.users.create({
+  const passwordHash = await hashPassword(password);
+  const { user, shop } = await prisma.$transaction(async (db) => {
+    const owner = await db.users.create({
       data: {
-        name: contactName || shopName,
+        name: (contactName && contactName.trim()) || shopName.trim(),
         phone_number: cleanPhone,
         email: cleanEmail,
         password_hash: passwordHash,
         role: 'MERCHANT',
       },
     });
-  }
-
-  const newShop = await prisma.shops.create({
-    data: {
-      shop_name: shopName.trim(),
-      category: category || 'อาหารและเครื่องดื่ม',
-      address: addressLine || '',
-      owner_user_id: user.user_id,
-      is_active: true,
-    },
+    const created = await db.shops.create({
+      data: {
+        shop_name: shopName.trim(),
+        category,
+        address: (addressLine || '').trim(),
+        owner_user_id: owner.user_id,
+        is_active: true,
+        status: 'PENDING',
+      },
+    });
+    return { user: owner, shop: created };
   });
 
   const token = generateToken(user);
@@ -216,11 +233,7 @@ async function registerMerchant({
       role: user.role,
       roles: [user.role],
     },
-    shop: {
-      shopId: newShop.shop_id.toString(),
-      shopName: newShop.shop_name,
-      category: newShop.category,
-    },
+    shop: formatShopInfo(shop),
   };
 }
 
@@ -279,11 +292,7 @@ async function loginWithCredentials({ identifier, password }) {
       where: { owner_user_id: user.user_id },
     });
     if (shop) {
-      shopInfo = {
-        shopId: shop.shop_id.toString(),
-        shopName: shop.shop_name,
-        category: shop.category,
-      };
+      shopInfo = formatShopInfo(shop);
     }
   }
 
@@ -414,13 +423,7 @@ async function getUserProfile(userId) {
       totalQuota: '3000.00',
     },
     activeBoard: user.bingo_boards && user.bingo_boards.length > 0 ? user.bingo_boards[0] : null,
-    shop: shop
-      ? {
-          shopId: shop.shop_id.toString(),
-          shopName: shop.shop_name,
-          category: shop.category,
-        }
-      : null,
+    shop: shop ? formatShopInfo(shop) : null,
   };
 }
 

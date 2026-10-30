@@ -73,7 +73,10 @@ export default function Admin() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("ALL");
   const [shopSearch, setShopSearch] = useState("");
-  const [shopCategoryFilter, setShopCategoryFilter] = useState("ALL");
+  const [shopStatusFilter, setShopStatusFilter] = useState("ALL");
+  const [reviewing, setReviewing] = useState(null); // { shop, decision }
+  const [reviewNote, setReviewNote] = useState("");
+  const [reviewBusy, setReviewBusy] = useState(false);
 
   // Modal State for Rewards
   const [modalOpen, setModalOpen] = useState(false);
@@ -240,6 +243,38 @@ export default function Admin() {
     }
   }
 
+  async function handleReview(e) {
+    e.preventDefault();
+    if (!reviewing || reviewBusy) return;
+    setReviewBusy(true);
+    setError("");
+    try {
+      const res = await api.post(`/admin/shops/${reviewing.shop.shopId}/review`, {
+        decision: reviewing.decision,
+        note: reviewNote,
+      });
+      setNotice(res.data.message || "บันทึกผลการพิจารณาแล้ว");
+      setReviewing(null);
+      setReviewNote("");
+      await Promise.all([loadShops(), loadStats()]);
+    } catch (err) {
+      setError(err.response?.data?.error || "บันทึกผลการพิจารณาไม่สำเร็จ");
+      // Another officer may already have decided: show the current state.
+      if (err.response?.status === 409) {
+        setReviewing(null);
+        await Promise.all([loadShops(), loadStats()]);
+      }
+    } finally {
+      setReviewBusy(false);
+    }
+  }
+
+  function openReview(shop, decision) {
+    setReviewing({ shop, decision });
+    setReviewNote("");
+    setError("");
+  }
+
   // Filtered Rewards
   const filteredRewards = rewards.filter((r) => {
     const matchesSearch =
@@ -261,14 +296,15 @@ export default function Admin() {
     return matchesSearch && matchesRole;
   });
 
+  const pendingShopCount = shopsList.filter((s) => s.status === "PENDING").length;
+
   // Filtered Shops
   const filteredShops = shopsList.filter((s) => {
     const matchesSearch =
       s.shopName.toLowerCase().includes(shopSearch.toLowerCase()) ||
       s.address.toLowerCase().includes(shopSearch.toLowerCase());
-    const matchesCat =
-      shopCategoryFilter === "ALL" || s.category === shopCategoryFilter;
-    return matchesSearch && matchesCat;
+    const matchesStatus = shopStatusFilter === "ALL" || s.status === shopStatusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -357,7 +393,7 @@ export default function Admin() {
           >
             <Store size={18} />
             <span>ตรวจสอบร้านค้าชุมชน</span>
-            <span className="badge">{shopsList.length}</span>
+            <span className="badge">{pendingShopCount > 0 ? `รออนุมัติ ${pendingShopCount}` : shopsList.length}</span>
           </button>
         </div>
 
@@ -392,7 +428,8 @@ export default function Admin() {
                 <div className="admin-stat-number">{stats?.shops?.total || 0} ร้าน</div>
                 <div className="admin-stat-meta">
                   <span>เปิดบริการ: <strong style={{ color: "#059669" }}>{stats?.shops?.active || 0}</strong></span>
-                  <span>ระงับชั่วคราว: <strong>{stats?.shops?.inactive || 0}</strong></span>
+                  <span>รออนุมัติ: <strong style={{ color: "#b45309" }}>{stats?.shops?.pending || 0}</strong></span>
+                  <span>ระงับ/ไม่อนุมัติ: <strong>{stats?.shops?.inactive || 0}</strong></span>
                 </div>
               </div>
 
@@ -718,27 +755,21 @@ export default function Admin() {
               </div>
 
               <div className="admin-filter-group">
-                <button
-                  type="button"
-                  className={`admin-filter-btn ${shopCategoryFilter === "ALL" ? "is-active" : ""}`}
-                  onClick={() => setShopCategoryFilter("ALL")}
-                >
-                  ทั้งหมด ({shopsList.length})
-                </button>
-                <button
-                  type="button"
-                  className={`admin-filter-btn ${shopCategoryFilter === "FOOD" ? "is-active" : ""}`}
-                  onClick={() => setShopCategoryFilter("FOOD")}
-                >
-                  อาหารและเครื่องดื่ม
-                </button>
-                <button
-                  type="button"
-                  className={`admin-filter-btn ${shopCategoryFilter === "RETAIL" ? "is-active" : ""}`}
-                  onClick={() => setShopCategoryFilter("RETAIL")}
-                >
-                  สินค้าทั่วไป
-                </button>
+                {[
+                  ["ALL", `ทั้งหมด (${shopsList.length})`],
+                  ["PENDING", `รออนุมัติ (${pendingShopCount})`],
+                  ["APPROVED", "อนุมัติแล้ว"],
+                  ["REJECTED", "ไม่อนุมัติ"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`admin-filter-btn ${shopStatusFilter === value ? "is-active" : ""}`}
+                    onClick={() => setShopStatusFilter(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -798,19 +829,51 @@ export default function Admin() {
                         </td>
                         <td>{shop.transactionCount} รายการ</td>
                         <td>
-                          <span className={`status-pill ${shop.isActive ? "active" : "inactive"}`}>
-                            {shop.isActive ? "เปิดทำการ" : "ปิดชั่วคราว"}
-                          </span>
+                          {shop.status === "PENDING" ? (
+                            <span className="badge" style={{ background: "#fef3c7", color: "#92400e" }}>รออนุมัติ</span>
+                          ) : shop.status === "REJECTED" ? (
+                            <div>
+                              <span className="badge" style={{ background: "#fee2e2", color: "#991b1b" }}>ไม่อนุมัติ</span>
+                              {shop.reviewNote && <small style={{ display: "block", color: "#61718a", marginTop: 4 }}>{shop.reviewNote}</small>}
+                            </div>
+                          ) : (
+                            <span className={`status-pill ${shop.isActive ? "active" : "inactive"}`}>
+                              {shop.isActive ? "เปิดทำการ" : "ปิดชั่วคราว"}
+                            </span>
+                          )}
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            className="button button--secondary"
-                            style={{ padding: "4px 8px", fontSize: 11 }}
-                            onClick={() => handleToggleShop(shop.shopId)}
-                          >
-                            {shop.isActive ? "ระงับ" : "เปิด"}
-                          </button>
+                          {shop.status === "PENDING" ? (
+                            <div style={{ display: "flex", gap: 6 }}>
+                              <button
+                                type="button"
+                                className="button button--primary"
+                                style={{ padding: "4px 10px", fontSize: 12 }}
+                                onClick={() => openReview(shop, "APPROVE")}
+                              >
+                                อนุมัติ
+                              </button>
+                              <button
+                                type="button"
+                                className="button button--secondary"
+                                style={{ padding: "4px 10px", fontSize: 12 }}
+                                onClick={() => openReview(shop, "REJECT")}
+                              >
+                                ไม่อนุมัติ
+                              </button>
+                            </div>
+                          ) : shop.status === "APPROVED" ? (
+                            <button
+                              type="button"
+                              className="button button--secondary"
+                              style={{ padding: "4px 8px", fontSize: 11 }}
+                              onClick={() => handleToggleShop(shop.shopId)}
+                            >
+                              {shop.isActive ? "ระงับ" : "เปิด"}
+                            </button>
+                          ) : (
+                            <span style={{ color: "#94a3b8" }}>-</span>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -824,6 +887,56 @@ export default function Admin() {
         {/* ========================================================= */}
         {/* MODAL: ADD / EDIT REWARD */}
         {/* ========================================================= */}
+        {reviewing && (
+          <div className="admin-modal-overlay" onClick={() => setReviewing(null)}>
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="review-title">
+              <div className="admin-modal-header">
+                <h2 id="review-title">{reviewing.decision === "APPROVE" ? "อนุมัติร้านค้า" : "ไม่อนุมัติร้านค้า"}</h2>
+                <button type="button" className="button button--icon" aria-label="ปิด" onClick={() => setReviewing(null)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleReview}>
+                <div className="admin-modal-body">
+                  <p style={{ margin: "0 0 4px" }}><strong>{reviewing.shop.shopName}</strong></p>
+                  <p style={{ margin: "0 0 12px", color: "#61718a", fontSize: 13 }}>
+                    {reviewing.shop.category} · เจ้าของ: {reviewing.shop.owner?.name || "-"} ({reviewing.shop.owner?.phoneNumber || "-"})
+                    <br />
+                    {reviewing.shop.address}
+                  </p>
+                  <div className="admin-form-group">
+                    <label htmlFor="review-note">
+                      {reviewing.decision === "APPROVE" ? "หมายเหตุ (ไม่บังคับ)" : "เหตุผลที่ไม่อนุมัติ *"}
+                    </label>
+                    <textarea
+                      id="review-note"
+                      rows="3"
+                      maxLength={255}
+                      required={reviewing.decision === "REJECT"}
+                      placeholder={reviewing.decision === "APPROVE" ? "เช่น ตรวจเอกสารแล้ว" : "เช่น เอกสารไม่ครบ ที่อยู่ไม่ชัดเจน (ร้านค้าจะเห็นข้อความนี้)"}
+                      value={reviewNote}
+                      onChange={(e) => setReviewNote(e.target.value)}
+                    />
+                  </div>
+                  {reviewing.decision === "APPROVE" && (
+                    <p style={{ margin: 0, fontSize: 13, color: "#61718a" }}>
+                      เมื่ออนุมัติ ร้านนี้จะปรากฏในรายชื่อร้านที่ประชาชนชำระเงินคนละครึ่งได้ทันที
+                    </p>
+                  )}
+                </div>
+                <div className="admin-modal-footer">
+                  <button type="button" className="button button--secondary" onClick={() => setReviewing(null)} disabled={reviewBusy}>
+                    ยกเลิก
+                  </button>
+                  <button type="submit" className="button button--primary" disabled={reviewBusy}>
+                    {reviewBusy ? "กำลังบันทึก..." : reviewing.decision === "APPROVE" ? "ยืนยันอนุมัติ" : "ยืนยันไม่อนุมัติ"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {modalOpen && (
           <div className="admin-modal-overlay" onClick={() => setModalOpen(false)}>
             <div className="admin-modal" onClick={(e) => e.stopPropagation()}>

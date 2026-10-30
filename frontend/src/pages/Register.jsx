@@ -13,9 +13,12 @@ import {
   AlertCircle,
   Gift,
   ArrowRight,
-  FlaskConical
+  FlaskConical,
+  Store
 } from 'lucide-react';
+import MerchantRegisterForm from '../components/MerchantRegisterForm';
 import '../styles/auth-refinements.css';
+import '../styles/merchant.css';
 
 function validCitizenId(value) {
   if (!/^\d{13}$/.test(value)) return false;
@@ -39,6 +42,7 @@ export default function Register() {
     provinceCode: 'BKK',
   });
 
+  const [registerType, setRegisterType] = useState('citizen');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [idTouched, setIdTouched] = useState(false);
@@ -127,6 +131,16 @@ export default function Register() {
           </p>
         </div>
 
+        <div className="register-type-toggle" role="tablist" aria-label="ประเภทผู้สมัคร">
+          <button type="button" role="tab" aria-selected={registerType === 'citizen'} className={registerType === 'citizen' ? 'is-active' : ''} onClick={() => { setRegisterType('citizen'); setError(''); }}>
+            <User size={18} />ประชาชน
+          </button>
+          <button type="button" role="tab" aria-selected={registerType === 'merchant'} className={registerType === 'merchant' ? 'is-active' : ''} onClick={() => { setRegisterType('merchant'); setError(''); }}>
+            <Store size={18} />ร้านค้า
+          </button>
+        </div>
+
+        {registerType === 'merchant' ? <MerchantRegisterForm /> : (<>
         <div className="xp-register-demo">
           <div><strong>อยากลองใช้งานก่อน?</strong><span>เปิดบัญชีทดลองได้โดยไม่ต้องกรอกเลขบัตร</span></div>
           <button type="button" className="button button--secondary" onClick={openDemo} disabled={loading}><FlaskConical size={18}/>เปิดบัญชีทดลอง</button>
@@ -336,6 +350,7 @@ export default function Register() {
               )}
             </button>
           </form>
+        </>)}
 
         {/* Login Link */}
         <div className="auth-footer" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border-light)' }}>

@@ -30,7 +30,7 @@ function calculateCoPay(totalAmount, usedSubsidyToday = 0, maxDailyCap = 150) {
 async function getShops(req, res) {
   try {
     const shops = await prisma.shops.findMany({
-      where: { is_active: true },
+      where: { is_active: true, status: "APPROVED" },
       orderBy: { shop_id: "asc" },
     });
     res.json({
@@ -104,6 +104,7 @@ async function createPayment(req, res) {
         }
         const shop = await tx.shops.findUnique({ where: { shop_id: shopId } });
         if (!shop?.is_active) fail("ร้านค้านี้ยังไม่เปิดรับรายการ", 404);
+        if (shop.status !== "APPROVED") fail("ร้านค้านี้ยังไม่ได้รับอนุมัติจากภาครัฐ", 403);
         let coupon = null;
         let discountAmount = 0;
         if (couponId) {

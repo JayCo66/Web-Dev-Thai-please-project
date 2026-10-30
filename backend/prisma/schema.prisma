@@ -76,7 +76,8 @@ model users {
   updated_at         DateTime             @default(now())
   bingo_boards       bingo_boards[]
   donations          donations[]
-  shops              shops[]
+  shops              shops[]              @relation("shop_owner")
+  reviewed_shops     shops[]              @relation("shop_reviewer")
   token_transactions token_transactions[]
   transactions       transactions[]
 }
@@ -164,10 +165,16 @@ model shops {
   owner_user_id BigInt?        @db.UnsignedBigInt
   is_active     Boolean        @default(true)
   created_at    DateTime       @default(now())
-  users         users?         @relation(fields: [owner_user_id], references: [user_id], onUpdate: Restrict, map: "fk_shops_owner")
+  status        shops_status   @default(APPROVED)
+  review_note   String?        @db.VarChar(255)
+  reviewed_at   DateTime?
+  reviewed_by   BigInt?        @db.UnsignedBigInt
+  users         users?         @relation("shop_owner", fields: [owner_user_id], references: [user_id], onUpdate: Restrict, map: "fk_shops_owner")
+  reviewer      users?         @relation("shop_reviewer", fields: [reviewed_by], references: [user_id], onUpdate: Restrict, map: "fk_shops_reviewer")
   transactions  transactions[]
 
   @@index([owner_user_id], map: "idx_shops_owner")
+  @@index([status], map: "idx_shops_status")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -263,4 +270,10 @@ model reward_redemptions {
   users         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id])
+}
+
+enum shops_status {
+  PENDING
+  APPROVED
+  REJECTED
 }

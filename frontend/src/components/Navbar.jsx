@@ -12,6 +12,7 @@ import {
   X,
   FlaskConical,
   ShieldCheck,
+  Store,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/experience.css";
@@ -31,9 +32,12 @@ export default function Navbar() {
   const dialogRef = useRef(null);
 
   const isAdmin = ["ADMIN", "GOV_EXECUTIVE"].includes(user?.role);
-  const destinations = isAdmin
-    ? [...baseDestinations, { to: "/admin", label: "ภาครัฐ (Admin)", icon: ShieldCheck }]
-    : baseDestinations;
+  const isMerchant = user?.role === "MERCHANT";
+  const destinations = isMerchant
+    ? [{ to: "/merchant", label: "ร้านของฉัน", icon: Store }]
+    : isAdmin
+      ? [...baseDestinations, { to: "/admin", label: "ภาครัฐ (Admin)", icon: ShieldCheck }]
+      : baseDestinations;
 
   useEffect(() => {
     if (dialog) dialogRef.current?.showModal();
@@ -74,14 +78,14 @@ export default function Navbar() {
               <FlaskConical size={14} />
               <span>โหมดสาธิต</span>
             </button>
-            <Link
+            {!isMerchant && <Link
               to="/rewards"
               className="xp-token-pill"
               aria-label={`${Number(tokens || 0).toLocaleString("th-TH")} โทเค็น ดูรางวัล`}
             >
               <Coins size={17} />
               <span>{Number(tokens || 0).toLocaleString("th-TH")}</span>
-            </Link>
+            </Link>}
             <button
               type="button"
               className="xp-avatar"
@@ -147,13 +151,13 @@ export default function Navbar() {
                   <ShieldCheck size={18} /> จัดการระบบภาครัฐ (Admin)
                 </Link>
               )}
-              <Link
+              {!isMerchant && <Link
                 to="/profile"
                 className="button button--secondary"
                 onClick={() => setDialog(null)}
               >
                 <UserRound size={18}/>ดูข้อมูลบัญชีของฉัน
-              </Link>
+              </Link>}
               <button
                 type="button"
                 className="button button--ghost xp-logout"

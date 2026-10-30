@@ -23,5 +23,10 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/" replace />;
   }
 
+  // Citizen pages make no sense for a shop owner; send them to their shop page.
+  if (!allowedRoles && user.role === 'MERCHANT') {
+    return <Navigate to="/merchant" replace />;
+  }
+
   return children;
 }

@@ -23,6 +23,7 @@ router.get('/users', adminController.getAdminUsers);
 // Shops Directory & Status
 router.get('/shops', adminController.getAdminShops);
 router.patch('/shops/:id/toggle', adminController.toggleShopStatus);
+router.post('/shops/:id/review', adminController.reviewShop);
 
 module.exports = router;
 
