@@ -1,0 +1,34 @@
+{
+  "database": "thai_please_qa_1793325859517",
+  "checks": [
+    "fresh seed + additive upgrade",
+    "demo identity needs no personal data and ThaiD is not impersonated",
+    "Bingo requires authenticated identity",
+    "new-user easy board, 25 cells, locked future boards",
+    "two accounts own different boards",
+    "concurrent duplicate payment debits once",
+    "donation debit, history, donation-only center and replay safety",
+    "manual completion and token farming disabled",
+    "reward ownership persists and replay cannot double spend or leak across accounts",
+    "different concurrent reward requests cannot overdraw token balance",
+    "manual line claim once, explicit accept, next board starts fresh",
+    "four-board monthly limit with AUTO_MAX selection",
+    "board and progress survive a backend restart",
+    "all five pages desktop/mobile: no overflow or browser exceptions",
+    "donation dialog keyboard close and focus behavior",
+    "new demo login works from a clean mobile browser"
+  ],
+  "screenshots": [
+    "home-desktop.png",
+    "bingo-desktop.png",
+    "charities-desktop.png",
+    "rewards-desktop.png",
+    "payment-desktop.png",
+    "home-mobile.png",
+    "bingo-mobile.png",
+    "charities-mobile.png",
+    "rewards-mobile.png",
+    "payment-mobile.png"
+  ],
+  "passed": true
+}

@@ -1,213 +1,155 @@
-const prisma = require('../config/prisma');
+const prisma = require("../config/prisma");
+const {
+  money,
+  positiveId,
+  requestKey,
+  lockUser,
+  bangkokPeriod,
+  demoOnly,
+  fail,
+  handleError,
+} = require("../utils/operations");
 
-/**
- * Calculate Co-Payment (60/40) with daily subsidy cap
- * @param {number} totalAmount - Total transaction amount
- * @param {number} usedSubsidyToday - Subsidy already used today by the citizen
- * @param {number} maxDailyCap - Daily maximum government subsidy (default 150.00)
- * @returns {{ totalAmount: number, govSubsidy: number, userPayment: number, remainingCapAfter: number }}
- */
-function calculateCoPay(totalAmount, usedSubsidyToday = 0, maxDailyCap = 150.00) {
-  const parsedTotal = Math.round(Number(totalAmount) * 100) / 100;
-  if (!parsedTotal || parsedTotal <= 0) {
-    const error = new Error('กรุณากรอกยอดเงินที่ต้องการชำระให้ถูกต้อง (มากกว่า 0 บาท)');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const safeUsed = Math.max(0, Number(usedSubsidyToday) || 0);
-  const remainingCap = Math.max(0, Math.round((maxDailyCap - safeUsed) * 100) / 100);
-
-  // Government pays 60%, but capped by remaining daily cap
-  const potentialGovSubsidy = Math.round(parsedTotal * 0.60 * 100) / 100;
-  const govSubsidy = Math.min(potentialGovSubsidy, remainingCap);
-  const userPayment = Math.round((parsedTotal - govSubsidy) * 100) / 100;
-  const remainingCapAfter = Math.round((remainingCap - govSubsidy) * 100) / 100;
-
+function calculateCoPay(totalAmount, usedSubsidyToday = 0, maxDailyCap = 150) {
+  const total = money(totalAmount);
+  const remaining = Math.max(
+    0,
+    Math.round(
+      (maxDailyCap - Math.max(0, Number(usedSubsidyToday) || 0)) * 100,
+    ) / 100,
+  );
+  const govSubsidy = Math.min(Math.round(total * 0.6 * 100) / 100, remaining);
   return {
-    totalAmount: parsedTotal,
+    totalAmount: total,
     govSubsidy,
-    userPayment,
-    remainingCapAfter,
+    userPayment: Math.round((total - govSubsidy) * 100) / 100,
+    remainingCapAfter: Math.round((remaining - govSubsidy) * 100) / 100,
   };
 }
-
-/**
- * GET /api/v1/transactions/shops
- * Get active participating shops for checkout
- */
 async function getShops(req, res) {
   try {
     const shops = await prisma.shops.findMany({
       where: { is_active: true },
-      orderBy: { shop_id: 'asc' },
+      orderBy: { shop_id: "asc" },
     });
-
-    const formatted = shops.map((s) => ({
-      shopId: s.shop_id.toString(),
-      shopName: s.shop_name,
-      category: s.category,
-      address: s.address,
-    }));
-
-    return res.json({
+    res.json({
       success: true,
-      data: formatted,
+      data: shops.map((s) => ({
+        shopId: s.shop_id.toString(),
+        shopName: s.shop_name,
+        category: s.category,
+        address: s.address,
+      })),
     });
   } catch (error) {
-    console.error('Error fetching shops:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'เกิดข้อผิดพลาดในการดึงข้อมูลร้านค้า',
-    });
+    handleError(res, error, "โหลดร้านค้าไม่สำเร็จ");
   }
 }
-
-/**
- * POST /api/v1/transactions/pay
- * Make a payment using Co-Pay 60/40 benefit
- */
+function transactionView(t) {
+  return {
+    transactionId: t.transaction_id.toString(),
+    shopId: t.shop_id.toString(),
+    shopName: t.shops?.shop_name,
+    category: t.shops?.category,
+    totalAmount: Number(t.total_amount),
+    userAmount: Number(t.user_amount),
+    governmentAmount: Number(t.government_amount),
+    paidAt: t.paid_at,
+    status: t.status,
+    simulation: true,
+  };
+}
 async function createPayment(req, res) {
   try {
-    const { shopId, amount } = req.body;
+    demoOnly();
     const userId = BigInt(req.user.userId);
-
-    const totalAmount = parseFloat(amount);
-    if (!totalAmount || totalAmount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'กรุณากรอกยอดเงินที่ต้องการชำระให้ถูกต้อง (มากกว่า 0 บาท)',
-      });
-    }
-
-    if (!shopId) {
-      return res.status(400).json({
-        success: false,
-        error: 'กรุณาเลือกร้านค้าที่ต้องการชำระเงิน',
-      });
-    }
-
-    const shop = await prisma.shops.findUnique({
-      where: { shop_id: BigInt(shopId) },
-    });
-
-    if (!shop) {
-      return res.status(404).json({
-        success: false,
-        error: 'ไม่พบร้านค้าที่เลือก',
-      });
-    }
-
-    // Co-Payment 60/40 Calculation with daily subsidy cap (max 150 THB/day per citizen)
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const todaySubsidyAggregate = await prisma.transactions.aggregate({
-      where: {
-        user_id: userId,
-        status: 'COMPLETED',
-        paid_at: { gte: startOfToday },
+    const amount = money(req.body.amount);
+    const shopId = positiveId(req.body.shopId);
+    const key = requestKey(req, "payment");
+    const {
+      ensureCurrentBoard,
+      syncActivityInTransaction,
+    } = require("./questController");
+    await ensureCurrentBoard(userId.toString());
+    const data = await prisma.$transaction(
+      async (tx) => {
+        const user = await lockUser(tx, userId);
+        const previous = await tx.transactions.findUnique({
+          where: { request_key: key },
+          include: { shops: true },
+        });
+        if (previous) {
+          if (
+            Number(previous.total_amount) !== amount ||
+            previous.shop_id !== shopId
+          )
+            fail("รายการเดิมมีข้อมูลต่างกัน กรุณาเริ่มรายการใหม่", 409);
+          return {
+            ...transactionView(previous),
+            remainingBalance: Number(user.demo_balance),
+            replayed: true,
+          };
+        }
+        const shop = await tx.shops.findUnique({ where: { shop_id: shopId } });
+        if (!shop?.is_active) fail("ร้านค้านี้ยังไม่เปิดรับรายการ", 404);
+        const aggregate = await tx.transactions.aggregate({
+          where: {
+            user_id: userId,
+            status: "COMPLETED",
+            paid_at: { gte: bangkokPeriod().dayStart },
+          },
+          _sum: { government_amount: true },
+        });
+        const { govSubsidy, userPayment, remainingCapAfter } = calculateCoPay(
+          amount,
+          Number(aggregate._sum.government_amount || 0),
+        );
+        if (Number(user.demo_balance) < userPayment)
+          fail("เงินทดลองไม่พอ กรุณาเติมเงินทดลองก่อน");
+        const updated = await tx.users.update({
+          where: { user_id: userId },
+          data: { demo_balance: { decrement: userPayment } },
+        });
+        const payment = await tx.transactions.create({
+          data: {
+            user_id: userId,
+            shop_id: shopId,
+            total_amount: amount,
+            user_amount: userPayment,
+            government_amount: govSubsidy,
+            status: "COMPLETED",
+            request_key: key,
+          },
+          include: { shops: true },
+        });
+        const questUpdate = await syncActivityInTransaction(
+          tx,
+          userId.toString(),
+        );
+        return {
+          ...transactionView(payment),
+          remainingBalance: Number(updated.demo_balance),
+          remainingCapAfter,
+          questUpdate,
+        };
       },
-      _sum: {
-        government_amount: true,
-      },
-    });
-
-    const usedSubsidyToday = Number(todaySubsidyAggregate._sum.government_amount || 0);
-    const { govSubsidy, userPayment } = calculateCoPay(totalAmount, usedSubsidyToday, 150.00);
-
-    // Record into the transactions table
-    const newTransaction = await prisma.transactions.create({
-      data: {
-        user_id: userId,
-        shop_id: shop.shop_id,
-        total_amount: totalAmount,
-        user_amount: userPayment,
-        government_amount: govSubsidy,
-        status: 'COMPLETED',
-      },
-      include: {
-        shops: true,
-      },
-    });
-
-    // Real-time Mission Checker: Synchronize Bingo Mission progress for citizen
-    let questUpdate = null;
-    try {
-      const { syncPaymentProgress } = require('./questController');
-      questUpdate = await syncPaymentProgress(userId.toString(), newTransaction);
-    } catch (questErr) {
-      console.warn('Could not sync quest progress on payment:', questErr.message);
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: `ชำระเงินให้ร้าน "${shop.shop_name}" สำเร็จ`,
-      data: {
-        transactionId: newTransaction.transaction_id.toString(),
-        shopId: shop.shop_id.toString(),
-        shopName: shop.shop_name,
-        category: shop.category,
-        totalAmount: totalAmount,
-        userAmount: userPayment,
-        governmentAmount: govSubsidy,
-        copayRate: '60/40',
-        paidAt: newTransaction.paid_at,
-        questUpdate,
-      },
-    });
+      { timeout: 15000 },
+    );
+    res.status(data.replayed ? 200 : 201).json({ success: true, data });
   } catch (error) {
-    console.error('Error creating payment transaction:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'เกิดข้อผิดพลาดในการประมวลผลการชำระเงิน',
-    });
+    handleError(res, error, "บันทึกการชำระทดลองไม่สำเร็จ");
   }
 }
-
-/**
- * GET /api/v1/transactions/my-history
- * Get user's purchase transaction history
- */
 async function getMyTransactions(req, res) {
   try {
-    const userId = BigInt(req.user.userId);
-
-    const txs = await prisma.transactions.findMany({
-      where: { user_id: userId },
-      include: {
-        shops: true,
-      },
-      orderBy: { paid_at: 'desc' },
+    const list = await prisma.transactions.findMany({
+      where: { user_id: BigInt(req.user.userId) },
+      include: { shops: true },
+      orderBy: { paid_at: "desc" },
     });
-
-    const formatted = txs.map((t) => ({
-      transactionId: t.transaction_id.toString(),
-      shopName: t.shops?.shop_name || 'ร้านค้าในโครงการ',
-      category: t.shops?.category,
-      totalAmount: Number(t.total_amount),
-      userAmount: Number(t.user_amount),
-      governmentAmount: Number(t.government_amount),
-      status: t.status,
-      paidAt: t.paid_at,
-    }));
-
-    return res.json({
-      success: true,
-      data: formatted,
-    });
+    res.json({ success: true, data: list.map(transactionView) });
   } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'เกิดข้อผิดพลาดในการดึงประวัติการชำระเงิน',
-    });
+    handleError(res, error, "โหลดประวัติการใช้จ่ายไม่สำเร็จ");
   }
 }
-
-module.exports = {
-  calculateCoPay,
-  getShops,
-  createPayment,
-  getMyTransactions,
-};
+module.exports = { calculateCoPay, getShops, createPayment, getMyTransactions };

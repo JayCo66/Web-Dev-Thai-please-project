@@ -1,0 +1,30 @@
+purpose:
+  stands_in_for: Typhoon chat completion HTTP boundary used by THAI Please
+  unblocks: Exercise actual SDK serialization and caller fallback without paid or live AI requests
+assumptions:
+  - id: local-sdk-boundary
+    status: supported
+    claim: Against this local stand-in, the real SDK sends a completion request and the caller accepts a valid 24-cell JSON response.
+    reason: The simulation served the SDK request, and verify-ai asserted source AI and a validated 25-cell output with capped difficulty.
+    verification: On 2026-10-30 ran backend/scripts/verify-ai.cjs through Postman simulation 1.76.0. Success used one HTTP request and produced easy12/medium8/hard4.
+    source: backend/scripts/verify-ai.cjs; postman/mocks/typhoon/default.js; backend/src/services/questService.js
+    updated_at: '2026-10-30'
+  - id: local-failure-fallback
+    status: supported
+    claim: In the tested local 429, malformed JSON, and timeout scenarios, the caller returns RULE_BASED; it retries only malformed JSON once.
+    reason: Output source and mock request counts were asserted for each scenario. An SDK timeout initially retried twice; checking the actual SDK APIError class fixed this and the repeated test observed one request.
+    verification: On 2026-10-30 counts were success1, rate_limit1, malformed2, timeout1. No real provider call was made.
+    source: backend/scripts/verify-ai.cjs; postman/mocks/typhoon/default.js; backend/src/services/questService.js
+    updated_at: '2026-10-30'
+  - id: real-provider-quality
+    status: unknown
+    claim: Typhoon produces suitable personalized missions for the deployment's actual users and selected model.
+    reason: The local mock is built from the existing adapter boundary, not a provider-owned workspace or an evaluation of the real model. No live provider request or user outcome study was run.
+    verification: Only SDK behavior against local stand-ins was measured. Validate real provider availability and mission quality separately before making quality claims.
+    source: postman/contracts/typhoon.openapi.yaml; backend/src/services/questService.js
+    updated_at: '2026-10-30'
+fingerprints:
+  - id: local-functional-upgrade
+    date: '2026-10-30'
+    commit: c708a26 plus uncommitted functional and UX upgrade
+    cli: Postman CLI 1.76.0

@@ -144,7 +144,7 @@ async function registerCitizen({
     },
     tokens: 50,
     wallet: {
-      balance: '500.00',
+      balance: Number(newUser.demo_balance ?? 500).toFixed(2), simulation: true,
       copayRate: '60%',
       dailyQuota: '150.00',
       totalQuota: '3000.00',
@@ -301,7 +301,7 @@ async function loginWithCredentials({ identifier, password }) {
     },
     tokens: totalTokens,
     wallet: {
-      balance: '500.00',
+      balance: Number(user.demo_balance ?? 500).toFixed(2), simulation: true,
       copayRate: '60%',
       dailyQuota: '150.00',
       totalQuota: '3000.00',
@@ -365,7 +365,7 @@ async function loginWithThaiD({ citizenId, fullName }) {
     },
     tokens: totalTokens,
     wallet: {
-      balance: '500.00',
+      balance: Number(user.demo_balance ?? 500).toFixed(2), simulation: true,
       copayRate: '60%',
       dailyQuota: '150.00',
       totalQuota: '3000.00',
@@ -408,7 +408,7 @@ async function getUserProfile(userId) {
     roles: [user.role],
     tokens: totalTokens,
     wallet: {
-      balance: '500.00',
+      balance: Number(user.demo_balance ?? 500).toFixed(2), simulation: true,
       copayRate: '60%',
       dailyQuota: '150.00',
       totalQuota: '3000.00',

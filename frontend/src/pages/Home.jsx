@@ -1,326 +1,296 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import Navbar from '../components/Navbar';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Wallet,
-  User,
-  CheckCircle2,
-  HeartHandshake,
   ArrowRight,
+  Check,
+  Coins,
+  CreditCard,
   Gift,
-  Grid,
-  ShieldCheck,
-  Eye,
-  EyeOff,
-  QrCode,
-  PlusCircle,
-  Trophy,
-  Sparkles
-} from 'lucide-react';
+  Grid2X2,
+  HeartHandshake,
+  Plus,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
-export default function Home() {
-  const { user, tokens, wallet, shop, resetBalance } = useAuth();
-  const [showBalance, setShowBalance] = useState(true);
-  const [bingoStats, setBingoStats] = useState({
-    completed: 0,
-    total: 25,
-    bingos: 0,
-    loading: true
+const money = (value) =>
+  Number(value || 0).toLocaleString("th-TH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
-  const userBalance = parseFloat(wallet?.balance || '500.00');
+export default function Home() {
+  const { user, wallet, tokens, resetBalance } = useAuth();
+  const [board, setBoard] = useState(null);
+  const [boardError, setBoardError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
+  const [donationTotal, setDonationTotal] = useState(null);
+  const [topupBusy, setTopupBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [topupError, setTopupError] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
-    api.get('/quests/active-board?boardIndex=0')
-      .then((res) => {
-        if (isMounted && res.data && res.data.success) {
-          const board = res.data.data.currentBoard;
-          if (board) {
-            const completed = board.cells ? board.cells.filter((c) => c.status === 'COMPLETED').length : 0;
-            const bingos = board.bingoCount || 0;
-            setBingoStats({
-              completed,
-              total: 25,
-              bingos,
-              loading: false
-            });
-          }
-        }
+    const controller = new AbortController();
+    setLoading(true);
+    setBoardError("");
+    api
+      .get("/quests/active-board", { signal: controller.signal })
+      .then((response) => {
+        if (!response.data.success) throw new Error(response.data.error);
+        setBoard(response.data.data.currentBoard);
       })
-      .catch(() => {
-        if (isMounted) {
-          setBingoStats((prev) => ({ ...prev, loading: false }));
-        }
+      .catch((error) => {
+        if (error.code !== "ERR_CANCELED")
+          setBoardError(error.response?.data?.error || "โหลดกระดานไม่สำเร็จ");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
+    api
+      .get("/charities/my-donations", { signal: controller.signal })
+      .then((response) => {
+        if (response.data.success)
+          setDonationTotal(
+            response.data.data.reduce(
+              (total, item) => total + Number(item.amount || 0),
+              0,
+            ),
+          );
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [retry]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const addDemoBalance = async () => {
+    setTopupBusy(true);
+    setTopupError("");
+    setNotice("");
+    try {
+      const result = await resetBalance(500);
+      if (result?.success === false)
+        throw new Error(result.error || "เติมเงินทดลองไม่สำเร็จ");
+      setNotice("เพิ่มเงินทดลอง 500 บาทแล้ว");
+    } catch (error) {
+      setTopupError(error.response?.data?.error || error.message);
+    } finally {
+      setTopupBusy(false);
+    }
+  };
 
-  const completedCount = bingoStats.completed;
-  const totalCount = bingoStats.total || 25;
-  const progressPercent = Math.min(100, Math.round((completedCount / totalCount) * 100));
+  const completed =
+    board?.cells?.filter((cell) =>
+      ["COMPLETED", "CLAIMED"].includes(cell.status),
+    ).length || 0;
+  const nextMission = [...(board?.cells || [])]
+    .filter(
+      (cell) => cell.status === "IN_PROGRESS" && cell.family !== "DONATION",
+    )
+    .sort(
+      (a, b) =>
+        Number(b.quest_code === "TX_COUNT_ANY") -
+          Number(a.quest_code === "TX_COUNT_ANY") ||
+        b.progress / b.target_value - a.progress / a.target_value,
+    )[0];
+  const firstName = (user?.fullName || user?.name || "คุณ").split(" ")[0];
+  const readyLines =
+    board?.lines?.filter((line) => line.isCompleted && !line.isClaimed)
+      .length || 0;
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      {/* Official Financial Header & Fixed Mobile Navigation Dock */}
+    <div className="app-shell">
       <Navbar />
+      <main id="main-content" className="app-main">
+        <div className="page-heading">
+          <div>
+            <span className="page-eyebrow">วันนี้เริ่มจากเรื่องเล็ก ๆ</span>
+            <h1>สวัสดี {firstName}</h1>
+            <p>ใช้จ่าย ทำภารกิจ แล้วเปลี่ยนโทเค็นเป็นรางวัล</p>
+          </div>
+          <Link to="/payment" className="button button--primary">
+            <CreditCard size={18} />
+            ชำระเงินทดลอง
+          </Link>
+        </div>
 
-      {/* Main Banking App Shell */}
-      <main className="home-container" id="main-content">
-        {/* ========================================================
-            1. SIGNATURE G-WALLET / FINANCIAL ACCOUNT CARD
-            ======================================================== */}
-        <section className="financial-wallet-card" aria-label="บัตรกระเป๋าเงินดิจิทัล">
-          {/* Top Row: Identity & Trust Badge */}
-          <div className="wallet-card-top">
-            <div className="wallet-badge">
-              <ShieldCheck size={15} color="#93C5FD" />
-              <span>กระเป๋าเงินดิจิทัลเพื่อประชาชน</span>
+        <section className="xp-overview-grid" aria-label="ยอดของคุณ">
+          <div className="xp-wallet-card">
+            <div className="xp-wallet-label">
+              กระเป๋าเงินทดลอง <span>THB</span>
             </div>
-            <div className="wallet-security-seal">
-              <CheckCircle2 size={13} color="#34D399" />
-              <span>ยืนยันสิทธิแล้ว</span>
+            <strong className="xp-wallet-amount">
+              ฿{money(wallet?.balance)}
+            </strong>
+            <div className="xp-wallet-bottom">
+              <span>ใช้กับร้านค้าและการบริจาคในเดโม</span>
+              <button
+                type="button"
+                onClick={addDemoBalance}
+                disabled={topupBusy}
+                className="button xp-topup"
+              >
+                <Plus size={15} />
+                {topupBusy ? "กำลังเติม…" : "เติม ฿500"}
+              </button>
             </div>
           </div>
+          <Link to="/rewards" className="stat-card xp-token-card">
+            <span className="xp-stat-icon">
+              <Coins size={23} />
+            </span>
+            <span className="text-muted">โทเค็นสะสม</span>
+            <strong>{Number(tokens || 0).toLocaleString("th-TH")}</strong>
+            <span className="xp-card-link">
+              ดูรางวัลที่แลกได้ <ArrowRight size={15} />
+            </span>
+          </Link>
+          <Link to="/charities" className="stat-card xp-impact-card">
+            <span className="xp-stat-icon">
+              <HeartHandshake size={23} />
+            </span>
+            <span className="text-muted">ยอดบริจาคทดลองของคุณ</span>
+            <strong>
+              {donationTotal === null ? "—" : `฿${money(donationTotal)}`}
+            </strong>
+            <span className="xp-card-link">
+              ดูประวัติการให้ <ArrowRight size={15} />
+            </span>
+          </Link>
+        </section>
+        {notice && (
+          <p className="notice notice--success" role="status">
+            {notice}
+          </p>
+        )}
+        {topupError && (
+          <p className="notice notice--error" role="alert">
+            {topupError}
+          </p>
+        )}
 
-          {/* Balance Section with Big Accessible Font and Eye Toggle */}
-          <div className="wallet-balance-row">
-            <div>
-              <div className="wallet-balance-title">
-                <span>ยอดเงินคงเหลือพร้อมใช้ (จำลอง)</span>
+        <section
+          className="xp-home-board panel"
+          aria-label="กระดานบิงโกปัจจุบัน"
+        >
+          <div className="xp-home-board-copy">
+            <span className="page-eyebrow">
+              <Grid2X2 size={15} />
+              บิงโกของคุณ
+            </span>
+            <h2>
+              {board?.canAccept
+                ? "พร้อมไปกระดานถัดไป"
+                : readyLines
+                  ? "มีเส้นบิงโกพร้อมรับโบนัส"
+                  : completed === 0
+                    ? "เริ่มภารกิจแรกของคุณ"
+                    : "เติมอีกนิด ใกล้บิงโกแล้ว"}
+            </h2>
+            {loading ? (
+              <p className="text-muted" role="status">
+                กำลังเตรียมกระดานของคุณ…
+              </p>
+            ) : boardError ? (
+              <div>
+                <p className="text-muted">{boardError}</p>
                 <button
                   type="button"
-                  className="btn-toggle-balance"
-                  onClick={() => setShowBalance(!showBalance)}
-                  title={showBalance ? 'ซ่อนยอดเงิน' : 'แสดงยอดเงิน'}
-                  aria-label={showBalance ? 'ซ่อนยอดเงิน' : 'แสดงยอดเงิน'}
+                  className="button button--secondary button--small"
+                  onClick={() => setRetry((value) => value + 1)}
                 >
-                  {showBalance ? <Eye size={18} /> : <EyeOff size={18} />}
+                  <RefreshCw size={15} />
+                  ลองอีกครั้ง
                 </button>
               </div>
-              <div className="wallet-balance-amount">
-                {showBalance ? `฿${userBalance.toFixed(2)}` : '฿ ••••••'}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="btn-wallet-topup"
-              onClick={() => resetBalance(500)}
-              title="เติมเงินจำลอง 500 บาทสำหรับการทดสอบระบบ"
-              aria-label="เติมเงินจำลอง 500 บาท"
-            >
-              <PlusCircle size={18} />
-              <span>เติมเงิน ฿500</span>
-            </button>
-          </div>
-
-          {/* Bottom Meta Grid: Co-Pay 60/40 Quota & Tokens */}
-          <div className="wallet-meta-grid">
-            <div className="wallet-meta-item">
-              <span className="wallet-meta-label">สิทธิคนละครึ่งวันนี้ (รัฐช่วย 60%)</span>
-              <span className="wallet-meta-value">฿{wallet?.dailyQuota || '150.00'} / วัน</span>
-            </div>
-            <div className="wallet-meta-item">
-              <span className="wallet-meta-label">เหรียญ Impact Tokens สะสม</span>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                <span className="wallet-meta-value" style={{ color: '#FDE68A' }}>
-                  {tokens} เหรียญ
-                </span>
-                <Link
-                  to="/rewards"
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: '#FEF3C7',
-                    background: 'rgba(255, 255, 255, 0.16)',
-                    border: '1px solid rgba(255, 255, 255, 0.28)',
-                    padding: '5px 12px',
-                    borderRadius: 'var(--radius-full)',
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    minHeight: 32,
-                    whiteSpace: 'nowrap'
-                  }}
-                  title="ไปหน้าแลกของรางวัลและชิงโชค"
-                >
-                  <span>แลกของรางวัล</span>
-                  <ArrowRight size={12} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================
-            2. HERO SCAN / QUICK PAY BUTTON FOR CITIZENS & SENIORS
-            ======================================================== */}
-        <Link
-          to="/payment"
-          className="hero-scan-card"
-          aria-label="สแกนจ่ายคนละครึ่ง 60/40 แตะเพื่อเปิดกล้องสแกนคิวอาร์โค้ดร้านค้า"
-        >
-          <div className="hero-scan-left">
-            <div className="hero-scan-icon-wrap">
-              <QrCode size={30} strokeWidth={2.5} />
-            </div>
-            <div>
-              <div className="hero-scan-title">
-                สแกนจ่าย คนละครึ่ง (60/40)
-              </div>
-              <div className="hero-scan-desc">
-                รัฐช่วยจ่าย 60% สูงสุด 150 บาท/วัน ประชาชนจ่าย 40% ที่ร้านค้าชุมชน
-              </div>
-            </div>
-          </div>
-          <div className="hero-scan-btn">
-            <span>สแกนจ่าย</span>
-            <ArrowRight size={16} />
-          </div>
-        </Link>
-
-        {/* ========================================================
-            3. BANKING QUICK ACTION GRID (4 Clean Large Thumb Buttons)
-            ======================================================== */}
-        <div className="financial-quick-grid" role="navigation" aria-label="บริการหลักของระบบ">
-          <Link to="/payment" className="quick-action-item" aria-label="บริการคนละครึ่ง 60/40 สแกนชำระเงิน">
-            <div className="quick-action-icon-box" style={{ background: '#EFF6FF', color: '#1E40AF' }}>
-              <QrCode size={22} />
-            </div>
-            <span className="quick-action-label">คนละครึ่ง</span>
-          </Link>
-
-          <Link to="/bingo" className="quick-action-item" aria-label="เกมบิงโกภารกิจ 5x5">
-            <div className="quick-action-icon-box" style={{ background: '#E0F2FE', color: '#0284C7' }}>
-              <Grid size={22} />
-            </div>
-            <span className="quick-action-label">เกมบิงโก</span>
-          </Link>
-
-          <Link to="/rewards" className="quick-action-item" aria-label="แลกของรางวัลและชิงโชค">
-            <div className="quick-action-icon-box" style={{ background: '#FEF3C7', color: '#B45309' }}>
-              <Gift size={22} />
-            </div>
-            <span className="quick-action-label">แลกรางวัล</span>
-          </Link>
-
-          <Link to="/charities" className="quick-action-item" aria-label="บริจาคภาษี e-Donation ลดหย่อนภาษี">
-            <div className="quick-action-icon-box" style={{ background: '#E0F2FE', color: '#0369A1' }}>
-              <HeartHandshake size={22} />
-            </div>
-            <span className="quick-action-label">บริจาคภาษี</span>
-          </Link>
-        </div>
-
-        {/* ========================================================
-            4. FRIENDLY BINGO GAME & MISSION PROGRESS SPOTLIGHT
-            ======================================================== */}
-        <Link
-          to="/bingo"
-          className="dashboard-bingo-card"
-          aria-label="เกมบิงโกคนละครึ่ง ทำภารกิจรับโบนัสโทเค็น"
-        >
-          <div className="dashboard-bingo-top">
-            <div className="dashboard-bingo-header">
-              <div className="dashboard-bingo-icon">
-                <Grid size={24} />
-              </div>
-              <div>
-                <div className="dashboard-bingo-pill">
-                  <Sparkles size={11} />
-                  <span>ภารกิจรับเหรียญรางวัลพิเศษ</span>
-                </div>
-                <h2 className="dashboard-bingo-title">
-                  เกมบิงโกคนละครึ่ง (5x5)
-                </h2>
-                <p className="dashboard-bingo-desc">
-                  ช้อปปิ้งร้านค้าชุมชนหรือร่วมบริจาค ครบแถวรับโบนัส +20 โทเค็นทันที
+            ) : (
+              <>
+                <p className="text-muted">
+                  กระดานที่ {(board?.boardIndex ?? 0) + 1} จาก 4 · สำเร็จ{" "}
+                  {completed}/25 ภารกิจ
                 </p>
-              </div>
-            </div>
+                <progress
+                  className="xp-progress"
+                  value={completed}
+                  max={25}
+                  aria-label={`สำเร็จ ${completed} จาก 25 ภารกิจ`}
+                />
+                {nextMission && !board?.canAccept && (
+                  <p className="xp-next-mission">
+                    <Sparkles size={16} />
+                    <span>
+                      ลองเริ่มที่{" "}
+                      <strong>
+                        {nextMission.short_title || nextMission.title}
+                      </strong>
+                    </span>
+                  </p>
+                )}
+              </>
+            )}
+            <Link to="/bingo" className="button button--primary">
+              {readyLines ? "เลือกเส้นรับโบนัส" : "ดูกระดานของฉัน"}
+              <ArrowRight size={17} />
+            </Link>
           </div>
-
-          {/* Live Progress Bar */}
-          <div className="dashboard-bingo-progress-box">
-            <div className="dashboard-bingo-progress-meta">
-              <span>ความคืบหน้ากระดานเดือนนี้: {completedCount} / {totalCount} ช่อง</span>
-              {bingoStats.bingos > 0 ? (
-                <span style={{ color: '#FDE047', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Trophy size={13} />
-                  <span>{bingoStats.bingos} บิงโก</span>
+          <div className="xp-home-board-art" aria-hidden="true">
+            {Array.from({ length: 25 }, (_, index) => {
+              const cell = board?.cells?.find(
+                (item) => item.position === index,
+              );
+              const done = ["COMPLETED", "CLAIMED"].includes(cell?.status);
+              return (
+                <span
+                  key={index}
+                  className={`${index === 12 ? "is-heart" : ""} ${done ? "is-done" : ""}`}
+                >
+                  {index === 12 ? (
+                    <HeartHandshake size={22} />
+                  ) : done ? (
+                    <Check size={22} />
+                  ) : (
+                    <span />
+                  )}
                 </span>
-              ) : (
-                <span>{progressPercent}%</span>
-              )}
-            </div>
-            <div className="dashboard-bingo-progress-bar">
-              <div
-                className="dashboard-bingo-progress-fill"
-                style={{ width: `${Math.max(4, progressPercent)}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="dashboard-bingo-action-btn">
-            <span>เข้าเล่นเกมบิงโก</span>
-            <ArrowRight size={15} />
-          </div>
-        </Link>
-
-        {/* ========================================================
-            5. CITIZEN ACCOUNT & PROJECT QUOTA SUMMARY
-            ======================================================== */}
-        <section className="citizen-summary-grid" aria-label="ข้อมูลผู้ลงทะเบียนและวงเงินโครงการ">
-          <div className="citizen-summary-card">
-            <div className="citizen-summary-head">
-              <span>ข้อมูลผู้ลงทะเบียน</span>
-              <User size={16} color="var(--bank-royal)" />
-            </div>
-            <div className="citizen-summary-val">
-              {user?.fullName || 'ประชาชนผู้มีสิทธิ'}
-            </div>
-            <div className="citizen-summary-meta">
-              <div>เลขบัตร ปชช: {user?.maskedCitizenId || '1-xxxx-xxxxx-xx-1'}</div>
-              <div>เบอร์โทรศัพท์: {user?.maskedPhone || '08x-xxx-xxxx'}</div>
-              {shop && <div>ร้านค้า: {shop.shopName}</div>}
-            </div>
-          </div>
-
-          <div className="citizen-summary-card">
-            <div className="citizen-summary-head">
-              <span>สิทธิเงินร่วมจ่ายตลอดโครงการ</span>
-              <Wallet size={16} color="var(--bank-royal)" />
-            </div>
-            <div className="citizen-summary-val" style={{ color: 'var(--bank-royal)' }}>
-              ฿{wallet?.totalQuota || '3,000.00'}
-            </div>
-            <div className="citizen-summary-meta">
-              วงเงินสนับสนุนรวมจากรัฐบาล 60% สำหรับใช้จ่ายที่ร้านค้าชุมชนและหาบเร่แผงลอย
-            </div>
+              );
+            })}
           </div>
         </section>
 
-        {/* ========================================================
-            7. SECURITY & PDPA COMPLIANCE (ETDA, DOPA & Bank Standard)
-            ======================================================== */}
-        <div className="compliance-box" role="region" aria-label="ความปลอดภัยและ PDPA">
-          <CheckCircle2 size={24} color="var(--fin-success)" style={{ flexShrink: 0 }} />
-          <div>
-            <div className="compliance-title">
-              ระบบรักษาความปลอดภัยมาตรฐานสถาบันการเงินและ PDPA
+        <section className="xp-action-grid" aria-label="เริ่มทำกิจกรรม">
+          <Link to="/payment" className="xp-action-card">
+            <span className="xp-action-icon">
+              <CreditCard />
+            </span>
+            <div>
+              <h3>ใช้จ่ายที่ร้านค้า</h3>
+              <p>ธุรกรรมช่วยเติมภารกิจอัตโนมัติ</p>
             </div>
-            <div className="compliance-text">
-              ข้อมูลธุรกรรมและตัวตนได้รับการเข้ารหัสมาตรฐานความปลอดภัยขั้นสูง (End-to-End Encryption) สอดคล้องตามมาตรฐาน ETDA และ พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล
+            <ArrowRight size={19} />
+          </Link>
+          <Link to="/charities" className="xp-action-card">
+            <span className="xp-action-icon">
+              <HeartHandshake />
+            </span>
+            <div>
+              <h3>เลือกมูลนิธิที่อยากช่วย</h3>
+              <p>ร่วมให้และทำภารกิจช่องกลาง</p>
             </div>
-          </div>
-        </div>
+            <ArrowRight size={19} />
+          </Link>
+          <Link to="/rewards" className="xp-action-card">
+            <span className="xp-action-icon">
+              <Gift />
+            </span>
+            <div>
+              <h3>ใช้โทเค็นที่สะสม</h3>
+              <p>แลกรางวัลหรือเลือกสิทธิ์ลุ้นโชค</p>
+            </div>
+            <ArrowRight size={19} />
+          </Link>
+        </section>
       </main>
     </div>
   );

@@ -10,7 +10,7 @@ describe('Tokenomics Rebalancing (ADR-0001 & ADR-0002)', () => {
       assert.equal(BINGO_LINE_BONUS_TOKENS, 20);
     });
 
-    test('calculates single board full-clear yield capped at 376 tokens', () => {
+    test('calculates single board full-clear yield with one selected line bonus', () => {
       // 24 cells with levels summing to 63:
       // cell reward = level * 2 -> 63 * 2 = 126
       // 1 center donation = 10
@@ -19,8 +19,8 @@ describe('Tokenomics Rebalancing (ADR-0001 & ADR-0002)', () => {
       const totalYield = calculateBoardYield(63, 12);
       assert.equal(totalYield.cellTokens, 126);
       assert.equal(totalYield.donationTokens, 10);
-      assert.equal(totalYield.lineTokens, 240);
-      assert.equal(totalYield.totalTokens, 376);
+      assert.equal(totalYield.lineTokens, 20);
+      assert.equal(totalYield.totalTokens, 156);
       assert.ok(totalYield.totalTokens <= 380);
     });
   });

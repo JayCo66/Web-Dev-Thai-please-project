@@ -1,251 +1,156 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
-
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import api from "../services/api";
 const AuthContext = createContext(null);
-
-// Keep profile metadata separate from user fields for both API response shapes.
-function getProfileUser(profile) {
-  return profile.user ?? Object.fromEntries(
-    Object.entries(profile).filter(([key]) =>
-      !['tokens', 'wallet', 'shop', 'activeBoard'].includes(key)
-    )
+const profileUser = (data) =>
+  data.user ??
+  Object.fromEntries(
+    Object.entries(data).filter(
+      ([key]) => !["tokens", "wallet", "shop", "activeBoard"].includes(key),
+    ),
   );
-}
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [tokens, setTokens] = useState(0); // Impact tokens
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [tokens, setTokens] = useState(0);
   const [wallet, setWallet] = useState(null);
   const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Restore session on load
-  useEffect(() => {
-    async function loadCurrentUser() {
-      const storedToken = localStorage.getItem('token');
-      if (!storedToken) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await api.get('/users/me');
-        if (response.data && response.data.success) {
-          const d = response.data.data;
-          const userObj = getProfileUser(d);
-          setUser(userObj);
-          setTokens(d.tokens ?? userObj.tokens ?? 0);
-
-          // Restore or initialize simulated wallet balance
-          const savedBalance = localStorage.getItem('user_simulated_balance');
-          const effectiveBalance = savedBalance !== null ? savedBalance : (d.wallet?.balance || '500.00');
-          setWallet({
-            ...(d.wallet || {}),
-            balance: effectiveBalance,
-          });
-
-          setShop(d.shop || null);
-        }
-      } catch (error) {
-        console.warn('Session expired or invalid, logging out:', error);
-        logout();
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadCurrentUser();
+  const applyProfile = useCallback((data) => {
+    setUser(profileUser(data));
+    setTokens(data.tokens ?? data.user?.tokens ?? 0);
+    setWallet(data.wallet || null);
+    setShop(data.shop || null);
   }, []);
-
-  // Standard Login (Citizen / Merchant / Admin)
-  const login = async (identifier, password) => {
-    try {
-      const response = await api.post('/auth/login', { identifier, password });
-      if (response.data && response.data.success) {
-        const { token, user, tokens, wallet, shop } = response.data.data;
-        localStorage.setItem('token', token);
-        setToken(token);
-        setUser(user);
-        setTokens(tokens || 0);
-
-        const savedBalance = localStorage.getItem('user_simulated_balance');
-        const effectiveBalance = savedBalance !== null ? savedBalance : (wallet?.balance || '500.00');
-        setWallet({
-          ...(wallet || {}),
-          balance: effectiveBalance,
-        });
-
-        setShop(shop || null);
-        return { success: true, data: response.data.data };
-      }
-      return { success: false, error: response.data.error || 'เข้าสู่ระบบไม่สำเร็จ' };
-    } catch (error) {
-      const msg = error.response?.data?.error || error.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
-      return { success: false, error: msg };
-    }
-  };
-
-  // ThaiD Login (Mock)
-  const loginThaiD = async (citizenId, fullName) => {
-    try {
-      const response = await api.post('/auth/login-thaid', { citizenId, fullName });
-      if (response.data && response.data.success) {
-        const { token, user, tokens, wallet, isNew } = response.data.data;
-        localStorage.setItem('token', token);
-        setToken(token);
-        setUser(user);
-        setTokens(tokens || 0);
-
-        const savedBalance = localStorage.getItem('user_simulated_balance');
-        const effectiveBalance = savedBalance !== null ? savedBalance : (wallet?.balance || '500.00');
-        setWallet({
-          ...(wallet || {}),
-          balance: effectiveBalance,
-        });
-
-        return { success: true, isNew, data: response.data.data };
-      }
-      return { success: false, error: response.data.error || 'เข้าสู่ระบบด้วย ThaiD ไม่สำเร็จ' };
-    } catch (error) {
-      const msg = error.response?.data?.error || error.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ ThaiD';
-      return { success: false, error: msg };
-    }
-  };
-
-  // Citizen Registration
-  const registerCitizen = async (formData) => {
-    try {
-      const response = await api.post('/users/register-thai-please', formData);
-      if (response.data && response.data.success) {
-        const { token, user, tokens, wallet } = response.data.data;
-        localStorage.setItem('token', token);
-        setToken(token);
-        setUser(user);
-        setTokens(tokens || 50);
-        setWallet(wallet || null);
-        return { success: true, data: response.data.data };
-      }
-      return { success: false, error: response.data.error || 'ลงทะเบียนไม่สำเร็จ' };
-    } catch (error) {
-      const msg = error.response?.data?.error || error.message || 'เกิดข้อผิดพลาดในการลงทะเบียน';
-      return { success: false, error: msg };
-    }
-  };
-
-  // Merchant Registration
-  const registerMerchant = async (formData) => {
-    try {
-      const response = await api.post('/merchants/register', formData);
-      if (response.data && response.data.success) {
-        const { token, user, shop } = response.data.data;
-        localStorage.setItem('token', token);
-        setToken(token);
-        setUser(user);
-        setShop(shop || null);
-        return { success: true, data: response.data.data };
-      }
-      return { success: false, error: response.data.error || 'ลงทะเบียนร้านค้าไม่สำเร็จ' };
-    } catch (error) {
-      const msg = error.response?.data?.error || error.message || 'เกิดข้อผิดพลาดในการลงทะเบียนร้านค้า';
-      return { success: false, error: msg };
-    }
-  };
-
-  // Deduct simulated balance
-  const deductBalance = (amount) => {
-    const numAmount = parseFloat(amount) || 0;
-    const currentBalance = parseFloat(wallet?.balance || '500.00');
-    const newBalance = Math.max(0, currentBalance - numAmount).toFixed(2);
-
-    localStorage.setItem('user_simulated_balance', newBalance);
-    setWallet((prev) => ({
-      ...(prev || {}),
-      balance: newBalance,
-    }));
-    return newBalance;
-  };
-
-  // Add impact tokens
-  const addTokens = (amount) => {
-    setTokens((prev) => prev + amount);
-  };
-
-  // Deduct impact tokens
-  const deductTokens = (amount) => {
-    setTokens((prev) => Math.max(0, prev - amount));
-  };
-
-  // Set tokens balance directly
-  const setTokensBalance = (amount) => {
-    setTokens(amount);
-  };
-
-  // Refresh user and token data from backend
-  const refreshUser = async () => {
-    try {
-      const response = await api.get('/users/me');
-      if (response.data && response.data.success) {
-        const d = response.data.data;
-        const userObj = getProfileUser(d);
-        setUser(userObj);
-        setTokens(d.tokens ?? userObj.tokens ?? 0);
-        return { success: true, tokens: d.tokens, user: userObj };
-      }
-    } catch (err) {
-      console.warn('Failed to refresh user:', err);
-    }
-  };
-
-  // Reset demo balance
-  const resetBalance = (amount = 500) => {
-    const val = parseFloat(amount).toFixed(2);
-    localStorage.setItem('user_simulated_balance', val);
-    setWallet((prev) => ({
-      ...(prev || {}),
-      balance: val,
-    }));
-  };
-
-  // Logout
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user_simulated_balance');
+  const logout = useCallback(() => {
+    [
+      "token",
+      "user_simulated_balance",
+      "user_thaiplus_tickets",
+      "user_thaiplus_vouchers",
+    ].forEach((key) => localStorage.removeItem(key));
     setToken(null);
     setUser(null);
     setTokens(0);
     setWallet(null);
     setShop(null);
-  };
-
-  const value = {
-    user,
-    token,
-    tokens,
-    wallet,
-    shop,
-    loading,
-    isAuthenticated: !!user,
-    login,
-    loginThaiD,
-    registerCitizen,
-    registerMerchant,
-    deductBalance,
-    addTokens,
-    deductTokens,
-    setTokensBalance,
-    refreshUser,
-    resetBalance,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  }, []);
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data } = await api.get("/users/me");
+      if (!data.success) throw new Error(data.error);
+      applyProfile(data.data);
+      return { success: true, ...data.data, user: profileUser(data.data) };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || "โหลดบัญชีไม่สำเร็จ",
+      };
+    }
+  }, [applyProfile]);
+  useEffect(() => {
+    let active = true;
+    async function restore() {
+      if (localStorage.getItem("token")) {
+        try {
+          const { data } = await api.get("/users/me");
+          if (active && data.success) applyProfile(data.data);
+        } catch (error) {
+          if (active && [401, 404].includes(error.response?.status)) logout();
+        }
+      }
+      if (active) setLoading(false);
+    }
+    restore();
+    return () => {
+      active = false;
+    };
+  }, [applyProfile, logout]);
+  const authenticate = useCallback(
+    async (path, payload) => {
+      try {
+        const { data } = await api.post(path, payload);
+        if (!data.success) return { success: false, error: data.error };
+        localStorage.setItem("token", data.data.token);
+        setToken(data.data.token);
+        applyProfile(data.data);
+        await refreshUser();
+        return { success: true, data: data.data, isNew: data.data.isNew };
+      } catch (error) {
+        return {
+          success: false,
+          error:
+            error.response?.data?.error || "เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่",
+        };
+      }
+    },
+    [applyProfile, refreshUser],
+  );
+  const demoLogin = useCallback(
+    () => authenticate("/auth/demo-login", {}),
+    [authenticate],
+  );
+  const login = useCallback(
+    (identifier, password) =>
+      authenticate("/auth/login", { identifier, password }),
+    [authenticate],
+  );
+  const loginThaiD = useCallback(
+    (citizenId, fullName) =>
+      authenticate("/auth/login-thaid", { citizenId, fullName }),
+    [authenticate],
+  );
+  const registerCitizen = useCallback(
+    (data) => authenticate("/users/register-thai-please", data),
+    [authenticate],
+  );
+  const registerMerchant = useCallback(
+    (data) => authenticate("/merchants/register", data),
+    [authenticate],
+  );
+  const resetBalance = useCallback(async () => {
+    try {
+      await api.post("/users/demo-topup", { requestId: crypto.randomUUID() });
+      return await refreshUser();
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || "เติมเงินทดลองไม่สำเร็จ",
+      };
+    }
+  }, [refreshUser]);
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        tokens,
+        wallet,
+        shop,
+        loading,
+        isAuthenticated: !!user,
+        login,
+        demoLogin,
+        loginThaiD,
+        registerCitizen,
+        registerMerchant,
+        logout,
+        refreshUser,
+        resetBalance,
+        setTokensBalance: setTokens,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
-
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const value = useContext(AuthContext);
+  if (!value) throw new Error("useAuth requires AuthProvider");
+  return value;
 }

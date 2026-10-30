@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output = "../generated/prisma"
 }
 
 datasource db {
@@ -20,6 +21,7 @@ model rewards {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model transactions {
+  request_key       String?             @unique @db.VarChar(191)
   transaction_id    BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
   user_id           BigInt              @db.UnsignedBigInt
   shop_id           BigInt              @db.UnsignedBigInt
@@ -67,6 +69,8 @@ model users {
   password_hash      String?              @db.VarChar(255)
   pin_hash           String?              @db.VarChar(255)
   role               users_role           @default(CITIZEN)
+  demo_balance       Decimal              @default(500) @db.Decimal(12, 2)
+  reward_redemptions reward_redemptions[]
   province_code      String?              @default("BKK") @db.VarChar(10)
   created_at         DateTime             @default(now())
   updated_at         DateTime             @default(now())
@@ -79,6 +83,9 @@ model users {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model bingo_boards {
+  month_key          String?                       @db.Char(7)
+  board_index        Int?                          @db.UnsignedTinyInt
+  snapshot           Json?
   board_id           BigInt                        @id @default(autoincrement()) @db.UnsignedBigInt
   user_id            BigInt                        @db.UnsignedBigInt
   board_size         Int                           @default(5) @db.TinyInt
@@ -93,6 +100,7 @@ model bingo_boards {
   token_transactions token_transactions[]
   user_quests        user_quests[]
 
+  @@unique([user_id, month_key, board_index], map: "uq_bingo_month_board")
   @@index([user_id], map: "idx_boards_user")
 }
 
@@ -130,6 +138,7 @@ model charities {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model donations {
+  request_key   String?      @unique @db.VarChar(191)
   donation_id   BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
   user_quest_id BigInt?      @db.UnsignedBigInt
   charity_id    BigInt       @db.UnsignedBigInt
@@ -163,6 +172,7 @@ model shops {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model token_transactions {
+  event_key            String?                 @unique @db.VarChar(191)
   token_transaction_id BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
   user_id              BigInt                  @db.UnsignedBigInt
   amount               Int
@@ -236,4 +246,21 @@ enum users_role {
   MERCHANT
   ADMIN
   GOV_EXECUTIVE
+}
+
+model reward_redemptions {
+  redemption_id BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id       BigInt    @db.UnsignedBigInt
+  reward_id     BigInt?   @db.UnsignedBigInt
+  kind          String    @db.VarChar(32)
+  code          String    @unique @db.VarChar(100)
+  metadata      Json
+  token_cost    Int       @default(0)
+  status        String    @default("AVAILABLE") @db.VarChar(24)
+  created_at    DateTime  @default(now())
+  expires_at    DateTime?
+  request_key   String?   @unique @db.VarChar(191)
+  users         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }

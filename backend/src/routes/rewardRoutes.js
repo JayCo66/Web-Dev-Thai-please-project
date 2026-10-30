@@ -13,4 +13,6 @@ router.post('/instant-spin', authenticateToken, rewardController.instantSpin);
 router.get('/my-history', authenticateToken, rewardController.getMyTokenHistory);
 router.post('/demo-faucet', authenticateToken, rewardController.faucetTokens);
 
+router.get('/my-items', authenticateToken, rewardController.getMyItems);
+
 module.exports = router;

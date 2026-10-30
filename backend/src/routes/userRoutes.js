@@ -12,4 +12,6 @@ router.get('/me', authenticateToken, authController.getCurrentUser);
 // GET /api/v1/users/provinces (Helper for registration form)
 router.get('/provinces', authController.getProvinces);
 
+router.post('/demo-topup', authenticateToken, require('../controllers/demoWalletController').topUp);
+
 module.exports = router;
