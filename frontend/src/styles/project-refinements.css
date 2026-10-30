@@ -778,3 +778,13 @@
     line-height: 1.6;
   }
 }
+
+.xp-owned-item .xp-entry-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #117461;
+  margin: 10px 0;
+}
+.xp-owned-item[data-item-kind="LUCKY_DRAW"] {
+  border-left: 3px solid #b4974b;
+}

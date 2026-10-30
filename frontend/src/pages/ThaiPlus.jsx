@@ -158,7 +158,7 @@ export default function ThaiPlus() {
         <div className="segmented xp-reward-tabs">
           {[
             ["rewards", Gift, "ลุ้น / แลกรางวัล"],
-            ["items", Package, "ของฉัน"],
+            ["items", Package, "รายการของฉัน"],
             ["history", History, "ประวัติแต้ม"],
           ].map(([key, Icon, label]) => (
             <button
@@ -185,8 +185,13 @@ export default function ThaiPlus() {
         {success && (
           <div className="notice notice--success" role="status">
             <Check size={18} />
-            บันทึกสิทธิ์แล้ว · ใช้ {success.tokensSpent} แต้ม · คงเหลือ{" "}
-            {success.remainingTokens} แต้ม
+            {success.kind === "LUCKY_DRAW"
+              ? "เพิ่มสิทธิ์ลุ้นในบัญชีแล้ว"
+              : success.kind === "PHYSICAL"
+                ? "บันทึกการแลกของแล้ว"
+                : "บันทึกคูปองแล้ว"}{" "}
+            · ใช้ {success.tokensSpent} แต้ม · คงเหลือ {success.remainingTokens}{" "}
+            แต้ม
           </div>
         )}
         {loading ? (
@@ -311,7 +316,7 @@ export default function ThaiPlus() {
                 <div className="empty-state">
                   <Gift size={36} />
                   <h2>รางวัลชิ้นแรกกำลังรอคุณ</h2>
-                  <p>สิทธิ์ที่แลกจะเก็บไว้ที่นี่</p>
+                  <p>ประวัติสิทธิ์ลุ้น ของที่แลก และคูปองจะเก็บไว้ที่นี่</p>
                   <button
                     className="button button--primary"
                     onClick={() => setSearch({})}
@@ -321,67 +326,106 @@ export default function ThaiPlus() {
                 </div>
               ) : (
                 <div className="xp-owned-items">
-                  {items.map((item) => (
-                    <article
-                      className={`panel xp-owned-item ${item.status === "USED" ? "is-used" : ""}`}
-                      key={item.id}
-                    >
-                      {item.imageUrl ? (
-                        <img
-                          className="xp-owned-thumb"
-                          src={item.imageUrl}
-                          alt={item.title}
-                        />
-                      ) : (
-                        <div className="xp-stat-icon">
-                          {item.kind === "LUCKY_DRAW" ? <Ticket /> : <Gift />}
+                  {items.map((item) => {
+                    const draw = item.kind === "LUCKY_DRAW";
+                    const coupon = ["COUPON", "DISCOUNT"].includes(item.kind);
+                    const title = draw
+                      ? item.prizeName ||
+                        String(item.title || "สิทธิ์ลุ้นรางวัล").replace(
+                          /^สิทธิ์ลุ้น\s*/,
+                          "",
+                        )
+                      : item.title;
+                    const period = new Date(item.createdAt).toLocaleDateString(
+                      "th-TH",
+                      { month: "long", year: "numeric" },
+                    );
+                    return (
+                      <article
+                        className={`panel xp-owned-item ${item.status === "USED" ? "is-used" : ""}`}
+                        key={item.id}
+                        data-item-kind={item.kind}
+                      >
+                        {item.imageUrl ? (
+                          <img
+                            className="xp-owned-thumb"
+                            src={item.imageUrl}
+                            alt={title}
+                          />
+                        ) : (
+                          <div className="xp-stat-icon">
+                            {draw ? <Ticket /> : <Gift />}
+                          </div>
+                        )}
+                        <div>
+                          <span className="badge">
+                            {draw
+                              ? "สิทธิ์ลุ้นรางวัล"
+                              : coupon
+                                ? item.status === "USED"
+                                  ? "ใช้แล้ว"
+                                  : item.status === "EXPIRED"
+                                    ? "หมดอายุ"
+                                    : "คูปอง"
+                                : "รายการแลกของ"}
+                          </span>
+                          <h2>{title}</h2>
+                          {draw && (
+                            <>
+                              <p className="xp-entry-count">
+                                สะสม {item.ticketsCount || 1} สิทธิ์ · งวด
+                                {period}
+                              </p>
+                              <p className="text-muted">
+                                บันทึกสิทธิ์ในบัญชีแล้ว · ยังไม่มีผลการจับรางวัล
+                              </p>
+                            </>
+                          )}
+                          <p className="text-muted">
+                            {draw ? "เพิ่มสิทธิ์" : "แลกเมื่อ"}{" "}
+                            {date(item.createdAt)} · ใช้ {item.tokensSpent} แต้ม
+                            {coupon && item.expiresAt
+                              ? ` · ถึง ${date(item.expiresAt)}`
+                              : ""}
+                          </p>
+                          {!draw && !coupon && (
+                            <p className="text-muted">
+                              บันทึกการแลกในบัญชีแล้ว
+                            </p>
+                          )}
+                          {coupon && (
+                            <code>{item.voucherCode || item.code}</code>
+                          )}
                         </div>
-                      )}
-                      <div>
-                        <span className="badge">
-                          {item.status === "USED"
-                            ? "ใช้แล้ว"
-                            : item.status === "EXPIRED"
-                              ? "หมดอายุ"
-                              : "สิทธิ์สาธิต"}
-                          {item.ticketsCount
-                            ? ` · ${item.ticketsCount} สิทธิ์`
-                            : ""}
-                        </span>
-                        <h2>{item.title}</h2>
-                        <p className="text-muted">
-                          แลก {date(item.createdAt)} · {item.tokensSpent} แต้ม
-                          {item.expiresAt
-                            ? ` · ถึง ${date(item.expiresAt)}`
-                            : ""}
-                        </p>
-                        <code>{item.code}</code>
-                      </div>
-                      <div className="xp-owned-actions">
-                        {["COUPON", "DISCOUNT"].includes(item.kind) &&
-                          item.status === "AVAILABLE" && (
+                        {coupon && (
+                          <div className="xp-owned-actions">
+                            {item.status === "AVAILABLE" && (
+                              <button
+                                className="button button--primary"
+                                disabled={busy}
+                                onClick={() => activateVoucher(item)}
+                              >
+                                ใช้คูปองทดลอง
+                              </button>
+                            )}
                             <button
-                              className="button button--primary"
-                              disabled={busy}
-                              onClick={() => activateVoucher(item)}
+                              className="button button--secondary"
+                              onClick={() =>
+                                copy(item.voucherCode || item.code)
+                              }
                             >
-                              ใช้คูปองทดลอง
+                              {copied === (item.voucherCode || item.code) ? (
+                                <Check size={16} />
+                              ) : (
+                                <Copy size={16} />
+                              )}
+                              คัดลอกรหัสคูปอง
                             </button>
-                          )}
-                        <button
-                          className="button button--secondary"
-                          onClick={() => copy(item.code)}
-                        >
-                          {copied === item.code ? (
-                            <Check size={16} />
-                          ) : (
-                            <Copy size={16} />
-                          )}
-                          คัดลอก
-                        </button>
-                      </div>
-                    </article>
-                  ))}
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
               ))}
             {tab === "history" && (

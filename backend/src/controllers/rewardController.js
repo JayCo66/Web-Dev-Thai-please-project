@@ -23,6 +23,7 @@ function checkMonthlyHardSinkQuota(count, max = 1) {
   return Number(count || 0) < max;
 }
 function itemView(item) {
+  const coupon = ["COUPON", "DISCOUNT"].includes(item.kind);
   return {
     id: item.redemption_id.toString(),
     kind: item.kind,
@@ -32,11 +33,11 @@ function itemView(item) {
     status:
       item.status === "USED"
         ? "USED"
-        : item.expires_at && item.expires_at < new Date()
+        : coupon && item.expires_at && item.expires_at < new Date()
           ? "EXPIRED"
           : item.status,
     createdAt: item.created_at,
-    expiresAt: item.expires_at,
+    expiresAt: coupon ? item.expires_at : null,
     ...item.metadata,
   };
 }
@@ -183,7 +184,10 @@ async function redeem(req, res, lucky) {
           metadata,
           token_cost: tokenCost,
           request_key: key,
-          expires_at: lucky ? null : new Date(Date.now() + 45 * 86400000),
+          expires_at:
+            !lucky && ["COUPON", "DISCOUNT"].includes(reward.reward_type)
+              ? new Date(Date.now() + 45 * 86400000)
+              : null,
         },
       });
       await tx.token_transactions.create({

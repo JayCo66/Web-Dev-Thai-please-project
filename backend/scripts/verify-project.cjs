@@ -370,6 +370,19 @@ async function main() {
   assert.equal(ra.success, true, JSON.stringify(ra));
   assert.equal(rb.success, true, JSON.stringify(rb));
   assert.equal(ra.data.code, rb.data.code);
+  if (ra.data.kind === "PHYSICAL") {
+    assert.equal(ra.data.expiresAt, null);
+    await db.reward_redemptions.update({
+      where: { redemption_id: BigInt(ra.data.id) },
+      data: { expires_at: new Date("2020-01-01") },
+    });
+    const legacyPhysical = (
+      await request("/rewards/my-items", token)
+    ).data.find((item) => item.id === ra.data.id);
+    assert.equal(legacyPhysical.expiresAt, null);
+    assert.equal(legacyPhysical.status, "AVAILABLE");
+  }
+
   assert.equal((await request("/rewards/my-items", token)).data.length, 1);
   assert.equal((await request("/rewards/my-items", token2)).data.length, 0);
   check(
@@ -726,13 +739,13 @@ async function main() {
   await page.goto("http://127.0.0.1:5178/charities");
   await page.waitForLoadState("networkidle");
   assert.ok(
-    await page
-      .locator(".xp-charity-cover")
-      .evaluateAll(
-        (imgs) =>
-          imgs.length > 0 &&
-          imgs.every((img) => img.complete && img.naturalWidth > 0),
-      ),
+    await page.locator(".xp-charity-cover").evaluateAll(async (images) => {
+      images.forEach((image) => (image.loading = "eager"));
+      await Promise.all(images.map((image) => image.decode()));
+      return (
+        images.length > 0 && images.every((image) => image.naturalWidth > 0)
+      );
+    }),
   );
   check("local full-card charity photos load successfully");
   const firstName = await page
@@ -823,6 +836,35 @@ async function main() {
     ),
     false,
     "owned items mobile overflow",
+  );
+  const entries = page.locator('[data-item-kind="LUCKY_DRAW"]');
+  assert.equal(await entries.count(), 3);
+  assert.equal(await entries.locator("code,button").count(), 0);
+  assert.ok(
+    (await entries.allInnerTexts()).every(
+      (text) => text.includes("สะสม 3 สิทธิ์") && text.includes("งวด"),
+    ),
+  );
+  const physical = page.locator('[data-item-kind="PHYSICAL"]');
+  assert.ok((await physical.count()) > 0);
+  assert.equal(await physical.locator("code,button").count(), 0);
+  assert.ok(
+    (await physical.allInnerTexts()).every(
+      (text) => text.includes("รายการแลกของ") && !text.includes("หมดอายุ"),
+    ),
+  );
+  const coupons = page.locator(
+    '[data-item-kind="COUPON"], [data-item-kind="DISCOUNT"]',
+  );
+  assert.equal(await coupons.locator("code").count(), await coupons.count());
+  assert.equal(
+    await coupons
+      .getByRole("button", { name: "คัดลอกรหัสคูปอง", exact: true })
+      .count(),
+    await coupons.count(),
+  );
+  check(
+    "draw entries and physical rewards show account history without coupon codes; only coupons have copy actions",
   );
   await page.screenshot({
     path: path.join(screenshots, "merged-coupon-items-mobile.png"),
