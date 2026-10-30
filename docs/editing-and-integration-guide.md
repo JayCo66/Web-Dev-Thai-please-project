@@ -75,6 +75,4 @@ git merge --no-commit --no-ff origin/main
 
 Unit tests 46 ผ่าน และ functional/browser checks 25 ผ่านบนเซิร์ฟเวอร์ MySQL ทดสอบใหม่พอร์ต 5094 มีกรณีจำลองรถชื่อยาว/สั้นซ้ำ รัน sync ซ้ำสองรอบ และตรวจว่าสิทธิ์เก่าที่ยังชี้ reward_id ของรายการที่ปิดยังอยู่ครบ Build ผ่าน
 
-ฐานหลัก localhost:3306 หยุดระหว่างทดสอบ การเปิดด้วย config เดิมตามปกติไม่สำเร็จ log ระบุ invalid undo header offset และ InnoDB Data structure corruption สาเหตุที่ทำให้ไฟล์เสียยังไม่ได้ยืนยัน จึงยังไม่ได้ apply ตัวแก้ catalog กับฐานหลัก และไม่ได้รัน force recovery/reset บนฐานหลัก
-
-สำรอง data directory เดิมครบชุดไว้ที่ C:/Drive d/fullstack2/.db-backups/20261030-1200/data (สำเนาหลังเกิดข้อผิดพลาด ไม่ใช่การยืนยันว่าเป็น backup ที่ปราศจากความเสียหาย) ต้องแยกตรวจการกู้ MySQL ก่อนใช้งานฐานหลักต่อ ปัญหานี้แยกจาก schema ต่างกันระหว่าง branch
+ฐานหลักกู้คืนและเปิดผ่าน XAMPP ได้แล้วที่พอร์ต 3306 โหมดปกติ force_recovery=0 ตรวจข้อมูลที่กู้ได้ครบ 38 ตารางก่อนเปิดให้แอปใช้ และ mysqlcheck ผ่าน เก็บโฟลเดอร์เดิมพร้อม SQL dump ไว้ครบ รายการรางวัลซ้ำแก้กับฐานที่กู้แล้วด้วย ดู [รายงานการกู้ MySQL](mysql-recovery-20261030.md)
