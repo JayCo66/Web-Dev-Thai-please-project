@@ -1,0 +1,68 @@
+/* THAI Please — blue civic-service palette inspired by the project reference.
+   Status green and reward gold retain their semantic meaning. */
+:root {
+  --thai-blue:#0044d6; --thai-navy:#0023a4; --thai-deep:#14264c;
+  --thai-sky:#edf4ff; --thai-border:#dce5f3; --thai-muted:#61718a; --thai-red:#e6444f;
+  --bank-royal:var(--thai-blue); --bank-royal-hover:var(--thai-navy);
+  --bg-app:#f5f8ff; --border-focus:var(--thai-blue);
+}
+.app-shell {
+  --xp-ink:var(--thai-deep); --xp-green:var(--thai-blue);
+  --xp-muted:var(--thai-muted); --xp-border:var(--thai-border);
+  background:linear-gradient(180deg,#eaf2ff 0,#f7f9fd 440px,#f7f9fd 100%);
+  color:var(--thai-deep);
+}
+.app-shell :focus-visible {outline-color:#467cff}
+.app-shell .page-heading p,.app-shell .text-muted {color:var(--thai-muted)}
+.app-shell .page-eyebrow {color:#3c619c}
+.app-shell .panel,.app-shell .stat-card {border-color:var(--thai-border);box-shadow:0 4px 20px #123f8705}
+.app-shell .button--primary {background:var(--thai-blue);border-color:var(--thai-blue);color:#fff}
+.app-shell .button--primary:hover:not(:disabled) {background:var(--thai-navy);border-color:var(--thai-navy)}
+.app-shell .button--secondary {border-color:#cddcf2;color:#214779;background:#fff}
+.app-shell .button--secondary:hover:not(:disabled) {background:var(--thai-sky);border-color:#93b3ed}
+.app-shell .button--ghost {color:#345988}
+.app-shell .xp-header {border-bottom-color:#dce6f6;box-shadow:0 2px 16px #103f8705}
+.app-shell .xp-brand-mark {background:var(--thai-blue)}
+.app-shell .xp-brand-mark>span {background:var(--thai-red)}
+.app-shell .xp-nav-link {color:#61718a}
+.app-shell .xp-nav-link.is-active {color:var(--thai-navy);background:#eaf1ff}
+.app-shell .xp-avatar {background:#f0f5ff;color:#214c94;border-color:#d7e3f7}
+.app-shell .xp-mobile-nav {border-top-color:#dce6f6}
+.app-shell .xp-wallet-card {background:linear-gradient(125deg,#0023a4,#0044d6 70%,#245fea);box-shadow:0 14px 28px #0044d61a}
+.app-shell .xp-wallet-label {color:#dce8ff}
+.app-shell .xp-wallet-bottom>span {color:#d1e1ff}
+.app-shell .xp-topup {background:#ffffff18;border-color:#ffffff55;color:#fff}
+.app-shell .xp-card-link,.app-shell .xp-next-mission,.app-shell .xp-reward-more,.app-shell .xp-inline-link {color:#1f55ad}
+.app-shell .xp-impact-card .xp-stat-icon,.app-shell .xp-profile-avatar {background:#edf3ff;color:#2957a3}
+.app-shell .xp-home-board {border-color:#dbe5f5}
+.app-shell .xp-home-board-art>span:not(.is-center) {background:#edf3ff;border-color:#dde7f8}
+.app-shell .xp-home-board-art>span:not(.is-center):after {background:#bbcef0}
+.app-shell .xp-progress {background:#e5edfa}
+.app-shell .xp-progress>span {background:#3d6ccb}
+.app-shell .segmented {background:#edf2fb;border-color:#dce5f3}
+.app-shell .segmented button {color:#61718a}
+.app-shell .segmented button[aria-pressed="true"] {color:var(--thai-navy)}
+.app-shell .xp-category-chips button {color:#5c6f8d}
+.app-shell .xp-category-chips button[aria-pressed="true"] {background:#e8f0ff;color:#164bb4;border-color:#c7d9fa}
+.app-shell .xp-search {background:#fff;border-color:#d7e3f4;color:#61718a}
+.app-shell .xp-board-tab {border-color:#dce5f3;color:#61718a}
+.app-shell .xp-board-tab.is-selected {background:#edf3ff;border-color:#87a9eb;color:#214fa5}
+.app-shell .xp-board-tab-number {background:#edf2fa;color:#61718a}
+.app-shell .xp-board-tab.is-selected .xp-board-tab-number {background:var(--thai-blue);color:#fff}
+.app-shell .xp-board-tab small {color:#75839b}
+.app-shell .xp-mission-cell:not(.is-done):not(.is-donation) {background:#fbfcff;border-color:#dce5f3}
+.app-shell .xp-mission-cell:not(.is-done):not(.is-donation):hover {border-color:#6b99ee;background:#f1f6ff}
+.app-shell .xp-cell-top,.app-shell .xp-cell-target {color:#6b7c98}
+.app-shell .xp-cell-name {color:#1b365e}
+.app-shell .xp-cell-position {color:#8394b0}
+.app-shell .xp-level--1 {background:#edf3ff;color:#5272a6}
+.app-shell .xp-back-link {color:#4b6590}
+.app-shell .xp-profile-balance {color:var(--thai-deep)}
+.app-shell .xp-quiet-note {color:#6c7d96}
+.app-shell .xp-charity-copy .xp-official-link {color:#5c7397}
+.app-shell .xp-test-token-button {color:#2854a2;border-color:#a8bfee;background:#f5f8ff}
+.app-shell .xp-login-story {background:linear-gradient(150deg,#dbeaff,#eef5ff 65%,#f7f9fd)}
+.app-shell .xp-login-story p,.app-shell .xp-login-story small {color:#5c7397}
+.app-shell .xp-login-form input:focus,.app-shell input:focus-visible {border-color:#6a99ee}
+.app-shell .xp-login-demo {background:#eff4ff;border-color:#cbdcf8;color:#214fa5}
+.app-shell .xp-profile-identity .badge {background:#edf3ff;color:#315eac}

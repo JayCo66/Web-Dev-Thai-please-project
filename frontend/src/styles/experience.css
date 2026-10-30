@@ -1063,6 +1063,8 @@
   }
 }
 .dialog-sheet {
+  /* Restore native dialog centering after the global margin: 0 reset. */
+  margin: auto;
   border: 1px solid #e2e8dd;
   border-radius: 22px;
   padding: 0;

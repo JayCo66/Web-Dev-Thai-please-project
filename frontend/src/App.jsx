@@ -10,6 +10,7 @@ import Payment from './pages/Payment';
 import ThaiPlus from './pages/ThaiPlus';
 import Bingo from './pages/Bingo';
 import Profile from './pages/Profile';
+import "./styles/thai-plus-theme.css";
 
 function App() {
   return (
