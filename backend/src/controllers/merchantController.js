@@ -117,7 +117,7 @@ async function getDashboard(req, res) {
 async function createBill(req, res) {
   try {
     const shop = await ownShop(req.user.userId);
-    if (shop.status !== 'APPROVED' || !shop.is_active) fail('ร้านยังไม่ได้รับอนุมัติ จึงสร้างบิลไม่ได้', 403);
+    if (shop.status !== 'APPROVED' || !shop.is_active) fail(shop.status === 'APPROVED' ? 'ร้านถูกระงับชั่วคราว จึงสร้างบิลไม่ได้ กรุณาติดต่อเจ้าหน้าที่' : 'ร้านยังไม่ได้รับอนุมัติ จึงสร้างบิลไม่ได้', 403);
     const amount = money(req.body.amount);
     const note = typeof req.body.note === 'string' ? req.body.note.trim().slice(0, 200) : '';
     // 4 random bytes as hex: short enough to read out, unguessable within a bill's short life.

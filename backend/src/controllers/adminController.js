@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { buildAnalytics } = require('../services/adminAnalytics');
 
 /**
  * GET /api/admin/stats
@@ -675,7 +676,56 @@ async function reviewShop(req, res) {
   }
 }
 
+/**
+ * GET /api/admin/analytics
+ * Read-only BI numbers: quest success rates, spending patterns, user funnel, tokens, donations.
+ */
+async function getAdminAnalytics(req, res) {
+  try {
+    const [boards, quests, transactions, donations, tokenGroups, redemptions, citizens, shopGroups] = await Promise.all([
+      prisma.bingo_boards.findMany({ select: { user_id: true, snapshot: true } }),
+      prisma.bingo_quests.findMany({ select: { quest_code: true, title: true } }),
+      prisma.transactions.findMany({
+        where: { status: 'COMPLETED' },
+        select: { user_id: true, shop_id: true, total_amount: true, paid_at: true, shops: { select: { category: true, shop_name: true } } },
+      }),
+      prisma.donations.findMany({ select: { user_id: true, amount: true, charities: { select: { impact_type: true } } } }),
+      tokenTotals(),
+      prisma.reward_redemptions.findMany({ select: { user_id: true } }),
+      prisma.users.count({ where: { role: 'CITIZEN' } }),
+      prisma.shops.groupBy({ by: ['status'], _count: { _all: true } }),
+    ]);
+
+    // Titles carry {n} for the target; in a report it reads better as N.
+    const questTitles = new Map(quests.filter((q) => q.quest_code).map((q) => [q.quest_code, q.title.replace('{n}', 'N')]));
+    const data = buildAnalytics({
+      boards,
+      questTitles,
+      transactions,
+      donations,
+      tokenGroups,
+      redemptions,
+      citizens,
+      shopStatuses: Object.fromEntries(shopGroups.map((g) => [g.status, g._count._all])),
+    });
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error building admin analytics:', error);
+    res.status(500).json({ success: false, error: 'ไม่สามารถสร้างข้อมูลวิเคราะห์ได้' });
+  }
+}
+
+// Earned (positive) and spent (negative) token amounts per type.
+async function tokenTotals() {
+  const [earned, spent] = await Promise.all([
+    prisma.token_transactions.groupBy({ by: ['type'], where: { amount: { gt: 0 } }, _sum: { amount: true } }),
+    prisma.token_transactions.groupBy({ by: ['type'], where: { amount: { lt: 0 } }, _sum: { amount: true } }),
+  ]);
+  return [...earned, ...spent].map((g) => ({ type: g.type, amount: g._sum.amount || 0 }));
+}
+
 module.exports = {
+  getAdminAnalytics,
   getAdminStats,
   getAdminRewards,
   createAdminReward,

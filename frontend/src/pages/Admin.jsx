@@ -22,8 +22,10 @@ import {
   TrendingUp,
   Package,
   Ticket,
+  BarChart3,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import AdminAnalytics from "../components/AdminAnalytics";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../styles/admin.css";
@@ -395,7 +397,17 @@ export default function Admin() {
             <span>ตรวจสอบร้านค้าชุมชน</span>
             <span className="badge">{pendingShopCount > 0 ? `รออนุมัติ ${pendingShopCount}` : shopsList.length}</span>
           </button>
+          <button
+            type="button"
+            className={`admin-tab-btn ${tab === "analytics" ? "is-active" : ""}`}
+            onClick={() => setTab("analytics")}
+          >
+            <BarChart3 size={18} />
+            <span>วิเคราะห์ (BI)</span>
+          </button>
         </div>
+
+        {tab === "analytics" && <AdminAnalytics />}
 
         {/* ========================================================= */}
         {/* TAB 1: OVERVIEW & STATS */}

@@ -9,6 +9,7 @@ router.use(authorizeRoles('ADMIN', 'GOV_EXECUTIVE'));
 
 // Dashboard Overview Metrics
 router.get('/stats', adminController.getAdminStats);
+router.get('/analytics', adminController.getAdminAnalytics);
 
 // Rewards CRUD & Toggle
 router.get('/rewards', adminController.getAdminRewards);
