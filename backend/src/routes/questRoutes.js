@@ -17,7 +17,10 @@ const optionalAuth = (req, res, next) => {
   try {
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thai_please_super_secret_jwt_key_2026');
-    req.user = decoded;
+    req.user = {
+      ...decoded,
+      userId: (decoded.user_id || decoded.userId || '').toString(),
+    };
   } catch {
     // continue without req.user
   }

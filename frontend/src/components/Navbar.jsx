@@ -50,7 +50,7 @@ export default function Navbar() {
           <Link to="/" className="brand-link" aria-label="ไทยช่วยไทยพลีส กลับสู่หน้าหลัก">
             <div className="header-logo" aria-hidden="true">TP</div>
             <div className="brand-text-group">
-              <div className="header-title">ไทยช่วยไทย<span className="accent-text">พลีส</span></div>
+              <div className="header-title">ไทยช่วยด้วย<span className="accent-text">พลีส</span></div>
               <div className="header-tag">กระเป๋าเงินดิจิทัล & บริการคนละครึ่ง 60/40</div>
             </div>
           </Link>
@@ -84,7 +84,7 @@ export default function Navbar() {
             className={`nav-pill-link ${location.pathname === '/plus' || location.pathname === '/rewards' ? 'active' : ''}`}
           >
             <Gift size={16} />
-            <span>ไทยช่วยไทยพลัส</span>
+            <span>แลกของรางวัลและชิงโชค</span>
           </Link>
           <Link
             to="/bingo"

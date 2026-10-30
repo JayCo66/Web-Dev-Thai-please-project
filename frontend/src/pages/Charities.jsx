@@ -593,8 +593,8 @@ export default function Charities() {
                       </div>
 
                       <div>
-                        {/* Quick Presets: 3 Presets (50, 100, 200) + 1 Custom Amount Option */}
-                        <div className="charity-presets-grid" aria-label="เลือกยอดเงินด่วนหรือระบุเอง">
+                        {/* Quick Presets: 3 Presets (50, 100, 200) */}
+                        <div className="charity-presets-grid" aria-label="เลือกยอดเงินบริจาคด่วน">
                           {[50, 100, 200].map((amt) => {
                             const bonus = Math.max(1, Math.floor(amt / 20));
                             return (
@@ -611,23 +611,6 @@ export default function Charities() {
                               </button>
                             );
                           })}
-
-                          {/* 4th button: Specify Amount Yourself */}
-                          <button
-                            type="button"
-                            className="btn-card-preset"
-                            onClick={() => handleOpenDonate(item, 0, true)}
-                            aria-label={`ระบุจำนวนเงินบริจาคเองให้ ${item.name}`}
-                            title={`ระบุจำนวนเงินบริจาคเองให้ ${item.name}`}
-                          >
-                            <span className="preset-amount" style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                              <Pencil size={11} />
-                              <span>ระบุเอง</span>
-                            </span>
-                            <span className="preset-token-tag" style={{ color: 'var(--text-secondary)' }}>
-                              พิมพ์ยอด
-                            </span>
-                          </button>
                         </div>
 
                         {/* Primary Button (Min 50px height, Home page gradient) */}
@@ -744,20 +727,7 @@ export default function Charities() {
           </div>
         )}
 
-        {/* ========================================================
-            6. SECURITY & COMPLIANCE BANNER (MATCHING HOME PAGE)
-            ======================================================== */}
-        <div className="compliance-box" role="region" aria-label="ความปลอดภัยและ PDPA" style={{ marginTop: 24 }}>
-          <CheckCircle2 size={24} color="var(--fin-success)" style={{ flexShrink: 0 }} />
-          <div>
-            <div className="compliance-title">
-              ระบบ e-Donation มาตรฐานกรมสรรพากรและ PDPA
-            </div>
-            <div className="compliance-text">
-              ข้อมูลธุรกรรมการบริจาคเชื่อมโยงตรงกับระบบ e-Donation ของกรมสรรพากรผ่านการเข้ารหัสขั้นสูง ปลอดภัย สอดคล้องตามมาตรฐาน ETDA และใช้สิทธิลดหย่อนภาษีได้ทันทีโดยไม่ต้องส่งเอกสารกระดาษ
-            </div>
-          </div>
-        </div>
+
       </main>
 
       {/* ========================================================

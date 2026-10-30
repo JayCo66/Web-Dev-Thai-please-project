@@ -732,7 +732,6 @@ export default function ThaiPlus() {
                 {filteredRewards.map((reward) => {
                   const canAfford = tokens >= reward.tokenCost;
                   const isCoupon = reward.rewardType === 'COUPON';
-                  const isLowStock = reward.stock <= 20;
 
                   return (
                     <div
@@ -742,12 +741,40 @@ export default function ThaiPlus() {
                       <div className="reward-card-header">
                         <span className={`reward-tag-badge ${isCoupon ? 'tag-coupon' : 'tag-physical'}`}>
                           {isCoupon ? <Tag size={13} /> : <Truck size={13} />}
-                          <span>{reward.tag || (isCoupon ? 'คูปองดิจิทัล' : 'สินค้าชุมชน')}</span>
+                          <span>{reward.tag || (isCoupon ? 'คูปองดิจิทัล' : 'สินค้าพรีเมียม')}</span>
                         </span>
 
                         <div className="reward-cost-pill">
                           <Coins size={15} />
-                          <span>{reward.tokenCost} Tokens</span>
+                          <span style={{ whiteSpace: 'nowrap' }}>{reward.tokenCost} Tokens</span>
+                        </div>
+                      </div>
+
+                      {/* Product Image */}
+                      <div className="reward-card-image-wrap">
+                        {reward.imageUrl ? (
+                          <img
+                            src={reward.imageUrl}
+                            alt={reward.name}
+                            className="reward-card-img"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="reward-card-img-fallback"
+                          style={{ display: reward.imageUrl ? 'none' : 'flex' }}
+                        >
+                          {isCoupon ? (
+                            <Tag size={42} color="#1D4ED8" />
+                          ) : (
+                            <ShoppingBag size={42} color="#059669" />
+                          )}
                         </div>
                       </div>
 
@@ -769,10 +796,6 @@ export default function ThaiPlus() {
                       </div>
 
                       <div className="reward-card-footer">
-                        <div className="reward-stock-text">
-                          <span>{isLowStock ? `รีบเลย! เหลือเพียง ${reward.stock} ชิ้น` : `สต็อกพร้อมแลก: ${reward.stock} ชิ้น`}</span>
-                        </div>
-
                         {/* Full Width 48px Thumb Action Button */}
                         <button
                           type="button"
@@ -791,7 +814,7 @@ export default function ThaiPlus() {
                           <span>
                             {canAfford
                               ? `แลกรางวัลนี้ (ใช้ ${reward.tokenCost} Tokens)`
-                              : `Tokens ไม่พอ (ขาดอีก ${reward.tokenCost - tokens} Tokens)`}
+                              : 'Tokens ไม่พอ'}
                           </span>
                         </button>
                       </div>
@@ -1284,7 +1307,31 @@ export default function ThaiPlus() {
                           </span>
                           <div className="reward-cost-pill">
                             <Coins size={14} />
-                            <span>{item.tokenCost} Tokens / สิทธิ์</span>
+                            <span style={{ whiteSpace: 'nowrap' }}>{item.tokenCost} Tokens / สิทธิ์</span>
+                          </div>
+                        </div>
+
+                        {/* Prize Image */}
+                        <div className="reward-card-image-wrap">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="reward-card-img"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className="reward-card-img-fallback"
+                            style={{ display: item.imageUrl ? 'none' : 'flex' }}
+                          >
+                            <Crown size={42} color="#D97706" />
                           </div>
                         </div>
 
@@ -1554,20 +1601,7 @@ export default function ThaiPlus() {
           </div>
         )}
 
-        {/* ========================================================
-            5. SECURITY & ETDA COMPLIANCE (EXACT HOME DESIGN STYLE)
-            ======================================================== */}
-        <div className="compliance-box" role="region" aria-label="ความปลอดภัยและมาตรฐานของรางวัล">
-          <CheckCircle2 size={24} color="var(--fin-success)" style={{ flexShrink: 0 }} />
-          <div>
-            <div className="compliance-title">
-              ระบบของรางวัลและสิทธิประโยชน์มาตรฐานสถาบันการเงินและ ETDA
-            </div>
-            <div className="compliance-text">
-              รหัสคูปองดิจิทัลและสลากชิงโชคทั้งหมดได้รับการเข้ารหัสความปลอดภัยมาตรฐานสถาบันการเงิน เชื่อมโยงกับร้านค้าชุมชนและพันธมิตรโครงการ สิทธิ์ของท่านจะถูกจัดเก็บอย่างปลอดภัย 100%
-            </div>
-          </div>
-        </div>
+
       </main>
 
       {/* ====================================================
@@ -1608,11 +1642,29 @@ export default function ThaiPlus() {
                 marginBottom: 20,
               }}
             >
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
-                {selectedReward.name}
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>
-                {selectedReward.description}
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 14 }}>
+                {selectedReward.imageUrl && (
+                  <img
+                    src={selectedReward.imageUrl}
+                    alt={selectedReward.name}
+                    style={{
+                      width: 68,
+                      height: 68,
+                      borderRadius: 'var(--radius-sm)',
+                      objectFit: 'cover',
+                      border: '1px solid #E2E8F0',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+                    {selectedReward.name}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    {selectedReward.description}
+                  </div>
+                </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #CBD5E1', paddingTop: 10, fontSize: 14 }}>

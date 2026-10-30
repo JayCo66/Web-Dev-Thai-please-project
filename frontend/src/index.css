@@ -2093,8 +2093,8 @@ button, input, select, textarea {
 /* Quick Preset Buttons on Card (min 52px touch targets) */
 .charity-presets-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   margin-bottom: 12px;
 }
 
@@ -3576,6 +3576,7 @@ button, input, select, textarea {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .reward-tag-badge {
@@ -3586,6 +3587,8 @@ button, input, select, textarea {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .reward-tag-badge.tag-coupon {
@@ -3607,11 +3610,50 @@ button, input, select, textarea {
   background: #FEF3C7;
   color: #B45309;
   border: 1px solid #FDE68A;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+.reward-card-image-wrap {
+  width: 100%;
+  height: 165px;
+  background: #F8FAFC;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-top: 1px solid #F1F5F9;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.reward-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reward-card:hover .reward-card-img {
+  transform: scale(1.05);
+}
+
+.reward-card-img-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #EEF2F6 100%);
+  color: #64748B;
 }
 
 .reward-card-body {

@@ -95,52 +95,205 @@ function formatShortQuestTitle(title, isDonation = false) {
 }
 
 /**
- * Evaluate progress increment for a specific cell based on transaction details
+ * Calculate accurate progress for any quest code given a list of completed transactions
+ */
+function calculateProgressForQuest(questCode, targetValue, transactions) {
+  if (!transactions || transactions.length === 0) return 0;
+
+  const parsedTxs = transactions.map((t) => {
+    const totalAmount = Number(t.total_amount || 0);
+    const shopCat = (t.shops?.category || '').toLowerCase();
+    const isFood = shopCat.includes('food') || shopCat.includes('อาหาร') || shopCat.includes('เครื่องดื่ม') || shopCat.includes('cafe');
+    const isGoods = !isFood;
+    const shopId = (t.shop_id || '').toString();
+
+    const date = t.paid_at ? new Date(t.paid_at) : new Date();
+    const utcMs = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const thaiDate = new Date(utcMs + (7 * 3600000));
+    const paidHour = thaiDate.getHours();
+    const paidDay = thaiDate.getDay();
+    const dateStr = thaiDate.toISOString().slice(0, 10);
+
+    return {
+      totalAmount,
+      isFood,
+      isGoods,
+      shopId,
+      paidHour,
+      paidDay,
+      dateStr,
+      isMorning: paidHour < 11,
+      isLunch: paidHour >= 11 && paidHour < 14,
+      isAfternoon: paidHour >= 14 && paidHour < 18,
+      isWeekday: paidDay >= 1 && paidDay <= 5,
+      isWeekend: paidDay === 0 || paidDay === 6,
+      isFriday: paidDay === 5,
+    };
+  });
+
+  switch (questCode) {
+    // 1. Transaction Counts
+    case 'TX_COUNT_ANY':
+      return parsedTxs.length;
+
+    // 2. Spending Totals
+    case 'SPEND_TOTAL_ANY':
+      return Math.floor(parsedTxs.reduce((sum, t) => sum + t.totalAmount, 0));
+
+    case 'SPEND_TOTAL_FD':
+      return Math.floor(parsedTxs.filter((t) => t.isFood).reduce((sum, t) => sum + t.totalAmount, 0));
+
+    case 'SPEND_TOTAL_GD':
+      return Math.floor(parsedTxs.filter((t) => t.isGoods).reduce((sum, t) => sum + t.totalAmount, 0));
+
+    case 'SPEND_SINGLE_MERCHANT': {
+      const spendByShop = {};
+      parsedTxs.forEach((t) => {
+        spendByShop[t.shopId] = (spendByShop[t.shopId] || 0) + t.totalAmount;
+      });
+      return Math.floor(Math.max(0, ...Object.values(spendByShop)));
+    }
+
+    // 3. Single Ticket
+    case 'SINGLE_TICKET_ANY': {
+      const maxTicket = Math.max(0, ...parsedTxs.map((t) => t.totalAmount));
+      return maxTicket >= targetValue ? targetValue : Math.floor(maxTicket);
+    }
+
+    case 'SINGLE_TICKET_FD': {
+      const maxTicket = Math.max(0, ...parsedTxs.filter((t) => t.isFood).map((t) => t.totalAmount));
+      return maxTicket >= targetValue ? targetValue : Math.floor(maxTicket);
+    }
+
+    case 'SINGLE_TICKET_GD': {
+      const maxTicket = Math.max(0, ...parsedTxs.filter((t) => t.isGoods).map((t) => t.totalAmount));
+      return maxTicket >= targetValue ? targetValue : Math.floor(maxTicket);
+    }
+
+    // 4. Category Counts
+    case 'CATEGORY_COUNT_FD':
+    case 'FD_ANY':
+      return parsedTxs.filter((t) => t.isFood).length;
+
+    case 'CATEGORY_COUNT_GD':
+    case 'GD_ANY':
+      return parsedTxs.filter((t) => t.isGoods).length;
+
+    // 5. Daypart
+    case 'DAYPART_MORNING':
+      return parsedTxs.filter((t) => t.isMorning).length;
+
+    case 'FD_MORNING':
+      return parsedTxs.filter((t) => t.isFood && t.isMorning).length;
+
+    case 'DAYPART_LUNCH':
+      return parsedTxs.filter((t) => t.isLunch).length;
+
+    case 'FD_LUNCH':
+      return parsedTxs.filter((t) => t.isFood && t.isLunch).length;
+
+    case 'DAYPART_AFTERNOON':
+      return parsedTxs.filter((t) => t.isAfternoon).length;
+
+    case 'FD_AFTERNOON':
+      return parsedTxs.filter((t) => t.isFood && t.isAfternoon).length;
+
+    // 6. Day of Week
+    case 'WEEKDAY_COUNT':
+      return parsedTxs.filter((t) => t.isWeekday).length;
+
+    case 'GD_WEEKDAY':
+      return parsedTxs.filter((t) => t.isGoods && t.isWeekday).length;
+
+    case 'WEEKEND_COUNT':
+      return parsedTxs.filter((t) => t.isWeekend).length;
+
+    case 'FRIDAY_COUNT':
+      return parsedTxs.filter((t) => t.isFriday).length;
+
+    // 7. Distinct Merchants (ต่างร้าน - ต้องมี shop_id ต่างกันจริง)
+    case 'DISTINCT_MERCHANTS_ANY':
+      return new Set(parsedTxs.map((t) => t.shopId)).size;
+
+    case 'DISTINCT_MERCHANTS_FD':
+      return new Set(parsedTxs.filter((t) => t.isFood).map((t) => t.shopId)).size;
+
+    case 'DISTINCT_MERCHANTS_GD':
+      return new Set(parsedTxs.filter((t) => t.isGoods).map((t) => t.shopId)).size;
+
+    case 'NEW_MERCHANTS_ANY':
+      return new Set(parsedTxs.map((t) => t.shopId)).size;
+
+    // 8. Repeat Merchant (ร้านเดิมซ้ำ - นับจำนวนครั้งสูงสุดที่ไปซื้อร้านใดร้านหนึ่ง)
+    case 'REPEAT_MERCHANT_ANY': {
+      const counts = {};
+      parsedTxs.forEach((t) => {
+        counts[t.shopId] = (counts[t.shopId] || 0) + 1;
+      });
+      return Math.max(0, ...Object.values(counts));
+    }
+
+    case 'REPEAT_MERCHANT_FD': {
+      const counts = {};
+      parsedTxs.filter((t) => t.isFood).forEach((t) => {
+        counts[t.shopId] = (counts[t.shopId] || 0) + 1;
+      });
+      return Math.max(0, ...Object.values(counts));
+    }
+
+    case 'REPEAT_MERCHANT_GD': {
+      const counts = {};
+      parsedTxs.filter((t) => t.isGoods).forEach((t) => {
+        counts[t.shopId] = (counts[t.shopId] || 0) + 1;
+      });
+      return Math.max(0, ...Object.values(counts));
+    }
+
+    case 'REPEAT_MERCHANT_WEEKEND': {
+      const counts = {};
+      parsedTxs.filter((t) => t.isWeekend).forEach((t) => {
+        counts[t.shopId] = (counts[t.shopId] || 0) + 1;
+      });
+      return Math.max(0, ...Object.values(counts));
+    }
+
+    // 9. Distinct Days (วันที่ต่างกัน)
+    case 'CATEGORY_DAYS_FD':
+      return new Set(parsedTxs.filter((t) => t.isFood).map((t) => t.dateStr)).size;
+
+    case 'CATEGORY_DAYS_GD':
+      return new Set(parsedTxs.filter((t) => t.isGoods).map((t) => t.dateStr)).size;
+
+    // 10. Streak Days (ติดต่อกัน n วัน)
+    case 'STREAK_DAYS_ANY': {
+      const uniqueDates = Array.from(new Set(parsedTxs.map((t) => t.dateStr))).sort();
+      if (uniqueDates.length === 0) return 0;
+      let maxStreak = 1;
+      let currentStreak = 1;
+      for (let i = 1; i < uniqueDates.length; i++) {
+        const prev = new Date(uniqueDates[i - 1]);
+        const curr = new Date(uniqueDates[i]);
+        const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          currentStreak++;
+          if (currentStreak > maxStreak) maxStreak = currentStreak;
+        } else if (diffDays > 1) {
+          currentStreak = 1;
+        }
+      }
+      return maxStreak;
+    }
+
+    default:
+      return 0;
+  }
+}
+
+/**
+ * Evaluate progress increment for backward compatibility
  */
 function evaluateQuestIncrement(cell, transaction) {
-  const totalAmount = Number(transaction.total_amount || 0);
-  const shopCat = (transaction.shops?.category || '').toLowerCase();
-  const isFood = shopCat.includes('food') || shopCat.includes('อาหาร') || shopCat.includes('เครื่องดื่ม') || shopCat.includes('cafe');
-  const isGoods = !isFood;
-  const date = transaction.paid_at ? new Date(transaction.paid_at) : new Date();
-  // Ensure time evaluation strictly uses Thailand Time (UTC+7) regardless of server host timezone
-  const utcMs = date.getTime() + (date.getTimezoneOffset() * 60000);
-  const thaiDate = new Date(utcMs + (7 * 3600000));
-  const paidHour = thaiDate.getHours();
-  const paidDay = thaiDate.getDay();
-  const isMorning = paidHour < 11;
-  const isLunch = paidHour >= 11 && paidHour < 14;
-  const isAfternoon = paidHour >= 14 && paidHour < 18;
-  const isWeekday = paidDay >= 1 && paidDay <= 5;
-  const isWeekend = paidDay === 0 || paidDay === 6;
-
-  let increment = 0;
-  if (cell.quest_code === 'TX_COUNT_ANY') {
-    increment = 1;
-  } else if (cell.quest_code === 'SPEND_TOTAL_ANY') {
-    increment = Math.floor(totalAmount);
-  } else if (cell.quest_code === 'CATEGORY_COUNT_FD' || cell.quest_code === 'FD_ANY') {
-    if (isFood) increment = 1;
-  } else if (cell.quest_code === 'CATEGORY_COUNT_GD' || cell.quest_code === 'GD_ANY') {
-    if (isGoods) increment = 1;
-  } else if (cell.quest_code === 'DAYPART_MORNING' || cell.quest_code === 'FD_MORNING') {
-    if (isMorning) increment = 1;
-  } else if (cell.quest_code === 'DAYPART_LUNCH' || cell.quest_code === 'FD_LUNCH') {
-    if (isLunch) increment = 1;
-  } else if (cell.quest_code === 'DAYPART_AFTERNOON' || cell.quest_code === 'FD_AFTERNOON') {
-    if (isAfternoon) increment = 1;
-  } else if (cell.quest_code === 'WEEKDAY_COUNT' || cell.quest_code === 'GD_WEEKDAY') {
-    if (isWeekday) increment = 1;
-  } else if (cell.quest_code === 'WEEKEND_COUNT') {
-    if (isWeekend) increment = 1;
-  } else if (cell.quest_code === 'SINGLE_TICKET_ANY') {
-    if (totalAmount >= cell.target_value) {
-      increment = Math.max(0, cell.target_value - (cell.progress || 0));
-    }
-  } else if (cell.quest_code === 'DISTINCT_MERCHANTS_ANY') {
-    increment = 1;
-  }
-  return increment;
+  return calculateProgressForQuest(cell.quest_code, cell.target_value, [transaction]);
 }
 
 /**
@@ -325,7 +478,7 @@ async function generateAndPersistFourMonthlyBoards(userId, monthKey, existingDbB
       for (let i = 0; i < needed; i++) {
         const themeInfo = BOARD_THEMES[startIdx + i];
         await prisma.$executeRawUnsafe(
-          'INSERT INTO bingo_boards (user_id, board_size, status, generated_by_ai, line_select_mode, theme, month_key) VALUES (?, 5, ?, 1, "FULL_CARD", ?, ?);',
+          'INSERT INTO bingo_boards (user_id, board_size, status, generated_by_ai, line_select_mode, theme, month_key) VALUES (?, 5, ?, 1, "AUTO_MAX_TOKEN", ?, ?);',
           BigInt(userId), (startIdx + i) === 0 ? 'ACTIVE' : 'ACCEPTED', themeInfo.theme, monthKey
         );
       }
@@ -791,7 +944,7 @@ async function syncPaymentProgress(userId, transaction) {
  */
 async function setActiveBoard(req, res) {
   try {
-    const userId = req.user?.userId ? req.user.userId.toString() : '1';
+    const userId = (req.user?.userId || req.user?.user_id) ? (req.user.userId || req.user.user_id).toString() : '1';
     const { boardIndex } = req.body;
     const bIndex = Math.max(0, Math.min(3, parseInt(boardIndex, 10)));
 
@@ -872,7 +1025,7 @@ async function setActiveBoard(req, res) {
  */
 async function getActiveBoard(req, res) {
   try {
-    const userId = req.user?.userId ? req.user.userId.toString() : '1';
+    const userId = (req.user?.userId || req.user?.user_id) ? (req.user.userId || req.user.user_id).toString() : '1';
     const monthKey = getCurrentMonthKey();
 
     const boards = await getOrInitializeUserBoards(userId, monthKey);
@@ -941,7 +1094,7 @@ async function getActiveBoard(req, res) {
  */
 async function progressCell(req, res) {
   try {
-    const userId = req.user?.userId ? req.user.userId.toString() : '1';
+    const userId = (req.user?.userId || req.user?.user_id) ? (req.user.userId || req.user.user_id).toString() : '1';
     const { position, increment = 1, markComplete = false, boardIndex = 0 } = req.body;
 
     const bIndex = Math.max(0, Math.min(3, parseInt(boardIndex, 10)));

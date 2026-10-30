@@ -1191,20 +1191,7 @@ export default function Bingo() {
           </div>
         )}
 
-        {/* ========================================================
-            6. SECURITY & COMPLIANCE BANNER (Exact style from Home)
-            ======================================================== */}
-        <div className="compliance-box" role="region" aria-label="ความปลอดภัยและ PDPA" style={{ marginTop: 24 }}>
-          <CheckCircle2 size={24} color="var(--fin-success)" style={{ flexShrink: 0 }} />
-          <div>
-            <div className="compliance-title">
-              ระบบคำนวณและตรวจสอบภารกิจบิงโกอัตโนมัติตามมาตรฐานสถาบันการเงิน
-            </div>
-            <div className="compliance-text">
-              ข้อมูลธุรกรรมการใช้จ่ายและการสแกนสิทธิ 60/40 ได้รับการตรวจสอบและเข้ารหัสความปลอดภัยขั้นสูง สอดคล้องตามมาตรฐาน ETDA และ พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
-            </div>
-          </div>
-        </div>
+
       </main>
 
       {/* ====================================================

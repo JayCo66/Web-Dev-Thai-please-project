@@ -1,3 +1,16 @@
+const REWARD_FALLBACK_IMAGES = {
+  1: '/rewards/coupon50.jpg',
+  2: '/rewards/drink.jpg',
+  3: '/rewards/gold.jpg',
+  4: '/rewards/totebag.jpg',
+  5: '/rewards/fuel.jpg',
+  6: '/rewards/polo.jpg',
+  7: '/rewards/rice.jpg',
+  8: '/rewards/tumbler.jpg',
+  9: '/rewards/gold.jpg',
+  10: '/rewards/iphone.jpg',
+  11: '/rewards/ev.jpg',
+};
 const prisma = require('../config/prisma');
 const { getUserTotalTokens } = require('../services/authService');
 
@@ -56,7 +69,7 @@ exports.getRewards = async (req, res) => {
         badgeColor = '#D97706';
       } else if (r.reward_type === 'PHYSICAL') {
         category = 'PHYSICAL';
-        tag = 'ของพรีเมียมจัดส่งฟรี';
+        tag = 'สินค้าพรีเมียม';
         stock = 45;
         badgeColor = '#059669';
       } else if (r.reward_type === 'DISCOUNT') {
@@ -72,7 +85,7 @@ exports.getRewards = async (req, res) => {
         description: r.description,
         rewardType: r.reward_type,
         tokenCost: r.token_cost,
-        imageUrl: r.image_url,
+        imageUrl: r.image_url || REWARD_FALLBACK_IMAGES[Number(r.reward_id)] || null,
         category,
         tag,
         stock,
@@ -90,11 +103,11 @@ exports.getRewards = async (req, res) => {
       status: 'OPEN_FOR_ENTRY',
       costPerTicket: 25,
       prizes: [
-        { rank: 1, name: 'ทองคำแท่ง หนัก 1 บาท', value: '45,000 บาท', quantity: 2, icon: 'Crown' },
-        { rank: 2, name: 'สมาร์ทโฟน iPhone 16 Pro 256GB', value: '39,900 บาท', quantity: 3, icon: 'Smartphone' },
-        { rank: 3, name: 'รถจักรยานยนต์ไฟฟ้า EV Eco City', value: '35,000 บาท', quantity: 2, icon: 'Bike' },
-        { rank: 4, name: 'บัตรเติมน้ำมัน PTT Station 5,000 บาท', value: '5,000 บาท', quantity: 10, icon: 'Fuel' },
-        { rank: 5, name: 'Gift Voucher ห้างสรรพสินค้า 2,000 บาท', value: '2,000 บาท', quantity: 20, icon: 'ShoppingBag' },
+        { rank: 1, name: 'ทองคำแท่ง หนัก 1 บาท', value: '45,000 บาท', quantity: 2, icon: 'Crown', image: '/rewards/gold.jpg' },
+        { rank: 2, name: 'สมาร์ทโฟน iPhone 16 Pro 256GB', value: '39,900 บาท', quantity: 3, icon: 'Smartphone', image: '/rewards/iphone.jpg' },
+        { rank: 3, name: 'รถจักรยานยนต์ไฟฟ้า EV Eco City', value: '35,000 บาท', quantity: 2, icon: 'Bike', image: '/rewards/ev.jpg' },
+        { rank: 4, name: 'บัตรเติมน้ำมัน PTT Station 5,000 บาท', value: '5,000 บาท', quantity: 10, icon: 'Fuel', image: '/rewards/fuel.jpg' },
+        { rank: 5, name: 'Gift Voucher ห้างสรรพสินค้า 2,000 บาท', value: '2,000 บาท', quantity: 20, icon: 'ShoppingBag', image: '/rewards/coupon50.jpg' },
       ],
       packages: [
         { tickets: 1, tokens: 25, label: '1 สิทธิ์ (25 Tokens)', badge: null },
