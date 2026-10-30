@@ -319,38 +319,7 @@ export default function Charities() {
           </div>
         </section>
 
-        {/* ========================================================
-            2. HERO SPOTLIGHT CARD (MATCHING HERO-SCAN-CARD IN HOME)
-            ======================================================== */}
-        <div
-          className="hero-scan-card"
-          style={{ cursor: 'default' }}
-          aria-label="หัวข้อการบริจาคเพื่อสังคม e-Donation"
-        >
-          <div className="hero-scan-left">
-            <div className="hero-scan-icon-wrap">
-              <HeartHandshake size={30} strokeWidth={2.4} color="#1D4ED8" />
-            </div>
-            <div>
-              <div className="hero-scan-title">
-                บริจาคอิเล็กทรอนิกส์เพื่อสังคม
-              </div>
-              <div className="hero-scan-desc">
-                หักเงินในกระเป๋าของคุณ ส่งข้อมูลตรงกรมสรรพากร พร้อมรับโบนัส Impact Tokens
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="hero-scan-btn"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setActiveTab(activeTab === 'DONATE' ? 'HISTORY' : 'DONATE')}
-          >
-            <span>{activeTab === 'DONATE' ? `ดูประวัติ (${history.length})` : 'เลือกมูลนิธิ'}</span>
-            <ArrowRight size={16} />
-          </div>
-        </div>
-
+        
         {/* ========================================================
             BENEFITS SUMMARY CARD (HOME STYLE - INSTANT READABILITY)
             ======================================================== */}
@@ -567,15 +536,24 @@ export default function Charities() {
                   return (
                     <article key={item.charityId} className="charity-card">
                       <div>
+                        {/* Charity Illustration Image */}
+                        <div className="charity-card-img-wrap">
+                          <img
+                            src={item.imageUrl || `/charities/charity-${item.charityId}.jpg`}
+                            alt={item.name}
+                            className="charity-card-img"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+
                         {/* Top Accreditation & Category Row */}
                         <div className="charity-top-row">
                           <div className={`charity-impact-badge ${badge.class}`}>
                             {badge.icon}
                             <span>{badge.label}</span>
-                          </div>
-                          <div className="charity-tax-pill">
-                            <ShieldCheck size={12} />
-                            <span>ลดหย่อนภาษีได้</span>
                           </div>
                         </div>
 
@@ -942,17 +920,35 @@ export default function Charities() {
                     border: '1px solid var(--bank-royal-border)',
                     borderRadius: 'var(--radius-md)',
                     padding: '12px 14px',
-                    marginBottom: 16
+                    marginBottom: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12
                   }}
                 >
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block' }}>
-                    บริจาคช่วยเหลือให้แก่:
-                  </span>
-                  <strong style={{ fontSize: 15.5, color: 'var(--bank-royal)', display: 'block', wordBreak: 'break-word', marginTop: 2 }}>
-                    {selectedCharity.name}
-                  </strong>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-tertiary)', marginTop: 4, fontFamily: 'monospace' }}>
-                    เลขประจำตัวผู้เสียภาษี: {selectedCharity.taxId}
+                  <img
+                    src={selectedCharity.imageUrl || `/charities/charity-${selectedCharity.charityId}.jpg`}
+                    alt={selectedCharity.name}
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: 8,
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                      border: '1px solid var(--border-light)'
+                    }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block' }}>
+                      บริจาคช่วยเหลือให้แก่:
+                    </span>
+                    <strong style={{ fontSize: 15.5, color: 'var(--bank-royal)', display: 'block', wordBreak: 'break-word', marginTop: 2 }}>
+                      {selectedCharity.name}
+                    </strong>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-tertiary)', marginTop: 4, fontFamily: 'monospace' }}>
+                      เลขประจำตัวผู้เสียภาษี: {selectedCharity.taxId}
+                    </div>
                   </div>
                 </div>
 

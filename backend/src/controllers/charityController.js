@@ -49,6 +49,7 @@ async function getCharities(req, res) {
         taxId: c.tax_id,
         description: c.description,
         impactType: c.impact_type,
+        imageUrl: `/charities/charity-${c.charity_id}.jpg`,
         totalDonations: stats.totalAmount,
         donorCount: stats.donationCount,
       };

@@ -486,25 +486,27 @@ export default function Payment() {
                     </div>
                   </div>
 
-                  {/* Balance Check Row */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: 13.5,
-                      marginBottom: 20,
-                      padding: '8px 12px',
-                      background: isBalanceSufficient ? '#F0FDF4' : '#FEF2F2',
-                      border: `1px solid ${isBalanceSufficient ? '#BBF7D0' : '#FECACA'}`,
-                      borderRadius: 'var(--radius-md)'
-                    }}
-                  >
-                    <span style={{ color: 'var(--text-secondary)' }}>ยอดคงเหลือหลังหักจ่าย:</span>
-                    <strong style={{ color: isBalanceSufficient ? '#059669' : '#DC2626' }}>
-                      ฿{remainingBalanceAfterPay.toFixed(2)} {!isBalanceSufficient && '(ยอดเงินไม่พอ)'}
-                    </strong>
-                  </div>
+                  {/* Balance Warning (Only when insufficient) */}
+                  {!isBalanceSufficient && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontSize: 13.5,
+                        marginBottom: 16,
+                        padding: '8px 12px',
+                        background: '#FEF2F2',
+                        border: '1px solid #FECACA',
+                        color: '#DC2626',
+                        borderRadius: 'var(--radius-md)',
+                        fontWeight: 600
+                      }}
+                    >
+                      <AlertCircle size={16} />
+                      <span>ยอดเงินในกระเป๋าของคุณไม่เพียงพอสำหรับการชำระเงิน</span>
+                    </div>
+                  )}
 
                   {/* Confirm Payment Button (Large 52px Touch Target) */}
                   <button

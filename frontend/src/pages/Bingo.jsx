@@ -54,6 +54,8 @@ export default function Bingo() {
   const [activeLineId, setActiveLineId] = useState(null);
   const [bingoCelebration, setBingoCelebration] = useState(null);
   const [showLinesModal, setShowLinesModal] = useState(false);
+  const [selectedLineForPopup, setSelectedLineForPopup] = useState(null);
+  const [popupInspectedCell, setPopupInspectedCell] = useState(null);
 
   // UX Toggles for Non-Tech / Elderly simplicity (Remembers preference in localStorage)
   const [showHelpGuide, setShowHelpGuide] = useState(false);
@@ -248,6 +250,30 @@ export default function Bingo() {
   const handleClearHighlight = () => {
     setActiveLineId(null);
     setHighlightedLinePositions([]);
+  };
+
+  // Open dedicated pop-up for a specific bingo line (เฉพาะแถวของตารางบิงโกเส้นนั้น)
+  const handleOpenLinePopup = (line) => {
+    if (!line || !currentBoard?.cells) return;
+    setSelectedLineForPopup(line);
+    setActiveLineId(line.id);
+    setHighlightedLinePositions(line.positions);
+
+    // Default inspected cell to first incomplete cell or first cell in line
+    const cellsInLine = line.positions.map((pos) => currentBoard.cells.find((c) => c.position === pos)).filter(Boolean);
+    const initial = cellsInLine.find((c) => c.status !== 'COMPLETED') || cellsInLine[0];
+    setPopupInspectedCell(initial || null);
+    setShowLinesModal(false);
+  };
+
+  // Cycle between 12 lines in line pop-up
+  const handleNavigateLinePopup = (delta) => {
+    if (!currentBoard?.lines?.length || !selectedLineForPopup) return;
+    const currentIndex = currentBoard.lines.findIndex((l) => l.id === selectedLineForPopup.id);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + delta + currentBoard.lines.length) % currentBoard.lines.length;
+    const nextLine = currentBoard.lines[nextIndex];
+    handleOpenLinePopup(nextLine);
   };
 
   // Family visual configuration (Matching Home brand colors & clean icons)
@@ -702,18 +728,20 @@ export default function Bingo() {
               className={`tab-btn ${viewMode === 'GRID' ? 'active' : ''}`}
               onClick={() => handleSetViewMode('GRID')}
               aria-label="แสดงแบบตารางบิงโก 5x5"
+              style={{ whiteSpace: 'nowrap' }}
             >
               <Grid size={16} />
-              <span>ตารางบิงโก 5x5</span>
+              <span style={{ whiteSpace: 'nowrap' }}>ตารางบิงโก 5x5</span>
             </button>
             <button
               type="button"
               className={`tab-btn ${viewMode === 'LIST' ? 'active' : ''}`}
               onClick={() => handleSetViewMode('LIST')}
-              aria-label="แสดงแบบรายการอ่านง่าย"
+              aria-label="แสดงแบบรายการแถว"
+              style={{ whiteSpace: 'nowrap' }}
             >
               <List size={16} />
-              <span>รายการอ่านง่าย (25 ช่อง)</span>
+              <span style={{ whiteSpace: 'nowrap' }}>รายการแถว</span>
             </button>
           </div>
 
@@ -734,9 +762,20 @@ export default function Bingo() {
                 <span>กำลังดู: <strong>{currentBoard?.lines?.find(l => l.id === activeLineId)?.name || activeLineId}</strong></span>
                 <button
                   type="button"
+                  onClick={() => {
+                    const found = currentBoard?.lines?.find(l => l.id === activeLineId);
+                    if (found) handleOpenLinePopup(found);
+                  }}
+                  style={{ background: '#D97706', color: '#FFFFFF', border: 'none', borderRadius: 'var(--radius-full)', padding: '3px 10px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  เปิดดูป็อปอัปแถวนี้
+                </button>
+                <button
+                  type="button"
                   onClick={handleClearHighlight}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#B45309', display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 700, fontSize: 11.5 }}
                   aria-label="ยกเลิกการเน้นแถว"
+                  title="ยกเลิกการเน้นแถว"
                 >
                   <X size={14} /> ยกเลิก
                 </button>
@@ -773,11 +812,11 @@ export default function Bingo() {
                 <div className="bingo-board-wrapper">
                   {/* B - I - N - G - O Header Badges */}
                   <div className="bingo-header-letters">
-                    <div className="bingo-letter-badge bingo-letter-b">B</div>
-                    <div className="bingo-letter-badge bingo-letter-i">I</div>
-                    <div className="bingo-letter-badge bingo-letter-n">N</div>
-                    <div className="bingo-letter-badge bingo-letter-g">G</div>
-                    <div className="bingo-letter-badge bingo-letter-o">O</div>
+                    <button type="button" onClick={() => { const l = currentBoard?.lines?.find(x => x.id === 'C1'); if (l) handleOpenLinePopup(l); }} className="bingo-letter-badge bingo-letter-b" style={{ border: 'none', cursor: 'pointer' }} title="แตะเพื่อเปิดดูป็อปอัปแนวตั้งแถวที่ 1 (คอลัมน์ B)">B</button>
+                    <button type="button" onClick={() => { const l = currentBoard?.lines?.find(x => x.id === 'C2'); if (l) handleOpenLinePopup(l); }} className="bingo-letter-badge bingo-letter-i" style={{ border: 'none', cursor: 'pointer' }} title="แตะเพื่อเปิดดูป็อปอัปแนวตั้งแถวที่ 2 (คอลัมน์ I)">I</button>
+                    <button type="button" onClick={() => { const l = currentBoard?.lines?.find(x => x.id === 'C3'); if (l) handleOpenLinePopup(l); }} className="bingo-letter-badge bingo-letter-n" style={{ border: 'none', cursor: 'pointer' }} title="แตะเพื่อเปิดดูป็อปอัปแนวตั้งแถวที่ 3 (คอลัมน์ N)">N</button>
+                    <button type="button" onClick={() => { const l = currentBoard?.lines?.find(x => x.id === 'C4'); if (l) handleOpenLinePopup(l); }} className="bingo-letter-badge bingo-letter-g" style={{ border: 'none', cursor: 'pointer' }} title="แตะเพื่อเปิดดูป็อปอัปแนวตั้งแถวที่ 4 (คอลัมน์ G)">G</button>
+                    <button type="button" onClick={() => { const l = currentBoard?.lines?.find(x => x.id === 'C5'); if (l) handleOpenLinePopup(l); }} className="bingo-letter-badge bingo-letter-o" style={{ border: 'none', cursor: 'pointer' }} title="แตะเพื่อเปิดดูป็อปอัปแนวตั้งแถวที่ 5 (คอลัมน์ O)">O</button>
                   </div>
 
                   {/* 5x5 Matrix - Visual Status Matrix on Mobile */}
@@ -1059,6 +1098,49 @@ export default function Bingo() {
               ) : (
                 /* Senior-Friendly Accessible List View */
                 <div className="bingo-list-wrapper">
+                  {/* Quick Bingo Lines Selector */}
+                  <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <Trophy size={14} color="#D97706" />
+                        <span>เลือกดูป็อปอัปเฉพาะแถวบิงโก (12 เส้น):</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowLinesModal(true)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--bank-royal)', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        ดูทั้ง 12 เส้น ›
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 2 }}>
+                      {currentBoard?.lines?.map((line) => (
+                        <button
+                          key={line.id}
+                          type="button"
+                          onClick={() => handleOpenLinePopup(line)}
+                          style={{
+                            padding: '4px 9px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: line.isCompleted ? '1px solid #16A34A' : '1px solid var(--border-light)',
+                            background: line.isCompleted ? '#DCFCE7' : '#FFFFFF',
+                            color: line.isCompleted ? '#15803D' : 'var(--text-primary)',
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3
+                          }}
+                        >
+                          <span>{line.id}</span>
+                          <span style={{ fontSize: 10, color: line.isCompleted ? '#16A34A' : 'var(--text-secondary)' }}>({line.completedCount}/5)</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Filter Pills */}
                   <div style={{ display: 'flex', gap: 6, marginBottom: 10, overflowX: 'auto', paddingBottom: 4 }}>
                     <button
@@ -1497,7 +1579,7 @@ export default function Bingo() {
             </div>
 
             <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '4px 0 6px 0', lineHeight: 1.45 }}>
-              แตะที่แนวเส้นด้านล่างเพื่อเน้นตำแหน่ง 5 ช่องบนกระดานบิงโก (ช่องใจกลางเชื่อมต่อได้ถึง 4 แนวเส้น)
+              แตะที่แถวด้านล่างเพื่อเปิดป็อปอัปแสดงเฉพาะแถวของตารางบิงโกเส้นนั้น (เรียงตามแนวนอน แนวตั้ง หรือแนวทแยง)
             </p>
 
             {/* Lines List */}
@@ -1512,10 +1594,10 @@ export default function Bingo() {
                     type="button"
                     className={`bingo-line-row-btn ${isHighlighted ? 'is-active-highlight' : ''} ${isCompleted ? 'is-completed' : ''}`}
                     onClick={() => {
-                      handleToggleLineHighlight(line);
+                      handleOpenLinePopup(line);
                     }}
                     aria-pressed={isHighlighted}
-                    aria-label={`${line.name} สำเร็จ ${line.completedCount} จาก 5 ช่อง`}
+                    aria-label={`ดูป็อปอัปแถว ${line.name} สำเร็จ ${line.completedCount} จาก 5 ช่อง`}
                     style={{
                       padding: '11px 13px',
                       borderRadius: 'var(--radius-md)',
@@ -1542,15 +1624,20 @@ export default function Bingo() {
                         </span>
                       </div>
 
-                      {isCompleted ? (
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', display: 'flex', alignItems: 'center', gap: 3 }}>
-                          <Check size={14} strokeWidth={3} /> สำเร็จ (+20 โทเค็น)
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {isCompleted ? (
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Check size={14} strokeWidth={3} /> สำเร็จ (+20 โทเค็น)
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                            {line.completedCount}/5 ช่อง (+20)
+                          </span>
+                        )}
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--bank-royal)', display: 'inline-flex', alignItems: 'center', gap: 2, background: 'var(--bank-royal-light)', padding: '2px 7px', borderRadius: 4 }}>
+                          ดูแถว <ChevronRight size={13} />
                         </span>
-                      ) : (
-                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>
-                          {line.completedCount}/5 ช่อง (+20)
-                        </span>
-                      )}
+                      </div>
                     </div>
 
                     {/* Line Progress Fill */}
@@ -1568,27 +1655,656 @@ export default function Bingo() {
               })}
             </div>
 
-            {/* Footer Close Button */}
-            <button
-              type="button"
-              className="btn-modal-close"
-              onClick={() => setShowLinesModal(false)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                minHeight: 46,
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bank-royal)',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                fontSize: 14.5,
-                border: 'none',
-                cursor: 'pointer',
-                marginTop: 6
-              }}
-            >
-              {activeLineId ? 'ดูตำแหน่งที่เน้นบนกระดานบิงโก' : 'ปิดหน้าต่าง'}
-            </button>
+            {/* Footer Buttons */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              {activeLineId && (
+                <button
+                  type="button"
+                  className="btn-modal-close"
+                  onClick={() => {
+                    const found = currentBoard?.lines?.find((l) => l.id === activeLineId);
+                    if (found) {
+                      handleOpenLinePopup(found);
+                    } else {
+                      setShowLinesModal(false);
+                    }
+                  }}
+                  style={{
+                    flex: 2,
+                    padding: '12px 14px',
+                    minHeight: 46,
+                    borderRadius: 'var(--radius-md)',
+                    background: 'var(--bank-royal)',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: 13.5,
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ดูป็อปอัปแถวนี้ ({currentBoard?.lines?.find((l) => l.id === activeLineId)?.name || activeLineId})
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-modal-close"
+                onClick={() => setShowLinesModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 14px',
+                  minHeight: 46,
+                  borderRadius: 'var(--radius-md)',
+                  background: activeLineId ? '#F1F5F9' : 'var(--bank-royal)',
+                  color: activeLineId ? 'var(--text-secondary)' : '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  border: activeLineId ? '1px solid var(--border-light)' : 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                ปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================
+          MODAL: SPECIFIC BINGO LINE POP-UP (เฉพาะแถวของตารางบิงโกเส้นนั้น)
+          เรียงตามเส้นบิงโก: แนวนอน (ROW), แนวตั้ง (COL), แนวทแยง (DIAG)
+          ==================================================== */}
+      {selectedLineForPopup && (
+        <div
+          className="bingo-modal-overlay"
+          onClick={() => setSelectedLineForPopup(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-line-popup-title"
+        >
+          <div
+            className="bingo-modal-sheet"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 540 }}
+          >
+            {/* Grab handle for mobile bottom sheet */}
+            <div className="bingo-modal-grab-handle" />
+
+            {/* Top Navigation Row: Back to 12 lines, Prev/Next line, Close */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedLineForPopup(null);
+                  setShowLinesModal(true);
+                }}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '6px 12px',
+                  color: 'var(--bank-royal)',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                <ArrowLeft size={15} />
+                <span>ดูรายการ 12 เส้น</span>
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => handleNavigateLinePopup(-1)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 'var(--radius-full)',
+                    border: '1px solid var(--border-light)',
+                    background: '#FFFFFF',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-secondary)'
+                  }}
+                  title="แถวก่อนหน้า"
+                  aria-label="แถวก่อนหน้า"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-secondary)', minWidth: 26, textAlign: 'center' }}>
+                  {selectedLineForPopup.id}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleNavigateLinePopup(1)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 'var(--radius-full)',
+                    border: '1px solid var(--border-light)',
+                    background: '#FFFFFF',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-secondary)'
+                  }}
+                  title="แถวถัดไป"
+                  aria-label="แถวถัดไป"
+                >
+                  <ChevronRight size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedLineForPopup(null)}
+                  style={{
+                    background: '#F1F5F9',
+                    border: 'none',
+                    borderRadius: 'var(--radius-full)',
+                    width: 32,
+                    height: 32,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-secondary)',
+                    marginLeft: 2
+                  }}
+                  aria-label="ปิดป็อปอัปแถว"
+                >
+                  <X size={17} />
+                </button>
+              </div>
+            </div>
+
+            {/* Line Title, Type Pill, & Completion Status */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: selectedLineForPopup.isCompleted ? '#16A34A' : '#1D4ED8',
+                      color: '#FFFFFF'
+                    }}
+                  >
+                    {selectedLineForPopup.id}
+                  </span>
+                  <h3 id="modal-line-popup-title" style={{ fontSize: 17, fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                    {selectedLineForPopup.name}
+                  </h3>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                  {selectedLineForPopup.type === 'ROW' && '↔ แนวนอน 5 ช่อง (คอลัมน์ B ถึง O)'}
+                  {selectedLineForPopup.type === 'COL' && '↕ แนวตั้ง 5 ช่อง (แถวที่ 1 ถึง 5)'}
+                  {selectedLineForPopup.type === 'DIAG' && '⤢ แนวทแยง 5 ช่อง (ผ่านใจกลาง FREE)'}
+                </div>
+              </div>
+
+              <div>
+                {selectedLineForPopup.isCompleted ? (
+                  <span style={{ fontSize: 12.5, fontWeight: 800, color: '#16A34A', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Check size={16} strokeWidth={3} /> สำเร็จแล้ว (+20 โทเค็น)
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    สำเร็จ <strong style={{ color: 'var(--bank-royal)', fontSize: 14 }}>{selectedLineForPopup.completedCount}</strong>/5 ช่อง (โบนัส +20)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Line Progress bar */}
+            <div className="bingo-progress-container" style={{ height: 6, margin: '2px 0 10px 0' }}>
+              <div
+                className="bingo-progress-fill"
+                style={{
+                  width: `${selectedLineForPopup.progressPercent}%`,
+                  background: selectedLineForPopup.isCompleted ? '#16A34A' : 'linear-gradient(90deg, #1D4ED8 0%, #3B82F6 100%)',
+                }}
+              />
+            </div>
+
+            {/* ========================================================
+                LINE CELLS DISPLAY (ตามทิศทางของเส้น: แนวนอน, แนวตั้ง, แนวทแยง)
+                ======================================================== */}
+            {(() => {
+              const lineCells = selectedLineForPopup.positions.map((pos) =>
+                currentBoard?.cells?.find((c) => c.position === pos)
+              ).filter(Boolean);
+
+              // 1. แนวนอน (ROW)
+              if (selectedLineForPopup.type === 'ROW') {
+                return (
+                  <div>
+                    {/* B-I-N-G-O Headers */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 6 }}>
+                      {['B', 'I', 'N', 'G', 'O'].map((l, idx) => {
+                        const colors = ['#1D4ED8', '#0284C7', '#D97706', '#059669', '#DC2626'];
+                        return (
+                          <div
+                            key={l}
+                            style={{
+                              textAlign: 'center',
+                              fontWeight: 800,
+                              fontSize: 13,
+                              padding: '3px 0',
+                              borderRadius: 6,
+                              background: colors[idx],
+                              color: '#FFFFFF'
+                            }}
+                          >
+                            {l}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 5 Cells Arranged Horizontally */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+                      {lineCells.map((cell) => {
+                        const isCompleted = cell.status === 'COMPLETED';
+                        const isSelected = popupInspectedCell?.position === cell.position;
+                        const isCenter = cell.position === 12;
+                        const familyCfg = getFamilyConfig(cell.family);
+                        const coord = getCellCoordinate(cell.col, cell.row);
+
+                        return (
+                          <div
+                            key={cell.position}
+                            onClick={() => setPopupInspectedCell(cell)}
+                            style={{
+                              border: isSelected ? '2px solid var(--bank-royal)' : isCompleted ? '1.5px solid #16A34A' : isCenter ? '1.5px solid #D97706' : '1px solid var(--border-light)',
+                              background: isCompleted ? '#DCFCE7' : isCenter ? '#FEF3C7' : isSelected ? 'var(--bank-royal-light)' : '#FFFFFF',
+                              borderRadius: 'var(--radius-md)',
+                              padding: '8px 4px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              minHeight: 96,
+                              cursor: 'pointer',
+                              boxShadow: isSelected ? '0 0 0 3px rgba(29, 78, 216, 0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+                              transition: 'all 0.15s ease',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-secondary)' }}>{coord}</span>
+                            <div
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                background: isCompleted ? '#BBF7D0' : familyCfg.bgLight,
+                                color: isCompleted ? '#15803D' : familyCfg.color,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '2px 0'
+                              }}
+                            >
+                              {isCompleted ? <Check size={16} strokeWidth={3} /> : familyCfg.icon}
+                            </div>
+                            <div style={{ fontSize: 10.5, fontWeight: 700, textAlign: 'center', lineHeight: 1.2, color: 'var(--text-primary)', maxHeight: 26, overflow: 'hidden' }}>
+                              {getShortQuestTitle(cell)}
+                            </div>
+                            <div style={{ marginTop: 3 }}>
+                              {isCompleted ? (
+                                <span style={{ fontSize: 9.5, fontWeight: 800, color: '#16A34A', background: '#FFFFFF', padding: '1px 5px', borderRadius: 4 }}>
+                                  ✓ สำเร็จ
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', background: '#F1F5F9', padding: '1px 5px', borderRadius: 4 }}>
+                                  {cell.progress}/{cell.target_value}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+
+              // 2. แนวตั้ง (COL)
+              if (selectedLineForPopup.type === 'COL') {
+                const colIdx = selectedLineForPopup.positions[0] % 5;
+                const letters = ['B', 'I', 'N', 'G', 'O'];
+                const colors = ['#1D4ED8', '#0284C7', '#D97706', '#059669', '#DC2626'];
+                const colLetter = letters[colIdx];
+
+                return (
+                  <div>
+                    {/* Column Letter Pill */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, padding: '7px 12px', background: '#F8FAFC', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: colors[colIdx], color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 17 }}>
+                        {colLetter}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
+                          คอลัมน์ {colLetter} (แนวตั้งจากแถว 1 ถึง 5)
+                        </div>
+                        <div style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>
+                          แตะที่แต่ละช่องด้านล่างเพื่อดูรายละเอียดภารกิจ
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 5 Cells Arranged Vertically */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxHeight: '42dvh', overflowY: 'auto', paddingRight: 2 }}>
+                      {lineCells.map((cell, idx) => {
+                        const isCompleted = cell.status === 'COMPLETED';
+                        const isSelected = popupInspectedCell?.position === cell.position;
+                        const isCenter = cell.position === 12;
+                        const familyCfg = getFamilyConfig(cell.family);
+                        const coord = getCellCoordinate(cell.col, cell.row);
+
+                        return (
+                          <div
+                            key={cell.position}
+                            onClick={() => setPopupInspectedCell(cell)}
+                            style={{
+                              border: isSelected ? '2px solid var(--bank-royal)' : isCompleted ? '1.5px solid #16A34A' : isCenter ? '1.5px solid #D97706' : '1px solid var(--border-light)',
+                              background: isCompleted ? '#DCFCE7' : isCenter ? '#FEF3C7' : isSelected ? 'var(--bank-royal-light)' : '#FFFFFF',
+                              borderRadius: 'var(--radius-md)',
+                              padding: '9px 12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 10,
+                              cursor: 'pointer',
+                              boxShadow: isSelected ? '0 0 0 3px rgba(29, 78, 216, 0.25)' : '0 1px 3px rgba(0,0,0,0.04)',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 32, flexShrink: 0 }}>
+                                <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-secondary)' }}>แถว {idx + 1}</span>
+                                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--bank-royal)', background: '#DBEAFE', padding: '1px 5px', borderRadius: 4 }}>
+                                  {coord}
+                                </span>
+                              </div>
+
+                              <div
+                                style={{
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: '50%',
+                                  background: isCompleted ? '#BBF7D0' : familyCfg.bgLight,
+                                  color: isCompleted ? '#15803D' : familyCfg.color,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {isCompleted ? <Check size={16} strokeWidth={3} /> : familyCfg.icon}
+                              </div>
+
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {cell.title}
+                                </div>
+                                <div style={{ fontSize: 11, color: isCompleted ? '#15803D' : 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span>{isCompleted ? 'สำเร็จเรียบร้อย' : `${cell.progress}/${cell.target_value} ${cell.unit}`}</span>
+                                  <span style={{ color: '#D97706', fontWeight: 700 }}>+{cell.token_reward} โทเค็น</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div style={{ flexShrink: 0 }}>
+                              {isCompleted ? (
+                                <span style={{ fontSize: 10.5, fontWeight: 800, color: '#16A34A', background: '#FFFFFF', border: '1px solid #16A34A', padding: '2px 7px', borderRadius: 'var(--radius-full)', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                  <Check size={11} strokeWidth={3} /> สำเร็จ
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-secondary)', background: '#F1F5F9', padding: '2px 7px', borderRadius: 'var(--radius-full)' }}>
+                                  {cell.progress}/{cell.target_value}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+
+              // 3. แนวทแยง (DIAG)
+              return (
+                <div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>{selectedLineForPopup.id === 'D1' ? 'แนวทแยงจากบนซ้ายลงล่างขวา (＼)' : 'แนวทแยงจากบนขวาลงล่างซ้าย (／)'}</span>
+                    <span style={{ color: '#D97706', fontWeight: 700 }}>ผ่านใจกลาง (N3)</span>
+                  </div>
+
+                  {/* 5x5 Matrix Board Preview */}
+                  <div style={{ background: '#F8FAFC', borderRadius: 'var(--radius-md)', padding: '8px 6px', border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, marginBottom: 4 }}>
+                      {['B', 'I', 'N', 'G', 'O'].map((l, i) => (
+                        <div key={l} style={{ textAlign: 'center', fontSize: 11, fontWeight: 800, color: ['#1D4ED8', '#0284C7', '#D97706', '#059669', '#DC2626'][i] }}>
+                          {l}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
+                      {Array.from({ length: 25 }, (_, pos) => {
+                        const isDiagonalCell = selectedLineForPopup.positions.includes(pos);
+                        if (!isDiagonalCell) {
+                          return (
+                            <div
+                              key={pos}
+                              style={{
+                                border: '1px dashed #E2E8F0',
+                                borderRadius: 6,
+                                background: 'rgba(241, 245, 249, 0.4)',
+                                minHeight: 46,
+                                opacity: 0.35
+                              }}
+                            />
+                          );
+                        }
+
+                        const cell = currentBoard?.cells?.find((c) => c.position === pos);
+                        if (!cell) return null;
+                        const isCompleted = cell.status === 'COMPLETED';
+                        const isSelected = popupInspectedCell?.position === cell.position;
+                        const isCenter = cell.position === 12;
+                        const familyCfg = getFamilyConfig(cell.family);
+                        const coord = getCellCoordinate(cell.col, cell.row);
+
+                        return (
+                          <div
+                            key={pos}
+                            onClick={() => setPopupInspectedCell(cell)}
+                            style={{
+                              border: isSelected ? '2px solid var(--bank-royal)' : isCompleted ? '1.5px solid #16A34A' : isCenter ? '1.5px solid #D97706' : '1.5px solid #3B82F6',
+                              background: isCompleted ? '#DCFCE7' : isCenter ? '#FEF3C7' : isSelected ? 'var(--bank-royal-light)' : '#FFFFFF',
+                              borderRadius: 6,
+                              padding: '4px 2px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              minHeight: 52,
+                              cursor: 'pointer',
+                              boxShadow: isSelected ? '0 0 0 3px rgba(29, 78, 216, 0.3)' : '0 2px 4px rgba(0,0,0,0.08)',
+                              transform: isSelected ? 'scale(1.04)' : undefined,
+                              transition: 'all 0.15s ease',
+                              zIndex: isSelected ? 2 : 1
+                            }}
+                          >
+                            <span style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-secondary)' }}>{coord}</span>
+                            <div style={{ color: isCompleted ? '#15803D' : familyCfg.color }}>
+                              {isCompleted ? <Check size={14} strokeWidth={3} /> : familyCfg.icon}
+                            </div>
+                            <span style={{ fontSize: 9, fontWeight: 800, color: isCompleted ? '#16A34A' : 'var(--text-secondary)' }}>
+                              {isCompleted ? '✓ สำเร็จ' : `${cell.progress}/${cell.target_value}`}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Diagonal Path Sequence */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, margin: '8px 0 4px 0', flexWrap: 'wrap' }}>
+                    {lineCells.map((c, i) => {
+                      if (!c) return null;
+                      const isCompleted = c.status === 'COMPLETED';
+                      const isSelected = popupInspectedCell?.position === c.position;
+                      const coord = getCellCoordinate(c.col, c.row);
+
+                      return (
+                        <React.Fragment key={c.position}>
+                          <button
+                            type="button"
+                            onClick={() => setPopupInspectedCell(c)}
+                            style={{
+                              border: isSelected ? '1.5px solid var(--bank-royal)' : '1px solid var(--border-light)',
+                              background: isSelected ? 'var(--bank-royal)' : isCompleted ? '#DCFCE7' : '#FFFFFF',
+                              color: isSelected ? '#FFFFFF' : isCompleted ? '#15803D' : 'var(--text-primary)',
+                              fontSize: 11,
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: 5,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 2
+                            }}
+                          >
+                            {isCompleted && <Check size={10} strokeWidth={3} />}
+                            <span>{coord}</span>
+                          </button>
+                          {i < 4 && <span style={{ color: '#94A3B8', fontSize: 11 }}>➔</span>}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ========================================================
+                SELECTED CELL MISSION DETAILS CARD (Inspect & Action)
+                ======================================================== */}
+            {popupInspectedCell && (
+              <div style={{ background: '#F8FAFC', borderRadius: 'var(--radius-md)', padding: '10px 12px', border: '1px solid var(--border-light)', marginTop: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--bank-royal)', background: '#DBEAFE', padding: '1px 6px', borderRadius: 4 }}>
+                      ช่อง {getCellCoordinate(popupInspectedCell.col, popupInspectedCell.row)}
+                      {popupInspectedCell.position === 12 ? ' (ช่องฟรีใจกลาง)' : ''}
+                    </span>
+                    <span style={{ fontSize: 11, color: getFamilyConfig(popupInspectedCell.family).color, fontWeight: 700 }}>
+                      {getFamilyConfig(popupInspectedCell.family).label}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: '#D97706' }}>
+                    +{popupInspectedCell.token_reward} โทเค็น
+                  </span>
+                </div>
+
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.35, marginBottom: 4 }}>
+                  {popupInspectedCell.title}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                  <span>ความคืบหน้า: <strong>{popupInspectedCell.progress} / {popupInspectedCell.target_value} {popupInspectedCell.unit}</strong></span>
+                  <span>{popupInspectedCell.status === 'COMPLETED' ? '✓ สำเร็จแล้ว' : `${Math.min(100, Math.round((popupInspectedCell.progress / popupInspectedCell.target_value) * 100))}%`}</span>
+                </div>
+
+                <div className="bingo-progress-container" style={{ height: 4, marginBottom: 8 }}>
+                  <div
+                    className="bingo-progress-fill"
+                    style={{
+                      width: `${Math.min(100, Math.round((popupInspectedCell.progress / popupInspectedCell.target_value) * 100))}%`,
+                      background: popupInspectedCell.status === 'COMPLETED' ? '#16A34A' : '#1D4ED8',
+                    }}
+                  />
+                </div>
+
+                {popupInspectedCell.status !== 'COMPLETED' && (
+                  <Link
+                    to={popupInspectedCell.position === 12 || popupInspectedCell.family === 'DONATION' ? '/charities' : '/payment'}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      width: '100%',
+                      padding: '8px 12px',
+                      background: popupInspectedCell.position === 12 || popupInspectedCell.family === 'DONATION' ? '#059669' : 'var(--bank-royal)',
+                      color: '#FFFFFF',
+                      textDecoration: 'none',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <span>{popupInspectedCell.position === 12 || popupInspectedCell.family === 'DONATION' ? 'ไปร่วมบริจาค e-Donation' : 'ไปสแกนใช้จ่ายที่ร้านค้า'}</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Bottom Footer Actions */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedLineForPopup(null);
+                  setShowLinesModal(true);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '9px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  background: '#F1F5F9',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-secondary)',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                ‹ ดูทั้ง 12 เส้น
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedLineForPopup(null);
+                  if (viewMode === 'LIST') setViewMode('GRID');
+                }}
+                style={{
+                  flex: 1,
+                  padding: '9px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bank-royal)',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                ดูบนกระดาน 5x5 เต็ม
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1307,7 +1307,7 @@ export default function ThaiPlus() {
                           </span>
                           <div className="reward-cost-pill">
                             <Coins size={14} />
-                            <span style={{ whiteSpace: 'nowrap' }}>{item.tokenCost} Tokens / สิทธิ์</span>
+                            <span style={{ whiteSpace: 'nowrap' }}>{item.tokenCost} Tokens</span>
                           </div>
                         </div>
 
@@ -1348,7 +1348,7 @@ export default function ThaiPlus() {
                             style={{ background: '#DC2626', color: '#FFFFFF' }}
                           >
                             <Ticket size={16} />
-                            <span>ส่ง 1 สิทธิ์ลุ้นรางวัลนี้ ({item.tokenCost} Tokens)</span>
+                            <span>ใช้ {item.tokenCost} Tokens</span>
                           </button>
                         </div>
                       </div>
