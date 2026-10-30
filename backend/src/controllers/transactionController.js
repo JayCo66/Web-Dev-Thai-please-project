@@ -68,12 +68,45 @@ function transactionView(t, coupon) {
     simulation: true,
   };
 }
+/** What a citizen sees after scanning a bill QR or typing its code. */
+async function getBillByCode(req, res) {
+  try {
+    const code = String(req.params.code || "").trim().toUpperCase();
+    const bill = await prisma.payment_requests.findUnique({ where: { code }, include: { shops: true } });
+    if (!bill) fail("ไม่พบบิลนี้ กรุณาตรวจรหัสอีกครั้ง", 404);
+    if (bill.status === "PAID") fail("บิลนี้ชำระเงินแล้ว", 409);
+    if (bill.status === "CANCELLED") fail("ร้านค้ายกเลิกบิลนี้แล้ว", 409);
+    if (bill.expires_at <= new Date()) fail("บิลนี้หมดอายุแล้ว ให้ร้านสร้างบิลใหม่", 409);
+    if (bill.shops.status !== "APPROVED" || !bill.shops.is_active) fail("ร้านนี้ยังรับชำระเงินไม่ได้", 403);
+    res.json({
+      success: true,
+      data: {
+        code: bill.code,
+        shopId: bill.shop_id.toString(),
+        shopName: bill.shops.shop_name,
+        category: bill.shops.category,
+        amount: Number(bill.amount),
+        note: bill.note,
+        expiresAt: bill.expires_at,
+      },
+    });
+  } catch (error) {
+    handleError(res, error, "อ่านบิลไม่สำเร็จ");
+  }
+}
 async function createPayment(req, res) {
   try {
     demoOnly();
     const userId = BigInt(req.user.userId);
-    const amount = money(req.body.amount);
-    const shopId = positiveId(req.body.shopId);
+    // A bill fixes the shop and amount, so the client cannot pay a different sum than the merchant asked for.
+    const billCode = typeof req.body.billCode === "string" ? req.body.billCode.trim().toUpperCase() : "";
+    let bill = null;
+    if (billCode) {
+      bill = await prisma.payment_requests.findUnique({ where: { code: billCode } });
+      if (!bill) fail("ไม่พบบิลนี้", 404);
+    }
+    const amount = bill ? Number(bill.amount) : money(req.body.amount);
+    const shopId = bill ? bill.shop_id : positiveId(req.body.shopId);
     const key = requestKey(req, "payment");
     const couponId = req.body.couponRedemptionId == null ? null : positiveId(req.body.couponRedemptionId);
     const {
@@ -101,6 +134,10 @@ async function createPayment(req, res) {
             remainingBalance: Number(user.demo_balance),
             replayed: true,
           };
+        }
+        if (bill) {
+          const open = await tx.payment_requests.findFirst({ where: { request_id: bill.request_id, status: "PENDING", expires_at: { gt: new Date() } } });
+          if (!open) fail("บิลนี้ชำระแล้ว ถูกยกเลิก หรือหมดอายุ", 409);
         }
         const shop = await tx.shops.findUnique({ where: { shop_id: shopId } });
         if (!shop?.is_active) fail("ร้านค้านี้ยังไม่เปิดรับรายการ", 404);
@@ -147,6 +184,14 @@ async function createPayment(req, res) {
           },
           include: { shops: true },
         });
+        if (bill) {
+          // Only one payer can flip PENDING -> PAID; a second concurrent payment matches nothing and rolls back.
+          const closed = await tx.payment_requests.updateMany({
+            where: { request_id: bill.request_id, status: "PENDING" },
+            data: { status: "PAID", transaction_id: payment.transaction_id },
+          });
+          if (closed.count !== 1) fail("บิลนี้ถูกชำระไปแล้ว", 409);
+        }
         if (coupon) {
           coupon = await tx.reward_redemptions.update({
             where: { redemption_id: coupon.redemption_id },
@@ -184,4 +229,5 @@ async function getMyTransactions(req, res) {
     handleError(res, error, "โหลดประวัติการใช้จ่ายไม่สำเร็จ");
   }
 }
-module.exports = { calculateCoPay, getShops, createPayment, getMyTransactions };
+module.exports = {
+  getBillByCode, calculateCoPay, getShops, createPayment, getMyTransactions };

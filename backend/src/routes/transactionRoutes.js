@@ -6,6 +6,9 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 // Get active participating shops
 router.get('/shops', transactionController.getShops);
 
+// Read a bill from its QR code or typed code (Requires login)
+router.get('/bills/:code', authenticateToken, transactionController.getBillByCode);
+
 // Make a payment with 60/40 Co-Pay (Requires login)
 router.post('/pay', authenticateToken, transactionController.createPayment);
 

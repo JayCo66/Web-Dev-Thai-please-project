@@ -11,7 +11,16 @@ router.post('/register', authController.registerMerchant);
 // GET /api/v1/merchants/categories
 router.get('/categories', (req, res) => res.json({ success: true, data: MERCHANT_CATEGORIES }));
 
+// Everything below is the merchant's own shop
+router.use(authenticateToken, authorizeRoles('MERCHANT'));
+
 // GET /api/v1/merchants/me (the merchant's own shop and its approval status)
-router.get('/me', authenticateToken, authorizeRoles('MERCHANT'), merchantController.getMyShop);
+router.get('/me', merchantController.getMyShop);
+router.get('/dashboard', merchantController.getDashboard);
+
+// Bills the citizen pays by QR
+router.post('/bills', merchantController.createBill);
+router.get('/bills/:id', merchantController.getBill);
+router.post('/bills/:id/cancel', merchantController.cancelBill);
 
 module.exports = router;
