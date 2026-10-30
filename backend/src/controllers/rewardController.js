@@ -13,6 +13,14 @@ const {
 
 const { prizeReference } = require("../services/rewardCatalog");
 
+function demoTokenToolsEnabled() {
+  return (
+    process.env.DEMO_MODE !== "false" &&
+    process.env.ENABLE_DEMO_TOOLS !== "false" &&
+    (process.env.NODE_ENV !== "production" ||
+      process.env.ENABLE_DEMO_TOOLS === "true")
+  );
+}
 function calculateLuckyDrawCost(value, base = 25) {
   const count = Number(value);
   if (!Number.isSafeInteger(count) || count < 1 || count > 100)
@@ -52,6 +60,7 @@ exports.getRewards = async (req, res) => {
       success: true,
       data: {
         simulation: true,
+        demoToolsEnabled: demoTokenToolsEnabled(),
         prizes: list
           .filter((r) => r.reward_type === "LUCKY_DRAW")
           .map((r) => ({
@@ -238,8 +247,9 @@ exports.getMyTokenHistory = async (req, res) => {
           amount: t.amount,
           type: t.type,
           createdAt: t.created_at,
-          description:
-            t.type === "EARN_LINE"
+          description: t.event_key?.startsWith("demo-token:")
+            ? "เพิ่มแต้มทดสอบ"
+            : t.type === "EARN_LINE"
               ? "โบนัสเส้นบิงโก"
               : t.type === "REDEEM_REWARD"
                 ? "แลกรางวัล / สิทธิ์ลุ้น"
@@ -258,10 +268,39 @@ exports.instantSpin = (req, res) =>
     success: false,
     error: "ใช้เมนูแลกรางวัลหรือสะสมสิทธิ์ลุ้นรางวัล",
   });
-exports.faucetTokens = (req, res) =>
-  res
-    .status(403)
-    .json({ success: false, error: "สะสมแต้มได้จากการทำภารกิจบิงโกและบริจาค" });
+exports.faucetTokens = async (req, res) => {
+  try {
+    if (!demoTokenToolsEnabled()) fail("เครื่องมือเพิ่มแต้มทดสอบปิดอยู่", 403);
+    const userId = BigInt(req.user.userId),
+      eventKey = requestKey(req, "demo-token");
+    const result = await prisma.$transaction(async (tx) => {
+      await lockUser(tx, userId);
+      const previous = await tx.token_transactions.findUnique({
+        where: { event_key: eventKey },
+      });
+      if (!previous)
+        await tx.token_transactions.create({
+          data: {
+            user_id: userId,
+            amount: 500,
+            type: "EARN_CELL",
+            event_key: eventKey,
+          },
+        });
+      return {
+        tokensAdded: 500,
+        totalTokens: await getUserTotalTokens(userId, tx),
+        replayed: !!previous,
+        simulation: true,
+      };
+    });
+    res
+      .status(result.replayed ? 200 : 201)
+      .json({ success: true, data: result });
+  } catch (error) {
+    handleError(res, error, "เพิ่มแต้มทดสอบไม่สำเร็จ");
+  }
+};
 exports.calculateLuckyDrawCost = calculateLuckyDrawCost;
 exports.checkMonthlyHardSinkQuota = checkMonthlyHardSinkQuota;
 

@@ -788,3 +788,22 @@
 .xp-owned-item[data-item-kind="LUCKY_DRAW"] {
   border-left: 3px solid #b4974b;
 }
+
+.xp-reward-account {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.xp-test-token-button {
+  font-size: 12px;
+  border-style: dashed;
+}
+@media (max-width: 600px) {
+  .xp-reward-account {
+    align-items: flex-start;
+  }
+  .xp-test-token-button {
+    padding: 8px 10px;
+  }
+}

@@ -353,9 +353,11 @@ async function main() {
     ).status,
     403,
   );
-  assert.equal((await request("/rewards/demo-faucet", token, {})).status, 403);
+  assert.equal((await request("/rewards/demo-faucet", token, {})).status, 400);
   assert.equal((await request("/users/me", token)).data.tokens, balance);
-  check("manual completion and token farming disabled");
+  check(
+    "manual completion blocked and test token requests require an idempotency key",
+  );
   const catalog = await request("/rewards", token);
   const reward = catalog.data.rewards.find((r) => r.tokenCost <= balance);
   assert.ok(reward, "affordable seeded reward");
@@ -431,6 +433,45 @@ async function main() {
   assert.deepEqual(races.map((r) => r.status).sort(), [201, 400]);
   assert.ok((await request("/users/me", token2)).data.tokens >= 0);
   check("different concurrent reward requests cannot overdraw token balance");
+  const testTokensBefore = (await request("/users/me", token2)).data.tokens;
+  const ownerBefore = (await request("/users/me", token)).data.tokens;
+  const faucetBody = {
+    requestId: crypto.randomUUID(),
+    amount: 999999,
+    userId: user.user_id.toString(),
+  };
+  const faucets = await Promise.all([
+    request("/rewards/demo-faucet", token2, faucetBody),
+    request("/rewards/demo-faucet", token2, faucetBody),
+  ]);
+  assert.ok(
+    faucets.every((r) => r.success),
+    JSON.stringify(faucets),
+  );
+  assert.equal(
+    (await request("/users/me", token2)).data.tokens,
+    testTokensBefore + 500,
+  );
+  assert.equal((await request("/users/me", token)).data.tokens, ownerBefore);
+  assert.equal(
+    await db.token_transactions.count({
+      where: {
+        event_key: `demo-token:${user2.user_id}:${faucetBody.requestId}`,
+      },
+    }),
+    1,
+  );
+  assert.equal(
+    (
+      await request("/rewards/demo-faucet", null, {
+        requestId: crypto.randomUUID(),
+      })
+    ).status,
+    401,
+  );
+  check(
+    "test token credit is fixed at 500, authenticated, isolated by owner and repeat-safe",
+  );
   // The incoming coupon-use feature must respect ownership and be repeat-safe.
   await db.token_transactions.create({
     data: {
@@ -957,6 +998,27 @@ async function main() {
   );
   check(
     "60 tokens clamp 100 to two tickets and the server deducts 50, leaving 10",
+  );
+  await loginPage
+    .getByRole("button", { name: "เพิ่มแต้มทดสอบ +500", exact: true })
+    .click();
+  await loginPage
+    .getByRole("status")
+    .filter({ hasText: "เพิ่มแต้มทดสอบ 500 แต้มแล้ว" })
+    .waitFor();
+  assert.equal((await request("/users/me", freshToken)).data.tokens, 510);
+  await loginPage.reload();
+  await loginPage.waitForLoadState("networkidle");
+  assert.equal(
+    await loginPage.locator(".xp-reward-balance strong").innerText(),
+    "510",
+  );
+  await loginPage
+    .getByRole("button", { name: "ประวัติแต้ม", exact: true })
+    .click();
+  await loginPage.getByText("เพิ่มแต้มทดสอบ", { exact: true }).waitFor();
+  check(
+    "test token button persists 500 tokens after reload and labels the credit in history",
   );
   await anonymous.close();
   report.passed = true;

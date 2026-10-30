@@ -35,6 +35,10 @@ export default function ThaiPlus() {
   const [busy, setBusy] = useState(false),
     [success, setSuccess] = useState(null),
     [copied, setCopied] = useState("");
+  const [addingTokens, setAddingTokens] = useState(false),
+    [testNotice, setTestNotice] = useState("");
+  const topupKey = useRef(null),
+    topupLock = useRef(false);
   const dialog = useRef(null),
     request = useRef(null);
   const load = useCallback(async () => {
@@ -119,6 +123,29 @@ export default function ThaiPlus() {
       setBusy(false);
     }
   }
+  async function addTestTokens() {
+    if (topupLock.current) return;
+    topupLock.current = true;
+    setAddingTokens(true);
+    setError("");
+    setTestNotice("");
+    topupKey.current ||= crypto.randomUUID();
+    try {
+      await api.post("/rewards/demo-faucet", { requestId: topupKey.current });
+      topupKey.current = null;
+      await refreshUser();
+      await load();
+      setTestNotice("เพิ่มแต้มทดสอบ 500 แต้มแล้ว");
+    } catch (e) {
+      setError(
+        e.response?.data?.error ||
+          "ยังยืนยันไม่ได้ กดลองใหม่เพื่อตรวจรายการเดิม",
+      );
+    } finally {
+      topupLock.current = false;
+      setAddingTokens(false);
+    }
+  }
   async function activateVoucher(item) {
     if (busy) return;
     setBusy(true);
@@ -150,9 +177,21 @@ export default function ThaiPlus() {
             <h1>รางวัลของคุณ</h1>
             <p>ใช้แต้มที่สะสม เลือกรางวัลที่ชอบ</p>
           </div>
-          <div className="xp-reward-balance">
-            <Coins />
-            <strong>{tokens.toLocaleString("th-TH")}</strong> แต้ม
+          <div className="xp-reward-account">
+            <div className="xp-reward-balance">
+              <Coins />
+              <strong>{tokens.toLocaleString("th-TH")}</strong> แต้ม
+            </div>
+            {catalog?.demoToolsEnabled && (
+              <button
+                type="button"
+                className="button button--secondary xp-test-token-button"
+                disabled={addingTokens || busy}
+                onClick={addTestTokens}
+              >
+                {addingTokens ? "กำลังเพิ่มแต้ม…" : "เพิ่มแต้มทดสอบ +500"}
+              </button>
+            )}
           </div>
         </div>
         <div className="segmented xp-reward-tabs">
@@ -180,6 +219,11 @@ export default function ThaiPlus() {
             <button className="button button--ghost" onClick={load}>
               ลองใหม่
             </button>
+          </div>
+        )}
+        {testNotice && (
+          <div className="notice notice--success" role="status">
+            {testNotice}
           </div>
         )}
         {success && (

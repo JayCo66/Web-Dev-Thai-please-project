@@ -539,6 +539,34 @@
         },
         "description": "Own COUPON/DISCOUNT only. AVAILABLE becomes USED without a second token debit. Repeated calls return the same USED item; another owner gets 404; expired coupon gets 409."
       }
+    },
+    {
+      "name": "Add 500 test tokens (demo tools only)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/rewards/demo-faucet",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": \"{{$guid}}\"\n}"
+        },
+        "description": "Fixed 500-token test credit. Requires authenticated account and enabled demo tools. Reuse requestId to retry without double credit; arbitrary amount/userId are ignored."
+      }
     }
   ]
 }
