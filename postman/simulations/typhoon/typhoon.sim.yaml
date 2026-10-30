@@ -1,8 +1,0 @@
-simulation: thai-please-typhoon
-routing: path
-mocks:
-  - name: typhoon
-    routeKey: typhoon
-    origin:
-      - api.opentyphoon.ai
-    path: postman/mocks/typhoon
