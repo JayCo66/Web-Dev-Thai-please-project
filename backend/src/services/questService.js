@@ -1,11 +1,26 @@
 const OpenAI = require("openai");
-const { randomInt } = require("node:crypto");
+const { randomInt, createHash, randomUUID } = require("node:crypto");
 const {
   phaseOf,
   starterSelection,
   mixedDifficulty,
   mixedLayout,
 } = require("./missionPolicy");
+
+function aiDebugLog(stage, traceId, data) {
+  if (process.env.AI_DEBUG_LOG !== "true") return;
+  let output = JSON.stringify(data, null, 2);
+  const apiKey = process.env.TYPHOON_API_KEY;
+  if (apiKey) output = output.replaceAll(apiKey, "[REDACTED]");
+  console.log(`[AI][${stage}][${traceId}]\n${output}`);
+}
+function readableMessages(messages) {
+  return messages.map(message => {
+    if (message.role !== "user") return { ...message };
+    try { return { ...message, content: JSON.parse(message.content) }; }
+    catch { return { ...message }; }
+  });
+}
 
 function fail(message, statusCode = 400) {
   const error = new Error(message);
@@ -162,11 +177,13 @@ async function generateBingoMissionsWithAI(
   { createCompletion, forceRules = false } = {},
 ) {
   const { profile, quests } = validateInput(input);
+  const traceId = randomUUID();
   const phase = phaseOf(profile);
   let selected =
-    phase === "STARTER" ? starterSelection(quests) : chooseRuleBased(quests);
+    phase === "STARTER" ? starterSelection(quests) : null;
   let source = "RULE_BASED";
   let sourceReason = phase === "STARTER" ? "COMMON_STARTER" : "NO_API_KEY";
+  let aiEvidence = null;
   let attempts = 0;
   let failureCode = null;
   let httpStatus = null;
@@ -210,19 +227,39 @@ async function generateBingoMissionsWithAI(
       attempts++;
       failureCode = null;
       try {
-        const response = await createCompletion({
+        const requestPayload = {
           model: process.env.TYPHOON_MODEL || "typhoon-v2.5-30b-a3b-instruct",
           messages,
           temperature: 0.25,
           max_tokens: 2200,
           response_format: { type: "json_object" },
+        };
+        aiDebugLog("REQUEST", traceId, { attempt: attempts, ...requestPayload, messages: readableMessages(messages) });
+        const response = await createCompletion(requestPayload);
+        aiDebugLog("RESPONSE", traceId, {
+          attempt: attempts,
+          responseId: response.id || null,
+          model: response.model || requestPayload.model,
+          usage: response.usage || null,
+          choices: (response.choices || []).map(choice => ({ finishReason: choice.finish_reason, content: choice.message?.content ?? null })),
         });
         const choice = response?.choices?.[0];
         if (choice?.finish_reason !== "stop") {
           failureCode = "INCOMPLETE_RESPONSE";
           throw new Error("คำตอบไม่ครบ");
         }
-        selected = validateSuggestion(choice.message.content, quests);
+        selected = validateSuggestion(choice.message.content, quests).map(({quest_code, level}) => ({quest_code, level}));
+        aiEvidence = {
+          generationId: randomUUID(),
+          generatedAt: new Date().toISOString(),
+          provider: "Typhoon",
+          responseId: typeof response.id === "string" ? response.id : null,
+          model: response.model || process.env.TYPHOON_MODEL || "typhoon-v2.5-30b-a3b-instruct",
+          validation: { questCount: selected.length, uniqueQuestCount: new Set(selected.map(q=>q.quest_code)).size, poolOnly: true },
+          selectionSha256: createHash("sha256").update(JSON.stringify(selected)).digest("hex"),
+          selectedQuests: selected,
+          usage: response.usage ? { inputTokens: response.usage.prompt_tokens ?? null, outputTokens: response.usage.completion_tokens ?? null, totalTokens: response.usage.total_tokens ?? null } : null,
+        };
         source = "AI";
         sourceReason = "PERSONALIZED";
         failureCode = null;
@@ -240,6 +277,7 @@ async function generateBingoMissionsWithAI(
           : httpStatus ? "REQUEST_REJECTED"
           : error.name === "APIConnectionError" || error.code ? "CONNECTION_FAILED"
           : failureCode === "INCOMPLETE_RESPONSE" ? failureCode : "INVALID_RESPONSE";
+        aiDebugLog("ERROR", traceId, { attempt: attempts, failureCode, httpStatus });
         // Retry malformed JSON once. Network errors immediately use the explicit fallback.
         if (
           error instanceof OpenAI.APIError ||
@@ -257,6 +295,7 @@ async function generateBingoMissionsWithAI(
       }
     }
   }
+  if (!selected) selected = chooseRuleBased(quests);
   const cells = applyDifficultyPolicy(selected, quests, profile);
   const center = {
     quest_code: "DONATION",
@@ -275,6 +314,10 @@ async function generateBingoMissionsWithAI(
     hard: cells.filter((c) => c.level === 3).length,
   };
   const total = cells.reduce((sum, cell) => sum + cell.level, 0);
+  aiDebugLog("RESULT", traceId, {
+    source, sourceReason, attempts, ruleBasedUsed: source !== "AI", difficultyMix: mix,
+    missions: grid.map(cell => ({ questCode: cell.quest_code, aiLevel: cell.ai_level ?? null, finalLevel: cell.level, target: cell.target_value })),
+  });
   return {
     board: {
       cells: 24,
@@ -292,8 +335,10 @@ async function generateBingoMissionsWithAI(
     sourceReason,
     difficultyMix: mix,
     ai_attempts: attempts,
+    aiEvidence,
     aiDiagnostics: {
       attempted: attempts > 0,
+      ruleBasedUsed: source !== "AI",
       attempts,
       model: process.env.TYPHOON_MODEL || "typhoon-v2.5-30b-a3b-instruct",
       failureCode,

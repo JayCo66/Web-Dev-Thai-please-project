@@ -20,6 +20,8 @@ import {
   X,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import BingoRewardPlanner from "../components/BingoRewardPlanner";
+import "../styles/bingo-reward-planner.css";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../styles/home-discovery.css";
@@ -476,6 +478,7 @@ export default function Bingo() {
                 </span>
                 <span>ครบแถว คอลัมน์ หรือแนวทแยง = บิงโก</span>
               </div>
+              <BingoRewardPlanner lines={board.lines || []} cells={cells} selectedId={hoverLine} closed={claimed || accepted} onSelect={id=>{setHoverLine(hoverLine===id?null:id);setView("grid");}} />
             </section>
 
             <aside className="xp-bingo-aside">
@@ -584,6 +587,7 @@ export default function Bingo() {
               {nextLines.length > 0 && !claimed && (
                 <section className="panel xp-lines-card">
                   <h3>เส้นที่ใกล้สำเร็จ</h3>
+                  <a className="brp-all-link" href="#bingo-line-rewards">เปรียบเทียบโบนัสทุกเส้น <Coins size={14}/></a>
                   {nextLines.map((line) => (
                     <button
                       type="button"
@@ -658,6 +662,7 @@ export default function Bingo() {
                   {board.phase !== "STARTER" && <p className="text-muted">ข้อมูลย้อนหลัง 30 วันรวมวันนี้: การใช้จ่าย ร้านค้า และประวัติภารกิจ</p>}
                   {board.period?.from && board.period?.to && <p className="text-muted">ช่วงข้อมูล {board.period.from} – {board.period.to}</p>}
                   {board.difficultyMix && <p>ง่าย {board.difficultyMix.easy} · กลาง {board.difficultyMix.medium} · ท้าทาย {board.difficultyMix.hard}</p>}
+                  {board.source === "AI" && <details className="brp-ai-evidence"><summary>หลักฐานการเรียก AI</summary>{board.aiEvidence ? <div><p>ผู้ให้บริการ {board.aiEvidence.provider} · คำตอบผ่านการตรวจ {board.aiEvidence.validation.questCount} ภารกิจไม่ซ้ำ</p><p>กระดานนี้ใช้ภารกิจจากคำตอบ AI ไม่ได้ใช้ชุดเลือกสำรอง</p>{board.aiEvidence.responseId&&<p>รหัสคำตอบ <code>{board.aiEvidence.responseId}</code></p>}<p>สร้างเมื่อ {new Date(board.aiEvidence.generatedAt).toLocaleString("th-TH")}</p><p>รหัสตรวจเทียบรายการภารกิจ <code>{board.aiEvidence.selectionSha256}</code></p>{board.aiEvidence.usage?.totalTokens!=null&&<p>ใช้ {board.aiEvidence.usage.totalTokens} โทเค็นของโมเดล · เป็นหน่วยประมวลผล แยกจากโทเค็นรางวัล</p>}<details><summary>ดูภารกิจที่รับจาก AI ({board.aiEvidence.selectedQuests.length})</summary><ol className="brp-ai-picks">{board.aiEvidence.selectedQuests.map(q=><li key={q.quest_code}><code>{q.quest_code}</code><span>AI เสนอระดับ {q.level} · ระบบใช้ระดับ {cells.find(c=>c.quest_code===q.quest_code)?.level}</span></li>)}</ol></details><p className="text-muted">Backend ยังคงจัดระดับและตำแหน่งหลังรับคำตอบ AI</p></div>:<p>กระดานนี้สร้างก่อนเพิ่มการเก็บรหัสคำตอบ AI จึงมีเฉพาะสถานะและจำนวนครั้งที่เรียก กระดานใหม่จะเก็บหลักฐานเพิ่มเติม</p>}</details>}
                   {board.phase !== "STARTER" && <div className="xp-ai-examples"><span>ตัวอย่างข้อมูลประกอบ</span>{cells.filter(cell=>cell.family!=="DONATION"&&cell.reason).slice(0,3).map(cell=><div key={cell.position}><strong>{cell.short_title || cell.title}</strong><small>{cell.reason}</small></div>)}</div>}
                   <p className="text-muted">ระบบตรวจเป้าหมายและจัดระดับจากคลังภารกิจ ส่วนเหตุผลข้างต้นมาจากข้อมูลฝั่งระบบ</p>
                 </div>

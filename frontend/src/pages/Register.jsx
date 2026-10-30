@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import {
   UserPlus,
   User,
-  Store,
   ShieldCheck,
   Lock,
   Phone,
@@ -27,11 +26,8 @@ function validCitizenId(value) {
 
 export default function Register() {
   const navigate = useNavigate();
-  const { registerCitizen, registerMerchant, demoLogin } = useAuth();
+  const { registerCitizen, demoLogin } = useAuth();
 
-  const [registerType, setRegisterType] = useState('citizen'); // 'citizen' | 'merchant'
-
-  // Citizen Form States
   const [citizenForm, setCitizenForm] = useState({
     citizenId: '',
     fullName: '',
@@ -41,18 +37,6 @@ export default function Register() {
     confirmPassword: '',
     pin: '',
     provinceCode: 'BKK',
-  });
-
-  // Merchant Form States
-  const [merchantForm, setMerchantForm] = useState({
-    shopName: '',
-    category: 'อาหารและเครื่องดื่ม',
-    contactName: '',
-    phoneNumber: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    addressLine: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -126,46 +110,6 @@ export default function Register() {
     }
   };
 
-  // Handle Merchant Register Submit
-  const handleMerchantSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (!merchantForm.shopName.trim()) {
-      setError('กรุณาระบุชื่อร้านค้า');
-      return;
-    }
-
-    const cleanPhone = merchantForm.phoneNumber.replace(/\D/g, '');
-    if (cleanPhone.length !== 10) {
-      setError('เบอร์โทรศัพท์ร้านค้าต้องมี 10 หลัก');
-      return;
-    }
-
-    if (merchantForm.password && merchantForm.password !== merchantForm.confirmPassword) {
-      setError('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
-      return;
-    }
-
-    setLoading(true);
-    const res = await registerMerchant({
-      shopName: merchantForm.shopName.trim(),
-      category: merchantForm.category,
-      contactName: merchantForm.contactName.trim() || undefined,
-      phoneNumber: cleanPhone,
-      email: merchantForm.email.trim() || undefined,
-      password: merchantForm.password || undefined,
-      addressLine: merchantForm.addressLine.trim() || undefined,
-    });
-    setLoading(false);
-
-    if (res.success) {
-      navigate('/');
-    } else {
-      setError(res.error);
-    }
-  };
-
   return (
     <div className="auth-wrapper xp-register-page" style={{ minHeight: '100dvh' }}>
       <div className="auth-card" style={{ maxWidth: 560 }}>
@@ -179,30 +123,8 @@ export default function Register() {
             ไทยช่วยไทย<span>พลีส</span>
           </h1>
           <p className="brand-subtitle">
-            เลือกประเภทบัญชีเพื่อลงทะเบียนรับสิทธิและเริ่มต้นใช้งานระบบ
+            สมัครบัญชีประชาชนเพื่อรับสิทธิและเริ่มต้นใช้งานระบบ
           </p>
-        </div>
-
-        {/* Type Switcher (Touch-friendly min 48px) */}
-        <div className="tab-switcher" role="tablist">
-          <button
-            type="button"
-            className={`tab-btn ${registerType === 'citizen' ? 'active' : ''}`}
-            onClick={() => { setRegisterType('citizen'); setError(''); }}
-            style={{ minHeight: 48, fontSize: 13.5 }}
-          >
-            <User size={16} />
-            <span>ประชาชนทั่วไป</span>
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${registerType === 'merchant' ? 'active' : ''}`}
-            onClick={() => { setRegisterType('merchant'); setError(''); }}
-            style={{ minHeight: 48, fontSize: 13.5 }}
-          >
-            <Store size={16} />
-            <span>ร้านค้า / ผู้ประกอบการ</span>
-          </button>
         </div>
 
         <div className="xp-register-demo">
@@ -218,8 +140,7 @@ export default function Register() {
         )}
 
         {/* Form 1: Citizen Registration */}
-        {registerType === 'citizen' && (
-          <form onSubmit={handleCitizenSubmit}>
+        <form onSubmit={handleCitizenSubmit}>
             <div className="alert alert-info" style={{ marginBottom: 18 }}>
               <Gift size={20} style={{ flexShrink: 0 }} />
               <div style={{ fontSize: 13, lineHeight: 1.45 }}>
@@ -415,190 +336,6 @@ export default function Register() {
               )}
             </button>
           </form>
-        )}
-
-        {/* Form 2: Merchant Registration */}
-        {registerType === 'merchant' && (
-          <form onSubmit={handleMerchantSubmit}>
-            <div className="alert alert-info" style={{ marginBottom: 18 }}>
-              <Store size={20} style={{ flexShrink: 0 }} />
-              <div style={{ fontSize: 13, lineHeight: 1.45 }}>
-                <strong>สำหรับผู้ประกอบการร้านค้า:</strong> ลงทะเบียนเพื่อรับชำระเงินในโครงการคนละครึ่ง 60/40 และรับเงินสนับสนุนโอนเข้าบัญชีร้านค้าทันที
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                ชื่อร้านค้า / สถานประกอบการ <span className="req">*</span>
-              </label>
-              <div className="input-with-icon">
-                <Store size={18} className="input-icon" />
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ minHeight: 48, fontSize: 16 }}
-                  placeholder="เช่น ร้านข้าวมันไก่เฮียเจ๊ก นครปฐม"
-                  value={merchantForm.shopName}
-                  onChange={(e) => setMerchantForm({ ...merchantForm, shopName: e.target.value })}
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                หมวดหมู่ประเภทร้านค้า <span className="req">*</span>
-              </label>
-              <div className="input-with-icon">
-                <MapPin size={18} className="input-icon" />
-                <select
-                  className="form-select"
-                  style={{ minHeight: 48, fontSize: 15 }}
-                  value={merchantForm.category}
-                  onChange={(e) => setMerchantForm({ ...merchantForm, category: e.target.value })}
-                  disabled={loading}
-                >
-                  <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
-                  <option value="สินค้า OTOP และชุมชน">สินค้า OTOP และชุมชน</option>
-                  <option value="ร้านค้าทั่วไป">ร้านค้าทั่วไป / ของใช้</option>
-                  <option value="บริการและสุขภาพ">บริการและสุขภาพ</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                ชื่อผู้ติดต่อ / เจ้าของร้าน
-              </label>
-              <div className="input-with-icon">
-                <User size={18} className="input-icon" />
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ minHeight: 48, fontSize: 16 }}
-                  placeholder="เช่น นายมานะ ค้าขายดี"
-                  value={merchantForm.contactName}
-                  onChange={(e) => setMerchantForm({ ...merchantForm, contactName: e.target.value })}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                เบอร์โทรศัพท์ร้านค้า (10 หลัก) <span className="req">*</span>
-              </label>
-              <div className="input-with-icon">
-                <Phone size={18} className="input-icon" />
-                <input
-                  type="tel"
-                  className="form-input"
-                  style={{ minHeight: 48, fontSize: 16 }}
-                  placeholder="เช่น 0891234567"
-                  maxLength={10}
-                  value={merchantForm.phoneNumber}
-                  onChange={(e) => setMerchantForm({ ...merchantForm, phoneNumber: e.target.value.replace(/\D/g, '') })}
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                อีเมลร้านค้า (ไม่บังคับ)
-              </label>
-              <div className="input-with-icon">
-                <Mail size={18} className="input-icon" />
-                <input
-                  type="email"
-                  className="form-input"
-                  style={{ minHeight: 48, fontSize: 16 }}
-                  placeholder="shop@mail.com"
-                  value={merchantForm.email}
-                  onChange={(e) => setMerchantForm({ ...merchantForm, email: e.target.value })}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-              <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                  รหัสผ่านร้านค้า (Password)
-                </label>
-                <div className="input-with-icon">
-                  <Lock size={18} className="input-icon" />
-                  <input
-                    type="password"
-                    className="form-input"
-                    style={{ minHeight: 48, fontSize: 16 }}
-                    placeholder="อย่างน้อย 6 ตัวอักษร"
-                    value={merchantForm.password}
-                    onChange={(e) => setMerchantForm({ ...merchantForm, password: e.target.value })}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                  ยืนยันรหัสผ่าน
-                </label>
-                <div className="input-with-icon">
-                  <Lock size={18} className="input-icon" />
-                  <input
-                    type="password"
-                    className="form-input"
-                    style={{ minHeight: 48, fontSize: 16 }}
-                    placeholder="กรอกรหัสผ่านซ้ำอีกครั้ง"
-                    value={merchantForm.confirmPassword}
-                    onChange={(e) => setMerchantForm({ ...merchantForm, confirmPassword: e.target.value })}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
-                ที่อยู่ร้านค้า / ทำเลที่ตั้ง
-              </label>
-              <div className="input-with-icon">
-                <MapPin size={18} className="input-icon" />
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ minHeight: 48, fontSize: 16 }}
-                  placeholder="เช่น 123/4 ถ.เทศา ต.พระปฐมเจดีย์ อ.เมือง จ.นครปฐม"
-                  value={merchantForm.addressLine}
-                  onChange={(e) => setMerchantForm({ ...merchantForm, addressLine: e.target.value })}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-              style={{ minHeight: 56, fontSize: 16, fontWeight: 700, width: '100%', marginTop: 8 }}
-            >
-              {loading ? (
-                <>
-                  <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-                  <span>กำลังลงทะเบียนร้านค้า...</span>
-                </>
-              ) : (
-                <>
-                  <Store size={18} />
-                  <span>ยืนยันการลงทะเบียนร้านค้า</span>
-                </>
-              )}
-            </button>
-          </form>
-        )}
 
         {/* Login Link */}
         <div className="auth-footer" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border-light)' }}>

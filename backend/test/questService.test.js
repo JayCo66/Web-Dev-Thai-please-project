@@ -162,3 +162,58 @@ test("single whole-response Markdown JSON fences are accepted with the same stri
   unknown[0].quest_code = "INVENTED_QUEST";
   assert.throws(() => validateSuggestion("```json\n" + JSON.stringify({cells:unknown}) + "\n```", input.quests));
 });
+
+
+test("accepted provider selection is exactly the final board mission set and carries safe evidence", async () => {
+  const input=clone();
+  const selected=suggested(input).reverse();
+  const board=await generateBingoMissionsWithAI(input,{createCompletion:async()=>({...response(selected),id:"test-provider-receipt",model:"test-model",usage:{prompt_tokens:100,completion_tokens:200,total_tokens:300}})});
+  assert.equal(board.source,"AI");
+  assert.equal(board.aiDiagnostics.ruleBasedUsed,false);
+  assert.equal(board.aiEvidence.responseId,"test-provider-receipt");
+  assert.equal(board.aiEvidence.validation.questCount,24);
+  assert.deepEqual(board.bingo_board_5x5.filter(c=>c.family!=="DONATION").map(c=>c.quest_code).sort(),selected.map(c=>c.quest_code).sort());
+  const {createHash}=require("node:crypto");
+  assert.equal(board.aiEvidence.selectionSha256,createHash("sha256").update(JSON.stringify(selected)).digest("hex"));
+});
+test("explicit rules mode cannot claim provider evidence or call AI", async () => {
+  let called=0;
+  const board=await generateBingoMissionsWithAI(clone(),{forceRules:true,createCompletion:async()=>{called++;throw new Error("must not call");}});
+  assert.equal(called,0);
+  assert.equal(board.source,"RULE_BASED");
+  assert.equal(board.aiEvidence,null);
+  assert.equal(board.aiDiagnostics.ruleBasedUsed,true);
+});
+
+
+test("AI debug logging shows input, response and final result without exposing the configured key", async () => {
+  const originalLog=console.log;
+  const oldFlag=process.env.AI_DEBUG_LOG, oldKey=process.env.TYPHOON_API_KEY;
+  const logs=[];
+  const secret="debug-only-secret-not-a-real-key";
+  try {
+    process.env.AI_DEBUG_LOG="true";
+    process.env.TYPHOON_API_KEY=secret;
+    console.log=(...args)=>logs.push(args.join(" "));
+    const input=clone();input.user_profile.debug_marker=secret;
+    const selected=suggested(input);
+    await generateBingoMissionsWithAI(input,{createCompletion:async params=>{
+      assert.equal(typeof params.messages[1].content,"string");
+      return {choices:[{finish_reason:"stop",message:{content:JSON.stringify({cells:selected,marker:secret})}}]};
+    }});
+    assert.ok(logs.some(line=>line.startsWith("[AI][REQUEST]")));
+    assert.ok(logs.some(line=>line.startsWith("[AI][RESPONSE]")));
+    assert.ok(logs.some(line=>line.startsWith("[AI][RESULT]")));
+    assert.ok(logs.some(line=>line.includes("transactions_last_period")));
+    assert.ok(logs.every(line=>!line.includes(secret)));
+    assert.ok(logs.some(line=>line.includes("[REDACTED]")));
+    logs.length=0;
+    process.env.AI_DEBUG_LOG="false";
+    await generateBingoMissionsWithAI(clone(),{forceRules:true});
+    assert.equal(logs.length,0);
+  } finally {
+    console.log=originalLog;
+    if(oldFlag===undefined)delete process.env.AI_DEBUG_LOG;else process.env.AI_DEBUG_LOG=oldFlag;
+    if(oldKey===undefined)delete process.env.TYPHOON_API_KEY;else process.env.TYPHOON_API_KEY=oldKey;
+  }
+});

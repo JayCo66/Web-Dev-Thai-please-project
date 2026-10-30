@@ -11,7 +11,8 @@
     "db:seed-shops": "node scripts/seed-shops.js",
     "db:upgrade": "node scripts/upgrade-db.js",
     "verify:app": "node scripts/verify-project.cjs",
-    "verify:ai": "node scripts/verify-ai.cjs"
+    "verify:ai": "node scripts/verify-ai.cjs",
+    "verify:ai:live": "node scripts/verify-ai-live.cjs"
   },
   "keywords": [],
   "author": "",

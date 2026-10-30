@@ -100,6 +100,7 @@ async function prepareBoard(userId) {
     source: generated.source,
     sourceReason: generated.sourceReason,
     aiDiagnostics: generated.aiDiagnostics,
+    aiEvidence: generated.aiEvidence,
     difficultyMix: generated.difficultyMix,
     period: generated.period,
     budget: generated.total_level,

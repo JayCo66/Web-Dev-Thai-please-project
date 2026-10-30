@@ -71,7 +71,7 @@ export default function Login() {
           )}
           <form onSubmit={enter}>
             <label className="form-field">
-              <span className="field-label">อีเมลหรือเบอร์โทรศัพท์</span>
+              <span className="field-label">เลขบัตรประชาชน หรือ อีเมล หรือ เบอร์โทรศัพท์</span>
               <input
                 type="text"
                 autoComplete="username"
