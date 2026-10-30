@@ -11,13 +11,15 @@ import {
   UserRound,
   X,
   FlaskConical,
+  ShieldCheck,
+  Store,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/experience.css";
 import "../styles/project-refinements.css";
 import "../styles/auth-refinements.css";
 
-const destinations = [
+const baseDestinations = [
   { to: "/", label: "หน้าหลัก", icon: Home, end: true },
   { to: "/bingo", label: "บิงโก", icon: Grid2X2 },
   { to: "/charities", label: "มูลนิธิ", icon: HeartHandshake },
@@ -28,6 +30,14 @@ export default function Navbar() {
   const { user, tokens, logout } = useAuth();
   const [dialog, setDialog] = useState(null);
   const dialogRef = useRef(null);
+
+  const isAdmin = ["ADMIN", "GOV_EXECUTIVE"].includes(user?.role);
+  const isMerchant = user?.role === "MERCHANT";
+  const destinations = isMerchant
+    ? [{ to: "/merchant", label: "ร้านของฉัน", icon: Store }]
+    : isAdmin
+      ? [...baseDestinations, { to: "/admin", label: "ภาครัฐ (Admin)", icon: ShieldCheck }]
+      : baseDestinations;
 
   useEffect(() => {
     if (dialog) dialogRef.current?.showModal();
@@ -68,14 +78,14 @@ export default function Navbar() {
               <FlaskConical size={14} />
               <span>โหมดสาธิต</span>
             </button>
-            <Link
+            {!isMerchant && <Link
               to="/rewards"
               className="xp-token-pill"
               aria-label={`${Number(tokens || 0).toLocaleString("th-TH")} โทเค็น ดูรางวัล`}
             >
               <Coins size={17} />
               <span>{Number(tokens || 0).toLocaleString("th-TH")}</span>
-            </Link>
+            </Link>}
             <button
               type="button"
               className="xp-avatar"
@@ -131,13 +141,23 @@ export default function Navbar() {
                 <p className="text-muted">{user.maskedPhone}</p>
               )}
               </div></div><div className="xp-account-actions">
-              <Link
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="button button--primary xp-admin-nav-btn"
+                  onClick={() => setDialog(null)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                >
+                  <ShieldCheck size={18} /> จัดการระบบภาครัฐ (Admin)
+                </Link>
+              )}
+              {!isMerchant && <Link
                 to="/profile"
                 className="button button--secondary"
                 onClick={() => setDialog(null)}
               >
                 <UserRound size={18}/>ดูข้อมูลบัญชีของฉัน
-              </Link>
+              </Link>}
               <button
                 type="button"
                 className="button button--ghost xp-logout"

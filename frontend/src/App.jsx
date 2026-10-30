@@ -11,6 +11,8 @@ import Payment from './pages/Payment';
 import ThaiPlus from './pages/ThaiPlus';
 import Bingo from './pages/Bingo';
 import Profile from './pages/Profile';
+import Admin from './pages/Admin';
+import Merchant from './pages/Merchant';
 import "./styles/thai-plus-theme.css";
 
 function App() {
@@ -85,6 +87,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Bingo />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant"
+            element={
+              <ProtectedRoute allowedRoles={['MERCHANT']}>
+                <Merchant />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'GOV_EXECUTIVE']}>
+                <Admin />
               </ProtectedRoute>
             }
           />

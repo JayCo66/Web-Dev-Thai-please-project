@@ -371,6 +371,7 @@ async function syncActivityInTransaction(db, userId) {
     }),
   ]);
   let tokensAwarded = 0;
+  const progressed = [];
   const oldLines = analyzeBingoLines(state.cells).filter(
     (l) => l.isCompleted,
   ).length;
@@ -382,7 +383,19 @@ async function syncActivityInTransaction(db, userId) {
         : evaluateQuestProgress(cell.quest_code, payments, {
             previousMerchantIds: previous.map((t) => t.shop_id),
           });
+    const before = cell.progress || 0;
     cell.progress = Math.min(cell.target_value, progress);
+    if (cell.progress > before)
+      progressed.push({
+        position: cell.position,
+        title: cell.short_title || cell.title,
+        unit: cell.unit,
+        before,
+        progress: cell.progress,
+        target: cell.target_value,
+        completed: cell.progress >= cell.target_value,
+        tokenReward: cell.token_reward,
+      });
     if (cell.progress >= cell.target_value) {
       cell.status = "COMPLETED";
       cell.completed_at = new Date().toISOString();
@@ -417,6 +430,7 @@ async function syncActivityInTransaction(db, userId) {
       .length,
     newBingoLinesCount: Math.max(0, linesCount - oldLines),
     bingoBonusTokens: 0,
+    progressed,
   };
 }
 
