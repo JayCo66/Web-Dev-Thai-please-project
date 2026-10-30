@@ -69,9 +69,15 @@ export default function ThaiPlus() {
   const close = () => {
     if (!busy) setSelected(null);
   };
-  const drawCount = Number(selected?.tickets);
+  const maxTickets =
+    selected?.kind === "draw" && selected.tokenCost > 0
+      ? Math.max(0, Math.min(100, Math.floor(tokens / selected.tokenCost)))
+      : 0;
+  const drawCount = Math.min(Number(selected?.tickets), maxTickets);
   const validCount =
-    Number.isSafeInteger(drawCount) && drawCount >= 1 && drawCount <= 100;
+    Number.isSafeInteger(drawCount) &&
+    drawCount >= 1 &&
+    drawCount <= maxTickets;
   const selectedCost =
     selected?.kind === "draw"
       ? validCount
@@ -94,7 +100,7 @@ export default function ThaiPlus() {
         draw ? "/rewards/lucky-draw" : "/rewards/redeem",
         {
           ...(draw
-            ? { ticketsCount: selected.tickets, rewardId: selected.rewardId }
+            ? { ticketsCount: drawCount, rewardId: selected.rewardId }
             : { rewardId: selected.rewardId }),
           requestId: request.current,
         },
@@ -208,14 +214,9 @@ export default function ThaiPlus() {
                         <div className="xp-prize-copy">
                           <h3>{prize.name}</h3>
                           <p className="xp-prize-value">
-                            ฿
-                            {Number(prize.prizeValue || 0).toLocaleString(
-                              "th-TH",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              },
-                            )}
+                            {prize.prizeValue == null
+                              ? "ยังไม่ระบุราคา"
+                              : `฿${Number(prize.prizeValue).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                           </p>
                           <p>{prize.tokenCost} แต้ม / 1 สิทธิ์</p>
                           <button
@@ -411,34 +412,41 @@ export default function ThaiPlus() {
             {selected?.kind === "draw" && (
               <div className="xp-ticket-quantity">
                 <p className="xp-prize-value">
-                  ฿
-                  {Number(selected.prizeValue || 0).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {selected.prizeValue == null
+                    ? "ยังไม่ระบุราคา"
+                    : `฿${Number(selected.prizeValue).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 </p>
                 <label htmlFor="ticket-count">จำนวนสิทธิ์ที่ต้องการ</label>
                 <input
                   id="ticket-count"
                   type="number"
                   min="1"
-                  max="100"
+                  max={maxTickets}
                   step="1"
                   inputMode="numeric"
-                  value={selected.tickets}
+                  value={selected.tickets === "" ? "" : drawCount}
                   disabled={busy}
                   onChange={(e) => {
                     request.current = crypto.randomUUID();
-                    setSelected((s) => ({ ...s, tickets: e.target.value }));
+                    const raw = e.target.value;
+                    setSelected((s) => ({
+                      ...s,
+                      tickets:
+                        raw === "" ? "" : Math.min(Number(raw), maxTickets),
+                    }));
                   }}
                   aria-describedby="ticket-count-hint"
                 />
                 <p id="ticket-count-hint" className="text-muted">
-                  1–100 สิทธิ์ · สิทธิ์ละ {selected.tokenCost} แต้ม ·
-                  ไม่มีส่วนลดตามจำนวน
+                  แลกได้สูงสุด {maxTickets} สิทธิ์ · สิทธิ์ละ{" "}
+                  {selected.tokenCost} แต้ม
                 </p>
                 {!validCount && (
-                  <p role="alert">กรอกจำนวนเต็มตั้งแต่ 1 ถึง 100 สิทธิ์</p>
+                  <p role="alert">
+                    {maxTickets > 0
+                      ? `กรอกจำนวนเต็มตั้งแต่ 1 ถึง ${maxTickets} สิทธิ์`
+                      : "แต้มยังไม่พอสำหรับ 1 สิทธิ์"}
+                  </p>
                 )}
               </div>
             )}
@@ -450,7 +458,7 @@ export default function ThaiPlus() {
               </div>
               <div>
                 <dt>คงเหลือ</dt>
-                <dd>{tokens - selectedCost} แต้ม</dd>
+                <dd>{Math.max(0, tokens - selectedCost)} แต้ม</dd>
               </div>
             </dl>
             <p className="text-muted">สิทธิ์สาธิตจะบันทึกในบัญชีนี้</p>

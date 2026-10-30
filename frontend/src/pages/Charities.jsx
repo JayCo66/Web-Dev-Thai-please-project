@@ -242,7 +242,7 @@ export default function Charities() {
                       key={item.charityId}
                     >
                       <div
-                        className={`xp-charity-art xp-charity-art--${item.impactType.toLowerCase()}`}
+                        className={`xp-charity-art xp-charity-art--${item.impactType.toLowerCase()} xp-charity-art--${item.imageKind || "photo"}`}
                       >
                         <img
                           className="xp-charity-cover"
@@ -253,14 +253,18 @@ export default function Charities() {
                           }}
                           loading="lazy"
                         />
-                        {asset && (
-                          <span className="xp-charity-brand">
-                            <img
-                              src={`/assets/charities/${asset.image}`}
-                              alt={`ตราสัญลักษณ์${item.name}`}
-                            />
-                          </span>
-                        )}
+                        {(asset || item.logoImageUrl) &&
+                          item.imageKind !== "logo" && (
+                            <span className="xp-charity-brand">
+                              <img
+                                src={
+                                  item.logoImageUrl ||
+                                  `/assets/charities/${asset.image}`
+                                }
+                                alt={`ตราสัญลักษณ์${item.name}`}
+                              />
+                            </span>
+                          )}
                         <span className="xp-photo-caption">
                           {item.imageCaption}
                         </span>
@@ -361,9 +365,9 @@ export default function Charities() {
               <summary>เกี่ยวกับข้อมูลและภาพ</summary>
               <p>
                 ใช้ชื่อมูลนิธิจากชุดข้อมูลโครงงาน
-                ภาพกิจกรรมและตราสัญลักษณ์มาจากเว็บไซต์ทางการหลายมูลนิธิ
+                ภาพกิจกรรมและตราสัญลักษณ์มาจากเว็บไซต์ทางการและลิงก์ที่ผู้ใช้เลือก
                 ใช้ประกอบการศึกษา ไม่มีความร่วมมือหรือการรับรองจากมูลนิธิ
-                ภาพที่ไม่ได้มาจากองค์กรนั้นระบุว่าเป็นภาพประกอบหมวดหมู่
+                แห่งที่ยังไม่มีภาพกิจกรรมแสดงโลโก้ขององค์กรแทน
               </p>
             </details>
           </>

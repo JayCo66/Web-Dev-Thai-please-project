@@ -34,7 +34,7 @@ async function main() {
 main()
   .then(() => require("../src/services/catalogService").syncCatalog(prisma))
   .catch((error) => {
-    console.error("Database upgrade failed:", error.code || error.message);
+    console.error("Database upgrade failed:", error.meta?.message || error.message);
     process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());

@@ -1,11 +1,13 @@
 {
-  "database": "thai_please_qa_1793333423826",
+  "database": "thai_please_qa_1793336550316",
   "checks": [
     "fresh seed + additive upgrade",
+    "duplicate reward cleanup keeps the original ID and old tickets; repeated sync does not create new rows",
     "demo identity needs no personal data and ThaiD is not impersonated",
     "Bingo requires authenticated identity",
     "new-user mixed starter board, 25 cells, locked future boards",
     "two accounts own different boards",
+    "all 28 charities have distinct local covers with matched logos or the selected poster",
     "concurrent duplicate payment debits once",
     "donation debit, history, donation-only center and replay safety",
     "manual completion and token farming disabled",
@@ -22,7 +24,8 @@
     "custom ticket quantity shows linear prices and blocks invalid counts",
     "all five pages desktop/mobile: no overflow or browser exceptions",
     "donation dialog keyboard close and focus behavior",
-    "new demo login works from a clean mobile browser"
+    "new demo login works from a clean mobile browser",
+    "60 tokens clamp 100 to two tickets and the server deducts 50, leaving 10"
   ],
   "screenshots": [
     "home-desktop.png",
@@ -38,5 +41,6 @@
     "bingo-completed-desktop.png",
     "bingo-completed-mobile.png"
   ],
-  "passed": true
+  "passed": true,
+  "databaseServer": "127.0.0.1:5094 (fresh isolated test server; not the main database)"
 }

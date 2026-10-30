@@ -11,19 +11,7 @@ const {
   randomUUID,
 } = require("../utils/operations");
 
-// Reference values supplied by the project owner; not a live price feed.
-function prizeValuation(name) {
-  const value = {
-    "ทองคำแท่ง 1 บาท": 63800,
-    "iPhone 18 Pro 256GB": 48900,
-    "Honda Wave 125i สตาร์ทมือ ล้อซี่ลวด": 58000,
-  }[name];
-  return {
-    prizeValue: value ?? null,
-    prizeValueBasis: "OWNER_REFERENCE",
-    currency: "THB",
-  };
-}
+const { prizeReference } = require("../services/rewardCatalog");
 
 function calculateLuckyDrawCost(value, base = 25) {
   const count = Number(value);
@@ -67,7 +55,7 @@ exports.getRewards = async (req, res) => {
             imageUrl: r.image_url,
             description: r.description,
             tokenCost: r.token_cost,
-            ...prizeValuation(r.name),
+            ...prizeReference(r),
             packages: [1, 3, 5].map((tickets) => ({
               tickets,
               tokens: calculateLuckyDrawCost(tickets, r.token_cost),

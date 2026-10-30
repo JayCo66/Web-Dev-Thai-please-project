@@ -87,6 +87,23 @@ async function main() {
       statement = "";
     }
   }
+  // Reproduce the real bug: two rows with different display names for one prize.
+  const legacyWave = await db.rewards.create({
+    data: {
+      name: "Honda Wave 125i สตาร์ทมือ ล้อซี่ลวด",
+      reward_type: "LUCKY_DRAW",
+      token_cost: 25,
+      image_url: "/assets/rewards/wave125i.png",
+    },
+  });
+  const duplicateWave = await db.rewards.create({
+    data: {
+      name: "Honda Wave 125i",
+      reward_type: "LUCKY_DRAW",
+      token_cost: 25,
+      image_url: "/assets/rewards/wave125i.png",
+    },
+  });
   const upgrade = cp.spawnSync(process.execPath, ["scripts/upgrade-db.js"], {
     cwd: backend,
     env: { ...process.env, DATABASE_URL: url.toString() },
@@ -98,6 +115,54 @@ async function main() {
   const hash = await require(path.join(backend, "node_modules/bcryptjs")).hash(
     password,
     10,
+  );
+  const legacyOwner = await db.users.create({
+    data: { name: "Legacy QA holder", password_hash: hash },
+  });
+  const historicalTicket = await db.reward_redemptions.create({
+    data: {
+      user_id: legacyOwner.user_id,
+      reward_id: duplicateWave.reward_id,
+      kind: "LUCKY_DRAW",
+      code: "QA-LEGACY-TICKET",
+      metadata: { ticketsCount: 1, title: "Old ticket" },
+      token_cost: 25,
+      request_key: "qa:legacy-ticket",
+    },
+  });
+  const { syncCatalog } = require("../src/services/catalogService");
+  await syncCatalog(db);
+  await syncCatalog(db);
+  const waveRows = await db.rewards.findMany({
+    where: { image_url: "/assets/rewards/wave125i.png" },
+    orderBy: { reward_id: "asc" },
+  });
+  assert.equal(
+    waveRows.length,
+    2,
+    "repeated synchronization must not create more rows",
+  );
+  assert.equal(waveRows.filter((row) => row.is_active).length, 1);
+  assert.equal(
+    waveRows.find((row) => row.is_active).reward_id,
+    legacyWave.reward_id,
+  );
+  assert.equal(
+    (
+      await db.reward_redemptions.findUnique({
+        where: { redemption_id: historicalTicket.redemption_id },
+      })
+    ).reward_id,
+    duplicateWave.reward_id,
+  );
+  const { prizeReference } = require("../src/services/rewardCatalog");
+  assert.equal(
+    prizeReference({ ...legacyWave, name: "Honda Wave 125i ชื่อที่แก้ใน DB" })
+      .prizeValue,
+    58000,
+  );
+  check(
+    "duplicate reward cleanup keeps the original ID and old tickets; repeated sync does not create new rows",
   );
   const user = await db.users.create({
     data: {
@@ -228,7 +293,21 @@ async function main() {
   const shop = shops.data[0];
   assert.ok(shop);
   const charities = await request("/charities", token);
-  assert.ok(charities.data.length);
+  assert.equal(charities.data.length, 28);
+  assert.equal(new Set(charities.data.map((c) => c.coverImageUrl)).size, 28);
+  for (const c of charities.data) {
+    assert.notEqual(
+      c.imageKind,
+      "illustration",
+      c.name + " should have its own image",
+    );
+    const files = [c.coverImageUrl, c.logoImageUrl].filter(Boolean);
+    for (const file of files)
+      assert.ok(fs.existsSync(path.join(root, "frontend/public", file)), file);
+  }
+  check(
+    "all 28 charities have distinct local covers with matched logos or the selected poster",
+  );
   const payBody = {
     shopId: shop.shopId,
     amount: 50,
@@ -560,7 +639,10 @@ async function main() {
     await page.locator(".xp-charity-card h2").first().innerText(),
     firstName,
   );
-  assert.equal(await page.locator('.xp-pagination [aria-current="page"]').innerText(), "2");
+  assert.equal(
+    await page.locator('.xp-pagination [aria-current="page"]').innerText(),
+    "2",
+  );
   await page.getByRole("button", { name: "หน้าก่อนหน้า", exact: true }).click();
   assert.equal(
     await page.locator(".xp-charity-card h2").first().innerText(),
@@ -575,7 +657,10 @@ async function main() {
   );
   await page.getByRole("textbox", { name: "ค้นหามูลนิธิ" }).fill("ยุวพัฒน์");
   assert.equal(await page.locator(".xp-charity-card").count(), 1);
-  assert.equal(await page.locator('.xp-pagination [aria-current="page"]').innerText(), "1");
+  assert.equal(
+    await page.locator('.xp-pagination [aria-current="page"]').innerText(),
+    "1",
+  );
   check(
     "charity numbered pagination replaces cards, returns to previous page and resets on search",
   );
@@ -585,6 +670,14 @@ async function main() {
   const quantity = page.getByLabel("จำนวนสิทธิ์ที่ต้องการ", { exact: true });
   await quantity.fill("3");
   assert.match(await page.locator("dialog .xp-receipt").innerText(), /75/);
+  const actualTokens = (await request("/users/me", token)).data.tokens;
+  const maximum = Math.min(100, Math.floor(actualTokens / 25));
+  await quantity.fill("100");
+  assert.equal(await quantity.inputValue(), String(maximum));
+  assert.match(
+    await page.locator("dialog .xp-receipt").innerText(),
+    new RegExp(String(maximum * 25)),
+  );
   await quantity.fill("0");
   assert.ok(
     await page
@@ -639,6 +732,57 @@ async function main() {
   await loginPage.locator(".xp-wallet-amount").waitFor();
   assert.match(await loginPage.locator(".xp-wallet-amount").innerText(), /500/);
   check("new demo login works from a clean mobile browser");
+  // A real isolated account with exactly 60 tokens must clamp 100 to two tickets.
+  const freshToken = await loginPage.evaluate(() =>
+    localStorage.getItem("token"),
+  );
+  const freshProfile = (await request("/users/me", freshToken)).data;
+  assert.equal(freshProfile.tokens, 50);
+  await db.token_transactions.create({
+    data: {
+      user_id: BigInt(freshProfile.userId),
+      amount: 10,
+      type: "EARN_CELL",
+      event_key: "qa:sixty-tokens",
+    },
+  });
+  await loginPage.goto("http://127.0.0.1:5178/rewards");
+  await loginPage.waitForLoadState("networkidle");
+  await loginPage.locator(".xp-prize-card button").first().click();
+  const sixtyQuantity = loginPage.getByLabel("จำนวนสิทธิ์ที่ต้องการ", {
+    exact: true,
+  });
+  await sixtyQuantity.fill("100");
+  assert.equal(await sixtyQuantity.inputValue(), "2");
+  assert.match(
+    await loginPage.locator("dialog .xp-receipt").innerText(),
+    /50 แต้ม/,
+  );
+  assert.match(
+    await loginPage.locator("dialog .xp-receipt").innerText(),
+    /10 แต้ม/,
+  );
+  assert.ok(
+    await loginPage
+      .getByRole("button", { name: "ยืนยันใช้แต้ม", exact: true })
+      .isEnabled(),
+  );
+  await loginPage.screenshot({
+    path: path.join(screenshots, "reward-clamped-60-tokens-mobile.png"),
+    fullPage: true,
+  });
+  await loginPage
+    .getByRole("button", { name: "ยืนยันใช้แต้ม", exact: true })
+    .click();
+  await loginPage.locator("dialog[open]").waitFor({ state: "hidden" });
+  assert.equal((await request("/users/me", freshToken)).data.tokens, 10);
+  assert.equal(
+    (await request("/rewards/my-items", freshToken)).data[0].ticketsCount,
+    2,
+  );
+  check(
+    "60 tokens clamp 100 to two tickets and the server deducts 50, leaving 10",
+  );
   await anonymous.close();
   report.passed = true;
   fs.writeFileSync(

@@ -630,3 +630,37 @@
 .xp-ticket-quantity label {
   font-weight: 600;
 }
+
+/* Use each organization's own identity when no activity photograph was supplied. */
+.xp-charity-art--logo {
+  background: #fff;
+}
+.xp-charity-art--logo > .xp-charity-cover {
+  object-fit: contain;
+  padding: 44px 40px 48px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.xp-charity-art--logo .xp-photo-caption {
+  color: #52665d;
+  text-shadow: none;
+}
+.xp-charity-art--logo:after,
+.xp-charity-art--poster:after {
+  display: none;
+}
+.xp-charity-art--poster > .xp-charity-cover {
+  object-fit: contain;
+  padding: 28px;
+  background: #f1f6f0;
+  box-sizing: border-box;
+}
+.xp-charity-art--poster .xp-photo-caption {
+  color: #52665d;
+  text-shadow: none;
+}
+@media (max-width: 600px) {
+  .xp-charity-art--logo > .xp-charity-cover {
+    padding: 38px 32px 44px;
+  }
+}
