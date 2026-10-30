@@ -1,3 +1,4 @@
+import ProjectBrand from "./ProjectBrand";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
@@ -14,6 +15,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import "../styles/experience.css";
 import "../styles/project-refinements.css";
+import "../styles/auth-refinements.css";
 
 const destinations = [
   { to: "/", label: "หน้าหลัก", icon: Home, end: true },
@@ -51,14 +53,8 @@ export default function Navbar() {
       </a>
       <header className="xp-header">
         <div className="xp-header-inner">
-          <Link to="/" className="xp-brand" aria-label="THAI Please หน้าหลัก">
-            <span className="xp-brand-mark" aria-hidden="true">
-              tp
-              <span />
-            </span>
-            <span>
-              THAI <strong>Please</strong>
-            </span>
+          <Link to="/" className="xp-brand" aria-label="ไทยช่วยไทยพลีส หน้าหลัก">
+            <ProjectBrand/>
           </Link>
           <nav className="xp-desktop-nav" aria-label="เมนูหลัก">
             {navItems}
@@ -96,7 +92,8 @@ export default function Navbar() {
       </nav>
       <dialog
         ref={dialogRef}
-        className="dialog-sheet"
+        className="dialog-sheet xp-account-dialog"
+        onClose={() => setDialog(null)}
         onCancel={() => setDialog(null)}
         onClick={(event) => {
           if (event.target === event.currentTarget) setDialog(null);
@@ -126,19 +123,20 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <strong className="xp-profile-name">
+              <div className="xp-account-identity"><span className="xp-account-avatar"><UserRound size={26}/></span><div><strong className="xp-profile-name">
                 {user?.fullName || user?.name || "ผู้ใช้งาน"}
               </strong>
               {user?.email && <p className="text-muted">{user.email}</p>}
               {user?.maskedPhone && (
                 <p className="text-muted">{user.maskedPhone}</p>
               )}
+              </div></div><div className="xp-account-actions">
               <Link
                 to="/profile"
                 className="button button--secondary"
                 onClick={() => setDialog(null)}
               >
-                ดูข้อมูลบัญชีของฉัน
+                <UserRound size={18}/>ดูข้อมูลบัญชีของฉัน
               </Link>
               <button
                 type="button"
@@ -150,7 +148,7 @@ export default function Navbar() {
               >
                 <LogOut size={17} />
                 ออกจากระบบ
-              </button>
+              </button></div>
             </>
           )}
         </div>

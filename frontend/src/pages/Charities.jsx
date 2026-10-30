@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ExternalLink,
+  BarChart3,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
@@ -149,6 +150,7 @@ export default function Charities() {
             </span>
           </div>
         </div>
+        <div style={{ marginBottom: 20 }}><Link to="/charities/dashboard" className="button button--secondary"><BarChart3 size={18}/>Dashboard ยอดบริจาคทั้งหมด<ArrowRight size={17}/></Link></div>
         <div className="segmented xp-charity-tabs">
           <button
             aria-pressed={tab === "discover"}

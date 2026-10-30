@@ -65,3 +65,6 @@ npm run lint
 - thai_please_schema.sql เป็น initial seed; backend/prisma/upgrades เป็นขั้นตอนเพิ่มคอลัมน์/ตารางสำหรับ functional ปัจจุบัน จึงต้องรัน npm run db:upgrade หลัง import seed ใหม่ ห้าม import seed ทับฐานข้อมูลเดิม
 - ใช้ภาพใน frontend/public/assets ที่จับคู่มูลนิธิและสินค้าจริงแล้ว รวมถึงแก้วแบรนด์ที่ผู้ใช้เปลี่ยน ภาพจาก main ที่ไม่ได้ใช้อ้างอิงไม่ได้เพิ่มซ้ำเข้าชุด runtime
 - เอกสารเสริม ผลทดสอบ และชุด Postman simulation เก็บเฉพาะเครื่องตาม .gitignore การทดสอบ AI HTTP ใช้ npm run verify:ai ได้เมื่อมีชุด simulation ในเครื่อง และไม่ยืนยันคุณภาพโมเดลจริงจาก mock
+
+
+เพิ่มร้านค้าจำลองสำหรับทดสอบภารกิจ: รัน `npm run db:seed-shops` ในโฟลเดอร์ `backend` หลังนำเข้า schema และตั้งค่า `DATABASE_URL` แล้ว คำสั่งนี้เพิ่มเฉพาะร้านที่ยังไม่มี เก็บร้านและธุรกรรมเดิมไว้ และตรวจจำนวนร้านเทียบเป้าหมายในคลังภารกิจ ข้อมูลร้านอยู่ที่ `backend/prisma/seeds/demo-shops.json` ภารกิจตามช่วงเวลา/หลายวันยังนับจากเวลาธุรกรรมจริง

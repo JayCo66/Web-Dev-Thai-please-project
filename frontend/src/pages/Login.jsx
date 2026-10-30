@@ -1,3 +1,4 @@
+import ProjectBrand from "../components/ProjectBrand";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -6,9 +7,11 @@ import {
   EyeOff,
   FlaskConical,
   LoaderCircle,
+  UserPlus,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/experience.css";
+import "../styles/auth-refinements.css";
 export default function Login() {
   const { login, demoLogin } = useAuth(),
     navigate = useNavigate();
@@ -34,13 +37,7 @@ export default function Login() {
       <main className="xp-login-layout">
         <section className="xp-login-story">
           <Link className="xp-brand" to="/login">
-            <span className="xp-brand-mark">
-              tp
-              <span />
-            </span>
-            <span>
-              THAI <strong>Please</strong>
-            </span>
+            <ProjectBrand/>
           </Link>
           <div>
             <span className="page-eyebrow">ใช้จ่ายอย่างมีความหมาย</span>
@@ -128,7 +125,7 @@ export default function Login() {
             เริ่มด้วยเงินทดลอง 500 บาท และ 50 แต้ม ไม่ต้องใช้ข้อมูลส่วนตัว
           </p>
           <p className="xp-login-register">
-            มีข้อมูลทดสอบพร้อมแล้ว? <Link to="/register">สมัครบัญชี</Link>
+            <Link to="/register" className="button button--secondary xp-register-cta"><UserPlus size={20}/>สมัครบัญชีใหม่<ArrowRight size={18}/></Link>
           </p>
         </section>
       </main>

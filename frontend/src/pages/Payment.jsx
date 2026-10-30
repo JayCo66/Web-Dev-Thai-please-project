@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,9 +8,11 @@ import {
   Search,
   Wallet,
   Plus,
+  Ticket,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
+import "../styles/payment-coupons.css";
 import { useAuth } from "../context/AuthContext";
 const money = (n) =>
   Number(n || 0).toLocaleString("th-TH", {
@@ -23,6 +25,8 @@ const day = (v) =>
   );
 export default function Payment() {
   const { wallet, refreshUser, resetBalance } = useAuth();
+  const [search] = useSearchParams();
+  const [coupons, setCoupons] = useState([]), [couponId, setCouponId] = useState(search.get("coupon") || "");
   const [shops, setShops] = useState([]),
     [history, setHistory] = useState([]),
     [shopId, setShopId] = useState("");
@@ -35,12 +39,14 @@ export default function Payment() {
   const request = useRef(null);
   const load = useCallback(async () => {
     try {
-      const [a, b] = await Promise.all([
+      const [a, b, c] = await Promise.all([
         api.get("/transactions/shops"),
         api.get("/transactions/my-history"),
+        api.get("/rewards/my-items"),
       ]);
       setShops(a.data.data);
       setHistory(b.data.data);
+      setCoupons(c.data.data.filter(item => item.paymentDiscount && item.status === "AVAILABLE"));
     } catch (e) {
       setError(e.response?.data?.error || "โหลดร้านค้าไม่สำเร็จ");
     } finally {
@@ -62,12 +68,16 @@ export default function Payment() {
         )
         .reduce((sum, t) => sum + t.governmentAmount, 0),
   );
-  const subsidy = Math.min(remaining, Math.round(total * 60) / 100),
-    payment = Math.round((total - subsidy) * 100) / 100;
+  const selectedCoupon = coupons.find(c => c.id === couponId);
+  const couponInvalid = Boolean(couponId && (!selectedCoupon || total < selectedCoupon.paymentDiscount.minimumAmount));
+  const discountAmount = selectedCoupon && !couponInvalid ? Math.min(total, selectedCoupon.paymentDiscount.amount) : 0;
+  const netAmount = Math.round((total - discountAmount) * 100) / 100;
+  const subsidy = Math.min(remaining, Math.round(netAmount * 60) / 100),
+    payment = Math.round((netAmount - subsidy) * 100) / 100;
   async function pay(e) {
     e.preventDefault();
-    if (busy || !selected || total <= 0) return;
-    const signature = `${shopId}:${total}`;
+    if (busy || !selected || total <= 0 || couponInvalid) return;
+    const signature = `${shopId}:${total}:${couponId}`;
     if (request.current?.signature !== signature)
       request.current = { signature, id: crypto.randomUUID() };
     setBusy(true);
@@ -76,9 +86,11 @@ export default function Payment() {
       const { data } = await api.post("/transactions/pay", {
         shopId,
         amount: total,
+        ...(couponId ? { couponRedemptionId: couponId } : {}),
         requestId: request.current.id,
       });
       setReceipt(data.data);
+      setCouponId("");
       request.current = null;
       await refreshUser();
       await load();
@@ -137,6 +149,7 @@ export default function Payment() {
             <h2>บันทึกการใช้จ่ายแล้ว</h2>
             <p>{receipt.shopName}</p>
             <strong>฿{money(receipt.totalAmount)}</strong>
+            {receipt.discountAmount > 0 && <p className="notice notice--success">ยอดสินค้า ฿{money(receipt.originalAmount)} · ใช้คูปองลด ฿{money(receipt.discountAmount)} แล้ว</p>}
             <p className="text-muted">
               หักเงินทดลอง ฿{money(receipt.userAmount)} · คงเหลือ ฿
               {money(receipt.remainingBalance)}
@@ -229,11 +242,25 @@ export default function Payment() {
                   disabled={busy}
                 />
               </label>
+              <label className="form-field">
+                <span className="field-label"><Ticket size={16}/> คูปองส่วนลด</span>
+                <select className="form-select xp-payment-coupon-select" value={couponId} onChange={e=>setCouponId(e.target.value)} disabled={busy} aria-label="คูปองส่วนลด">
+                  <option value="">ไม่ใช้คูปอง</option>
+                  {coupons.map(c=><option value={c.id} key={c.id}>{c.title} · ขั้นต่ำ ฿{money(c.paymentDiscount.minimumAmount)}</option>)}
+                </select>
+                {coupons.length === 0 && <small className="text-muted">ยังไม่มีคูปองส่วนลดพร้อมใช้ <Link to="/rewards">แลกคูปอง</Link></small>}
+                {couponInvalid && <small role="alert" style={{color:"#b42318"}}>{selectedCoupon ? `คูปองนี้ใช้กับยอดสินค้าตั้งแต่ ${selectedCoupon.paymentDiscount.minimumAmount} บาท` : "คูปองที่เลือกไม่พร้อมใช้ กรุณาเลือกใหม่"}</small>}
+              </label>
               <dl className="xp-receipt">
                 <div>
                   <dt>ร้านค้า</dt>
                   <dd>{selected?.shopName || "ยังไม่ได้เลือก"}</dd>
                 </div>
+                <div>
+                  <dt>ยอดสินค้า</dt><dd>฿{money(total)}</dd>
+                </div>
+                {selectedCoupon && !couponInvalid && <div><dt>ส่วนลดคูปอง</dt><dd>− ฿{money(discountAmount)}</dd></div>}
+                <div><dt>ยอดหลังส่วนลด</dt><dd>฿{money(netAmount)}</dd></div>
                 <div>
                   <dt>ส่วนร่วมจ่ายทดลอง</dt>
                   <dd>− ฿{money(subsidy)}</dd>
@@ -246,11 +273,11 @@ export default function Payment() {
                 </div>
               </dl>
               <p className="xp-quiet-note">
-                ร่วมจ่ายทดลอง 60% · โควตาวันนี้เหลือ ฿{money(remaining)}
+                หักคูปองก่อนคำนวณร่วมจ่าย 60% · โควตาวันนี้เหลือ ฿{money(remaining)}
               </p>
               <button
                 className="button button--primary xp-full"
-                disabled={busy || !selected || total <= 0 || payment > balance}
+                disabled={busy || !selected || total <= 0 || payment > balance || couponInvalid}
               >
                 {busy
                   ? "กำลังบันทึก…"

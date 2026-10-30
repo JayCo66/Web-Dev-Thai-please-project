@@ -1,3 +1,4 @@
+const { discountTerms, calculateDiscount } = require("../services/paymentDiscount");
 const prisma = require("../config/prisma");
 const {
   money,
@@ -45,13 +46,21 @@ async function getShops(req, res) {
     handleError(res, error, "โหลดร้านค้าไม่สำเร็จ");
   }
 }
-function transactionView(t) {
+async function usedDiscounts(db, userId) {
+  const items = await db.reward_redemptions.findMany({ where: { user_id: userId, status: "USED", kind: { in: ["COUPON", "DISCOUNT"] } } });
+  return new Map(items.filter(item => item.metadata?.paymentId).map(item => [String(item.metadata.paymentId), item]));
+}
+function transactionView(t, coupon) {
   return {
     transactionId: t.transaction_id.toString(),
     shopId: t.shop_id.toString(),
     shopName: t.shops?.shop_name,
     category: t.shops?.category,
     totalAmount: Number(t.total_amount),
+    originalAmount: Number(coupon?.metadata.originalAmount ?? t.total_amount),
+    discountAmount: Number(coupon?.metadata.discountAmount || 0),
+    couponRedemptionId: coupon ? String(coupon.redemption_id) : null,
+    couponTitle: coupon?.metadata.title || null,
     userAmount: Number(t.user_amount),
     governmentAmount: Number(t.government_amount),
     paidAt: t.paid_at,
@@ -66,6 +75,7 @@ async function createPayment(req, res) {
     const amount = money(req.body.amount);
     const shopId = positiveId(req.body.shopId);
     const key = requestKey(req, "payment");
+    const couponId = req.body.couponRedemptionId == null ? null : positiveId(req.body.couponRedemptionId);
     const {
       ensureCurrentBoard,
       syncActivityInTransaction,
@@ -79,19 +89,33 @@ async function createPayment(req, res) {
           include: { shops: true },
         });
         if (previous) {
+          const coupon = (await usedDiscounts(tx, userId)).get(String(previous.transaction_id));
           if (
-            Number(previous.total_amount) !== amount ||
-            previous.shop_id !== shopId
+            Number(coupon?.metadata.originalAmount ?? previous.total_amount) !== amount ||
+            previous.shop_id !== shopId ||
+            (coupon ? String(coupon.redemption_id) : null) !== (couponId ? String(couponId) : null)
           )
             fail("รายการเดิมมีข้อมูลต่างกัน กรุณาเริ่มรายการใหม่", 409);
           return {
-            ...transactionView(previous),
+            ...transactionView(previous, coupon),
             remainingBalance: Number(user.demo_balance),
             replayed: true,
           };
         }
         const shop = await tx.shops.findUnique({ where: { shop_id: shopId } });
         if (!shop?.is_active) fail("ร้านค้านี้ยังไม่เปิดรับรายการ", 404);
+        let coupon = null;
+        let discountAmount = 0;
+        if (couponId) {
+          coupon = await tx.reward_redemptions.findFirst({ where: { redemption_id: couponId, user_id: userId } });
+          if (!coupon) fail("ไม่พบคูปองของคุณ", 404);
+          if (coupon.status !== "AVAILABLE") fail("คูปองนี้ถูกใช้แล้วหรือยังใช้ไม่ได้", 409);
+          if (coupon.expires_at && coupon.expires_at <= new Date()) fail("คูปองหมดอายุแล้ว", 409);
+          const terms = discountTerms(coupon);
+          if (!terms) fail("รายการนี้ไม่ใช่คูปองส่วนลดสำหรับชำระเงิน", 400);
+          discountAmount = calculateDiscount(amount, terms);
+        }
+        const netAmount = Math.round((amount - discountAmount) * 100) / 100;
         const aggregate = await tx.transactions.aggregate({
           where: {
             user_id: userId,
@@ -100,10 +124,10 @@ async function createPayment(req, res) {
           },
           _sum: { government_amount: true },
         });
-        const { govSubsidy, userPayment, remainingCapAfter } = calculateCoPay(
-          amount,
-          Number(aggregate._sum.government_amount || 0),
-        );
+        const usedSubsidy = Number(aggregate._sum.government_amount || 0);
+        const { govSubsidy, userPayment, remainingCapAfter } = netAmount > 0
+          ? calculateCoPay(netAmount, usedSubsidy)
+          : { govSubsidy: 0, userPayment: 0, remainingCapAfter: Math.max(0, 150 - usedSubsidy) };
         if (Number(user.demo_balance) < userPayment)
           fail("เงินทดลองไม่พอ กรุณาเติมเงินทดลองก่อน");
         const updated = await tx.users.update({
@@ -114,7 +138,7 @@ async function createPayment(req, res) {
           data: {
             user_id: userId,
             shop_id: shopId,
-            total_amount: amount,
+            total_amount: netAmount,
             user_amount: userPayment,
             government_amount: govSubsidy,
             status: "COMPLETED",
@@ -122,12 +146,18 @@ async function createPayment(req, res) {
           },
           include: { shops: true },
         });
+        if (coupon) {
+          coupon = await tx.reward_redemptions.update({
+            where: { redemption_id: coupon.redemption_id },
+            data: { status: "USED", metadata: { ...coupon.metadata, paymentDiscount: discountTerms(coupon), usedAt: new Date().toISOString(), paymentId: String(payment.transaction_id), shopId: String(shopId), originalAmount: amount, discountAmount } },
+          });
+        }
         const questUpdate = await syncActivityInTransaction(
           tx,
           userId.toString(),
         );
         return {
-          ...transactionView(payment),
+          ...transactionView(payment, coupon),
           remainingBalance: Number(updated.demo_balance),
           remainingCapAfter,
           questUpdate,
@@ -147,7 +177,8 @@ async function getMyTransactions(req, res) {
       include: { shops: true },
       orderBy: { paid_at: "desc" },
     });
-    res.json({ success: true, data: list.map(transactionView) });
+    const discounts = await usedDiscounts(prisma, BigInt(req.user.userId));
+    res.json({ success: true, data: list.map(item => transactionView(item, discounts.get(String(item.transaction_id)))) });
   } catch (error) {
     handleError(res, error, "โหลดประวัติการใช้จ่ายไม่สำเร็จ");
   }

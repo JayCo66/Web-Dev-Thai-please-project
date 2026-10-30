@@ -437,13 +437,15 @@ export default function ThaiPlus() {
                               บันทึกการแลกในบัญชีแล้ว
                             </p>
                           )}
+                          <p className="text-muted">เลขที่รายการ #{item.id}</p>
                           {coupon && (
                             <code>{item.voucherCode || item.code}</code>
                           )}
                         </div>
                         {coupon && (
                           <div className="xp-owned-actions">
-                            {item.status === "AVAILABLE" && (
+                            {item.status === "AVAILABLE" && item.paymentDiscount && <Link className="button button--primary" to={`/payment?coupon=${item.id}`}>ใช้ส่วนลดชำระเงิน</Link>}
+                            {item.status === "AVAILABLE" && !item.paymentDiscount && (
                               <button
                                 className="button button--primary"
                                 disabled={busy}

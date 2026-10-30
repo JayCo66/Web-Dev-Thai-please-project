@@ -14,6 +14,7 @@ import {
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import "../styles/home-discovery.css";
 
 const money = (value) =>
   Number(value || 0).toLocaleString("th-TH", {
@@ -28,6 +29,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
   const [recent, setRecent] = useState([]);
+  const [featuredCharities, setFeaturedCharities] = useState([]);
   const [donationTotal, setDonationTotal] = useState(null);
   const [topupBusy, setTopupBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -50,6 +52,12 @@ export default function Home() {
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
+    api
+      .get("/charities", { signal: controller.signal })
+      .then((response) => {
+        if (response.data.success) setFeaturedCharities(response.data.data.slice(0, 3));
+      })
+      .catch(() => {});
     api
       .get("/charities/my-donations", { signal: controller.signal })
       .then((response) => {
@@ -112,11 +120,13 @@ export default function Home() {
             <h1>สวัสดี {firstName}</h1>
             <p>ใช้จ่าย ทำภารกิจ แล้วเปลี่ยนโทเค็นเป็นรางวัล</p>
           </div>
-          <Link to="/payment" className="button button--primary">
-            <CreditCard size={18} />
-            ชำระเงินทดลอง
-          </Link>
         </div>
+
+        <Link to="/payment" className="xp-home-payment" aria-label="เริ่มชำระเงินทดลองที่ร้านค้าชุมชน">
+          <span className="xp-home-payment-icon"><CreditCard size={25}/></span>
+          <span className="xp-home-payment-copy"><strong>ชำระเงินทดลอง</strong><small>เลือกร้านค้า ใช้จ่าย แล้วดูภารกิจบิงโกของคุณคืบหน้า</small></span>
+          <span className="xp-home-payment-arrow"><span>เริ่มชำระเงิน</span><ArrowRight size={19}/></span>
+        </Link>
 
         <section className="xp-overview-grid" aria-label="ยอดของคุณ">
           <div className="xp-wallet-card">
@@ -261,29 +271,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="panel xp-home-activity">
-          <div className="panel-head">
-            <h2>การให้ล่าสุดของคุณ</h2>
-            <span className="text-muted">ประวัติจริงในบัญชีทดลอง</span>
+        <section className="panel xp-home-charities" aria-label="เลือกมูลนิธิที่อยากช่วย">
+          <div className="xp-home-charities-copy">
+            <span className="page-eyebrow"><HeartHandshake size={16}/>ส่งต่อสิ่งดี ๆ</span>
+            <h2>เลือกสิ่งที่คุณอยากช่วย</h2>
+            <p>ร่วมสนับสนุนมูลนิธิในด้านที่คุณใส่ใจ และทำภารกิจเพื่อสังคมในบิงโก</p>
+            {recent.length > 0 && <p className="xp-charity-recent">การให้ล่าสุด · {recent[0].charityName} ฿{money(recent[0].amount)}</p>}
+            <Link to="/charities" className="button button--primary">เลือกมูลนิธิ <ArrowRight size={17}/></Link>
           </div>
-          {recent.length ? (
-            recent.map((item) => (
-              <div className="xp-history-row" key={item.donationId}>
-                <span>
-                  <strong>{item.charityName}</strong>
-                  <small>
-                    {new Date(item.donatedAt).toLocaleDateString("th-TH")}
-                  </small>
-                </span>
-                <strong>฿{money(item.amount)}</strong>
-              </div>
-            ))
-          ) : (
-            <p className="text-muted">
-              ยังไม่มีรายการบริจาค เริ่มได้จากเมนูมูลนิธิเมื่อคุณพร้อม
-            </p>
-          )}
+          {featuredCharities.length > 0 && <div className="xp-home-charity-preview" aria-label="ตัวอย่างมูลนิธิ">
+            {featuredCharities.map(item=><div className="xp-home-charity-preview-card" key={item.charityId}>
+              <img src={item.coverImageUrl} alt="" className={item.imageKind === "logo" || item.imageKind === "poster" ? "is-logo" : ""} style={{objectPosition:item.imagePosition || "center"}} loading="lazy"/>
+              <span>{item.name}</span>
+            </div>)}
+          </div>}
         </section>
+
       </main>
     </div>
   );

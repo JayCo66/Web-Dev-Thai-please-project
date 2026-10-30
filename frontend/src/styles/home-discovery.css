@@ -1,0 +1,20 @@
+/* Home: clear payment entry and a preview of the organizations available. */
+.xp-home-payment{display:flex;align-items:center;gap:18px;padding:22px 26px;margin:0 0 22px;border-radius:18px;background:linear-gradient(110deg,#071f55,#103a99 70%,#1751c5);color:#fff;box-shadow:0 12px 28px #123c8b1c;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.xp-home-payment:hover{transform:translateY(-2px);box-shadow:0 16px 32px #123c8b30}
+.xp-home-payment-icon{display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;border-radius:14px;background:#ffffff1c;color:#fff}
+.xp-home-payment-copy{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.xp-home-payment-copy strong{font-size:18px;font-weight:600}.xp-home-payment-copy small{font-size:12px;color:#dce9ff}
+.xp-home-payment-arrow{display:flex;align-items:center;gap:10px;padding:11px 15px;border-radius:12px;background:#fff;color:#1745a6;font-size:12px;font-weight:600;white-space:nowrap}
+.xp-home-charities{display:grid;grid-template-columns:1fr 1.2fr;gap:42px;align-items:center;padding:38px 42px;overflow:hidden;margin:0 0 28px}
+.xp-home-charities-copy h2{font-size:27px;line-height:1.4;margin:12px 0}.xp-home-charities-copy>p{color:#61718a;line-height:1.8;max-width:400px;margin:0 0 14px}.xp-home-charities-copy>.button{margin-top:8px}
+.xp-home-charities-copy .xp-charity-recent{font-size:11px;color:#355b91}
+.xp-home-charity-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.xp-home-charity-preview-card{border:1px solid #e1e9f5;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 7px 22px #163f7d0b;min-width:0}
+.xp-home-charity-preview-card img{width:100%;height:130px;display:block;object-fit:cover;background:#f2f6fc}
+.xp-home-charity-preview-card img.is-logo{object-fit:contain;padding:20px;background:#f7f9fd}
+.xp-home-charity-preview-card span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:12px 11px;min-height:58px;color:#183967;font-size:11px;font-weight:600;line-height:1.6}
+.xp-board-source{display:inline-flex;align-items:center;gap:6px;color:#4f6587;background:#eef3fb;border:1px solid #dce7f6;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;margin:0 0 8px}
+.xp-board-source.is-ai{background:#e8f1ff;border-color:#c7dbff;color:#1b55b5}
+.xp-ai-explainer>div>strong{color:#173b72}.xp-ai-examples{border-top:1px solid #e4eaf3;margin:12px 0;padding-top:12px}.xp-ai-examples>span{font-size:11px;color:#718098}.xp-ai-examples>div{display:flex;flex-direction:column;gap:3px;padding:8px 0}.xp-ai-examples strong{font-size:12px;color:#173b72}.xp-ai-examples small{font-size:10px;color:#647691;line-height:1.6}
+@media(max-width:900px){.xp-home-charities{grid-template-columns:1fr;gap:24px;padding:28px}.xp-home-charity-preview-card img{height:115px}}
+@media(max-width:600px){.xp-home-payment{gap:12px;padding:17px;border-radius:15px}.xp-home-payment-icon{width:40px;height:40px;border-radius:11px}.xp-home-payment-copy strong{font-size:15px}.xp-home-payment-copy small{font-size:10px;line-height:1.6}.xp-home-payment-arrow{padding:10px}.xp-home-payment-arrow span{display:none}.xp-home-charities{padding:24px 20px}.xp-home-charities-copy h2{font-size:22px}.xp-home-charity-preview{gap:8px}.xp-home-charity-preview-card img{height:88px}.xp-home-charity-preview-card img.is-logo{padding:10px}.xp-home-charity-preview-card span{font-size:10px;padding:9px 7px;min-height:52px}}

@@ -13,12 +13,21 @@ import {
   KeyRound,
   AlertCircle,
   Gift,
-  ArrowRight
+  ArrowRight,
+  FlaskConical
 } from 'lucide-react';
+import '../styles/auth-refinements.css';
+
+function validCitizenId(value) {
+  if (!/^\d{13}$/.test(value)) return false;
+  const sum = [...value.slice(0, 12)].reduce((total, digit, index) => total + Number(digit) * (13 - index), 0);
+  return (11 - sum % 11) % 10 === Number(value[12]);
+}
+
 
 export default function Register() {
   const navigate = useNavigate();
-  const { registerCitizen, registerMerchant } = useAuth();
+  const { registerCitizen, registerMerchant, demoLogin } = useAuth();
 
   const [registerType, setRegisterType] = useState('citizen'); // 'citizen' | 'merchant'
 
@@ -48,6 +57,22 @@ export default function Register() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [idTouched, setIdTouched] = useState(false);
+  const idError = idTouched && !validCitizenId(citizenForm.citizenId)
+    ? citizenForm.citizenId.length !== 13 ? 'กรอกเลขบัตรให้ครบ 13 หลัก' : 'เลขบัตรไม่ผ่านการตรวจหลักสุดท้าย กรุณาตรวจเลขอีกครั้ง หรือเลือกเปิดบัญชีทดลอง'
+    : '';
+  async function openDemo() {
+    if (loading) return;
+    setLoading(true);
+    setError('');
+    try {
+      const result = await demoLogin();
+      if (result.success) navigate('/');
+      else setError(result.error);
+    } catch { setError('เปิดบัญชีทดลองไม่สำเร็จ กรุณาลองอีกครั้ง'); }
+    finally { setLoading(false); }
+  }
+
 
   // Handle Citizen Register Submit
   const handleCitizenSubmit = async (e) => {
@@ -55,8 +80,9 @@ export default function Register() {
     setError('');
 
     const cleanId = citizenForm.citizenId.replace(/\D/g, '');
-    if (cleanId.length !== 13) {
-      setError('เลขประจำตัวประชาชนต้องมีครบ 13 หลัก');
+    if (!validCitizenId(cleanId)) {
+      setIdTouched(true);
+      document.getElementById('citizen-id')?.focus();
       return;
     }
 
@@ -141,7 +167,7 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-wrapper" style={{ minHeight: '100dvh' }}>
+    <div className="auth-wrapper xp-register-page" style={{ minHeight: '100dvh' }}>
       <div className="auth-card" style={{ maxWidth: 560 }}>
         {/* Brand Header */}
         <div className="brand-header">
@@ -179,9 +205,13 @@ export default function Register() {
           </button>
         </div>
 
+        <div className="xp-register-demo">
+          <div><strong>อยากลองใช้งานก่อน?</strong><span>เปิดบัญชีทดลองได้โดยไม่ต้องกรอกเลขบัตร</span></div>
+          <button type="button" className="button button--secondary" onClick={openDemo} disabled={loading}><FlaskConical size={18}/>เปิดบัญชีทดลอง</button>
+        </div>
         {/* Error Alert */}
         {error && (
-          <div className="alert alert-danger" style={{ marginBottom: 16 }}>
+          <div className="alert alert-danger" role="alert" style={{ marginBottom: 16 }}>
             <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>{error}</div>
           </div>
@@ -193,12 +223,12 @@ export default function Register() {
             <div className="alert alert-info" style={{ marginBottom: 18 }}>
               <Gift size={20} style={{ flexShrink: 0 }} />
               <div style={{ fontSize: 13, lineHeight: 1.45 }}>
-                <strong>สิทธิประโยชน์ต้อนรับ:</strong> รับฟรี <strong>50 Impact Tokens</strong> ทันทีเมื่อลงทะเบียนสำเร็จเพื่อนำไปร่วมบริจาคให้มูลนิธิหรือร่วมสนุกในกระดานบิงโก
+                <strong>สิทธิประโยชน์ต้อนรับ:</strong> รับ <strong>50 โทเค็น</strong> เมื่อลงทะเบียนสำเร็จ ใช้สะสมเพื่อแลกรางวัล
               </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
+              <label htmlFor="citizen-id" className="form-label" style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 6 }}>
                 เลขประจำตัวประชาชน (13 หลัก) <span className="req">*</span>
               </label>
               <div className="input-with-icon">
@@ -208,15 +238,22 @@ export default function Register() {
                   className="form-input"
                   style={{ minHeight: 48, fontSize: 16 }}
                   placeholder="เลขบัตร ปชช. 13 หลัก"
-                  maxLength={13}
+                  id="citizen-id"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  aria-invalid={Boolean(idError)}
+                  aria-describedby={idError ? 'citizen-id-error citizen-id-hint' : 'citizen-id-hint'}
+                  onBlur={() => setIdTouched(true)}
+                  maxLength={17}
                   value={citizenForm.citizenId}
-                  onChange={(e) => setCitizenForm({ ...citizenForm, citizenId: e.target.value.replace(/\D/g, '') })}
+                  onChange={(e) => setCitizenForm({ ...citizenForm, citizenId: e.target.value.replace(/\D/g, '').slice(0, 13) })}
                   required
                   disabled={loading}
                 />
               </div>
-              <div className="form-hint" style={{ fontSize: 12, marginTop: 4, color: 'var(--text-tertiary)' }}>
-                เข้ารหัส SHA-256 ตามมาตรฐาน PDPA ไม่จัดเก็บเลขบัตรประชาชนจริงแบบเปิดเผย
+              {idError && <p id="citizen-id-error" className="xp-field-error" role="alert">{idError}</p>}
+              <div id="citizen-id-hint" className="form-hint" style={{ fontSize: 12, marginTop: 4, color: 'var(--text-tertiary)' }}>
+                ตรวจเลขหลักสุดท้ายก่อนสมัคร และจัดเก็บเลขบัตรเป็นค่าแฮช SHA-256
               </div>
             </div>
 
@@ -363,7 +400,7 @@ export default function Register() {
               type="submit"
               className="btn-primary"
               disabled={loading}
-              style={{ minHeight: 50, fontSize: 15.5, fontWeight: 800, width: '100%', marginTop: 8 }}
+              style={{ minHeight: 56, fontSize: 16, fontWeight: 700, width: '100%', marginTop: 8 }}
             >
               {loading ? (
                 <>
@@ -546,7 +583,7 @@ export default function Register() {
               type="submit"
               className="btn-primary"
               disabled={loading}
-              style={{ minHeight: 50, fontSize: 15.5, fontWeight: 800, width: '100%', marginTop: 8 }}
+              style={{ minHeight: 56, fontSize: 16, fontWeight: 700, width: '100%', marginTop: 8 }}
             >
               {loading ? (
                 <>

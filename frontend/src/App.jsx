@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import Charities from './pages/Charities';
+import CharityDashboard from './pages/CharityDashboard';
 import Payment from './pages/Payment';
 import ThaiPlus from './pages/ThaiPlus';
 import Bingo from './pages/Bingo';
@@ -46,6 +47,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/charities/dashboard" element={<ProtectedRoute><CharityDashboard /></ProtectedRoute>} />
           <Route
             path="/payment"
             element={

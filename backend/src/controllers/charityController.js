@@ -150,7 +150,18 @@ async function getMyDonations(req, res) {
     handleError(res, error, "โหลดประวัติบริจาคไม่สำเร็จ");
   }
 }
+async function getDonationDashboard(req, res) {
+  try {
+    const [charities, totals] = await prisma.$transaction([
+      prisma.charities.findMany({ select: { charity_id: true, name: true, impact_type: true, is_active: true } }),
+      prisma.donations.groupBy({ by: ["charity_id"], _sum: { amount: true }, _count: { donation_id: true } }),
+    ], { isolationLevel: "RepeatableRead" });
+    const { buildDonationDashboard } = require("../services/charityDashboard");
+    res.json({ success: true, data: buildDonationDashboard(charities, totals) });
+  } catch (error) { handleError(res, error, "โหลดภาพรวมการบริจาคไม่สำเร็จ"); }
+}
 module.exports = {
+  getDonationDashboard,
   calculateDonationBonusTokens,
   getCharities,
   donateToCharity,

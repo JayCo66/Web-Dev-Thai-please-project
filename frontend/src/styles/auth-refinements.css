@@ -1,0 +1,21 @@
+.xp-login-register .xp-register-cta{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:54px;font-size:16px;font-weight:600;color:#1648ad;background:#edf3ff;border:1px solid #adc5fc;border-radius:12px;text-decoration:none}
+.xp-login-register .xp-register-cta:hover{background:#e0ebff;border-color:#5081de}
+.xp-register-page{padding:36px 16px;align-items:flex-start}.xp-register-page .auth-card{width:100%;box-sizing:border-box}
+.xp-register-demo{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;margin:18px 0;background:#f1f5ff;border:1px solid #dce6fb;border-radius:12px}
+.xp-register-demo strong,.xp-register-demo span{display:block}.xp-register-demo strong{font-size:14px;color:#17386b}.xp-register-demo span{font-size:12px;color:#61718a;line-height:1.7;margin-top:4px}.xp-register-demo .button{flex-shrink:0;min-height:46px;font-size:12px}
+.xp-register-page .xp-field-error{font-size:12px;color:#b42318;margin:7px 0;line-height:1.7}.xp-register-page input[aria-invalid=true]{border-color:#e56767;background:#fffafa}
+.xp-register-page .form-input:focus-visible,.xp-register-page .form-select:focus-visible{outline:3px solid #c8d9ff;outline-offset:2px}
+dialog.dialog-sheet.xp-account-dialog{position:fixed;inset:0;margin:auto;width:min(460px,calc(100% - 32px));height:fit-content;max-height:calc(100dvh - 40px);border:1px solid #e0e7f2;border-radius:22px;padding:0;box-sizing:border-box;overflow:auto}
+.xp-account-dialog .dialog-head{padding:19px 24px;border-color:#edf0f7}.xp-account-dialog .dialog-body{padding:24px}
+.xp-account-identity{display:flex;align-items:center;gap:14px;margin-bottom:24px;overflow-wrap:anywhere}.xp-account-avatar{display:grid;place-items:center;flex-shrink:0;width:56px;height:56px;background:#eaf1ff;color:#1749ad;border-radius:18px}
+.xp-account-identity .xp-profile-name{font-size:19px;margin:0;line-height:1.6}.xp-account-identity p{margin:3px 0 0}
+.xp-account-actions{display:grid;gap:12px}.xp-account-actions>.button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:50px;box-sizing:border-box;font-size:14px;border-radius:12px}
+.xp-account-actions .xp-logout{margin:0;color:#b42318;background:#fff5f5;border:1px solid #f2d8d8}.xp-account-actions .xp-logout:hover{background:#ffe9e9}
+@media(max-width:540px){.xp-register-page{padding:16px 12px}.xp-register-page .auth-card{padding:24px 20px}.xp-register-demo{align-items:stretch;flex-direction:column;gap:12px}.xp-register-demo .button{width:100%}.xp-account-dialog .dialog-body{padding:20px}.xp-account-dialog .dialog-head{padding:16px 20px}}
+
+.xp-brand-thai{display:flex;flex-direction:column;gap:3px;line-height:1.3}.xp-brand-thai>strong{font-size:18px;font-weight:600;white-space:nowrap;color:#17355e}.xp-brand-thai strong>span{color:#164ad0;margin-left:4px}.xp-brand-thai>small{font-size:9px;letter-spacing:2.2px;color:#6d7c96}@media(max-width:600px){.xp-brand-thai>strong{font-size:14px}.xp-brand-thai>small{font-size:7px;letter-spacing:1.4px}}
+
+.xp-brand-image{display:block;flex-shrink:0;width:180px;height:64px;object-fit:contain}
+.xp-login-story .xp-brand-image{width:240px;height:85px}
+@media(max-width:600px){.xp-brand-image{width:clamp(116px,36vw,150px);height:50px}.xp-login-story .xp-brand-image{width:200px;height:71px}}
+@media(max-width:360px){.xp-header-inner{gap:12px}.xp-header-actions{gap:8px}}

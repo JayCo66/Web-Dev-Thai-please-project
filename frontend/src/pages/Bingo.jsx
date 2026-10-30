@@ -22,6 +22,7 @@ import {
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import "../styles/home-discovery.css";
 
 const isDone = (cell) => ["COMPLETED", "CLAIMED"].includes(cell.status);
 const families = {
@@ -133,6 +134,28 @@ export default function Bingo() {
   }, [acceptOpen]);
 
   const board = data?.currentBoard;
+  const sourceLabel = board?.phase === "STARTER" ? "ชุดเริ่มต้นร่วมกัน" : board?.source === "AI" ? "AI ช่วยเลือกภารกิจ" : "เลือกภารกิจด้วยกติกาของระบบ";
+  const sourceExplanation = board?.phase === "STARTER"
+    ? "กระดานแรกใช้ชุดเริ่มต้นร่วมกัน ยังไม่ได้เรียก AI เพื่อเริ่มเก็บพฤติกรรม"
+    : board?.source === "AI"
+      ? "AI เลือกภารกิจจากคลังตามข้อมูลของคุณ แล้วระบบตรวจและจัดระดับก่อนแสดง"
+      : board?.sourceReason === "NO_API_KEY"
+        ? "ยังไม่ได้ตั้งค่าการเชื่อมต่อ AI ระบบจึงเลือกจากคลังภารกิจด้วยกติกาที่กำหนด"
+        : board?.sourceReason === "POLICY_UPDATED"
+          ? "กระดานเดิมได้รับการปรับตามกติกาปัจจุบัน โดยเก็บภารกิจที่สำเร็จไว้"
+          : "AI ไม่พร้อมใช้งานสำหรับกระดานนี้ ระบบจึงเลือกจากคลังภารกิจด้วยกติกาที่กำหนด";
+
+  const aiFailureMessage = {
+    TIMEOUT: "AI ตอบกลับไม่ทันเวลาที่กำหนด",
+    AUTH_FAILED: "การเชื่อมต่อ AI ไม่ผ่านการตรวจสิทธิ์ กรุณาตรวจคีย์และสิทธิ์ใช้งาน",
+    RATE_LIMITED: "ผู้ให้บริการจำกัดจำนวนคำขอหรือโควตาการใช้งาน",
+    MODEL_NOT_FOUND: "ผู้ให้บริการไม่พบโมเดลที่ตั้งค่าไว้",
+    PROVIDER_ERROR: "ผู้ให้บริการ AI ขัดข้องชั่วคราว",
+    REQUEST_REJECTED: "ผู้ให้บริการไม่รับรูปแบบคำขอ กรุณาตรวจการตั้งค่า",
+    CONNECTION_FAILED: "เชื่อมต่อผู้ให้บริการ AI ไม่สำเร็จ",
+    INCOMPLETE_RESPONSE: "AI ส่งคำตอบไม่ครบตามที่กระดานต้องใช้",
+    INVALID_RESPONSE: "คำตอบจาก AI ไม่ผ่านการตรวจรูปแบบหรือรหัสภารกิจ",
+  }[board?.aiDiagnostics?.failureCode];
   const cells = board?.cells || [];
   const completed = cells.filter(isDone).length;
   const claimed = Boolean(
@@ -218,6 +241,7 @@ export default function Bingo() {
           <div>
             <span className="page-eyebrow">ภารกิจประจำเดือน · {month}</span>
             <h1>บิงโกของฉัน</h1>
+            {board && <span className={`xp-board-source ${board.source === "AI" && board.phase !== "STARTER" ? "is-ai" : ""}`}><Sparkles size={14}/>{sourceLabel}</span>}
             <p>ทำกิจกรรมให้ครบเส้น แล้วเลือกเส้นรับโบนัส</p>
           </div>
           <button
@@ -622,35 +646,20 @@ export default function Bingo() {
                   </p>
                 </div>
               </details>
-              <details className="panel xp-details">
-                <summary>
-                  <Sparkles size={17} />
-                  ที่มาของภารกิจ
-                </summary>
+              <details className="panel xp-details xp-ai-explainer">
+                <summary><Sparkles size={17}/>ที่มาของกระดาน</summary>
                 <div>
-                  <p>
-                    {board.source === "AI"
-                      ? "AI เลือกภารกิจจากประวัติกิจกรรมของคุณ โดยระบบตรวจเงื่อนไขและความยากก่อนแสดง"
-                      : "ระบบเลือกภารกิจตามกติกาจากข้อมูลที่มี ยังไม่ได้ใช้คำตอบจาก AI สำหรับกระดานนี้"}
-                  </p>
-                  <p className="text-muted">
-                    {board.phase === "STARTER"
-                      ? "กระดานแรกใช้ชุดตั้งต้นร่วมกัน คละง่าย กลาง และท้าทาย"
-                      : board.source === "AI"
-                        ? "ตั้งแต่กระดานที่สอง AI ใช้ธุรกรรมล่าสุดและประวัติภารกิจ โดยรวมรายการที่เพิ่งทำวันนี้"
-                        : "ตั้งแต่กระดานที่สองปรับจากประวัติที่มี หาก AI ไม่พร้อมจะใช้กติกาช่วยเลือก"}
-                  </p>
-                  {board.difficultyMix && (
-                    <p>
-                      ง่าย {board.difficultyMix.easy} · พอดี{" "}
-                      {board.difficultyMix.medium} · ท้าทาย{" "}
-                      {board.difficultyMix.hard}
-                    </p>
-                  )}
-                  <p className="text-muted">
-                    โครงสร้างเป้าหมายคือ 12 ง่าย / 8 กลาง / 4 ท้าทาย
-                    กระดานเดิมคงช่องที่สำเร็จแล้วไว้
-                  </p>
+                  <strong>{sourceLabel}</strong>
+                  <p>{sourceExplanation}</p>
+                  <p className="text-muted">กระดาน #{board.boardId} · บันทึกไว้ในบัญชีแล้ว</p>
+                  {aiFailureMessage && <p role="status">{aiFailureMessage}</p>}
+                  {board.aiDiagnostics?.attempted && <p className="text-muted">โมเดล {board.aiDiagnostics.model} · เรียก {board.aiDiagnostics.attempts} ครั้ง</p>}
+                  {board.sourceReason === "AI_UNAVAILABLE" && !board.aiDiagnostics && <p className="text-muted">กระดานเดิมนี้ยังไม่ได้เก็บสาเหตุข้อผิดพลาดแบบละเอียด การโหลดซ้ำจะใช้กระดานที่บันทึกไว้</p>}
+                  {board.phase !== "STARTER" && <p className="text-muted">ข้อมูลย้อนหลัง 30 วันรวมวันนี้: การใช้จ่าย ร้านค้า และประวัติภารกิจ</p>}
+                  {board.period?.from && board.period?.to && <p className="text-muted">ช่วงข้อมูล {board.period.from} – {board.period.to}</p>}
+                  {board.difficultyMix && <p>ง่าย {board.difficultyMix.easy} · กลาง {board.difficultyMix.medium} · ท้าทาย {board.difficultyMix.hard}</p>}
+                  {board.phase !== "STARTER" && <div className="xp-ai-examples"><span>ตัวอย่างข้อมูลประกอบ</span>{cells.filter(cell=>cell.family!=="DONATION"&&cell.reason).slice(0,3).map(cell=><div key={cell.position}><strong>{cell.short_title || cell.title}</strong><small>{cell.reason}</small></div>)}</div>}
+                  <p className="text-muted">ระบบตรวจเป้าหมายและจัดระดับจากคลังภารกิจ ส่วนเหตุผลข้างต้นมาจากข้อมูลฝั่งระบบ</p>
                 </div>
               </details>
             </aside>

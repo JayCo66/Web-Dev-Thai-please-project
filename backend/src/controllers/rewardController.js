@@ -1,3 +1,4 @@
+const { discountTerms } = require("../services/paymentDiscount");
 const prisma = require("../config/prisma");
 const { getUserTotalTokens } = require("../services/authService");
 const {
@@ -47,6 +48,7 @@ function itemView(item) {
     createdAt: item.created_at,
     expiresAt: coupon ? item.expires_at : null,
     ...item.metadata,
+    paymentDiscount: discountTerms(item),
   };
 }
 exports.getRewards = async (req, res) => {
@@ -181,6 +183,7 @@ async function redeem(req, res, lucky) {
             rewardName: reward.name,
             imageUrl: reward.image_url,
             rewardType: reward.reward_type,
+            paymentDiscount: discountTerms(reward),
             voucherCode: code,
             simulation: true,
           };
@@ -328,6 +331,7 @@ exports.useVoucher = async (req, res) => {
       if (code && item.code !== code) fail("ข้อมูลคูปองไม่ตรงกัน", 400);
       if (!["COUPON", "DISCOUNT"].includes(item.kind))
         fail("รายการนี้ไม่ใช่คูปอง", 400);
+      if (discountTerms(item)) fail("เลือกใช้คูปองส่วนลดในหน้าชำระเงิน", 409);
       if (item.status === "USED") return { ...itemView(item), replayed: true };
       if (item.expires_at && item.expires_at < new Date())
         fail("คูปองหมดอายุแล้ว", 409);

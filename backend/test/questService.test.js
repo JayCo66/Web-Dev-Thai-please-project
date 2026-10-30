@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const {
   generateBingoMissionsWithAI,
   applyDifficultyPolicy,
+  validateSuggestion,
 } = require("../src/services/questService");
 const fixture = require("../examples/generate-board.mock.json");
 const clone = () => {
@@ -118,4 +119,46 @@ test("difficulty remains mixed even when little prior history is available", () 
   assert.equal(cells.filter((c) => c.level === 3).length, 4);
   assert.equal(cells.filter((c) => c.level === 2).length, 8);
   assert.equal(cells.filter((c) => c.level === 1).length, 12);
+});
+
+
+test("fallback diagnostics distinguish safe error categories without exposing provider details", async () => {
+  for (const [error, expected] of [
+    [Object.assign(new Error("secret-provider-detail"), { status: 401 }), "AUTH_FAILED"],
+    [Object.assign(new Error("secret-provider-detail"), { status: 429 }), "RATE_LIMITED"],
+    [Object.assign(new Error("secret-provider-detail"), { status: 404 }), "MODEL_NOT_FOUND"],
+    [Object.assign(new Error("secret-provider-detail"), { name: "APIConnectionTimeoutError" }), "TIMEOUT"],
+    [Object.assign(new Error("secret-provider-detail"), { name: "APIConnectionError" }), "CONNECTION_FAILED"],
+  ]) {
+    const board = await generateBingoMissionsWithAI(clone(), { createCompletion: async () => { throw error; } });
+    assert.equal(board.source, "RULE_BASED");
+    assert.equal(board.aiDiagnostics.failureCode, expected);
+    assert.equal(board.aiDiagnostics.attempts, 1);
+    assert.equal(JSON.stringify(board.aiDiagnostics).includes("secret-provider-detail"), false);
+  }
+});
+
+test("successful retry clears an earlier fallback cause", async () => {
+  const input = clone();
+  let calls = 0;
+  const board = await generateBingoMissionsWithAI(input, { createCompletion: async () => ++calls === 1 ? response([]) : response(suggested(input)) });
+  assert.equal(board.source, "AI");
+  assert.equal(board.aiDiagnostics.failureCode, null);
+  assert.equal(board.aiDiagnostics.attempts, 2);
+});
+
+
+test("single whole-response Markdown JSON fences are accepted with the same strict quest validation", () => {
+  const input = clone();
+  const cells = suggested(input);
+  const fenced = "```json\n" + JSON.stringify({cells}) + "\n```";
+  assert.deepEqual(validateSuggestion(fenced, input.quests), cells);
+  assert.throws(() => validateSuggestion("Explanation\n" + fenced, input.quests));
+  assert.throws(() => validateSuggestion("```json\n" + JSON.stringify({cells:cells.slice(1)}) + "\n```", input.quests));
+  const duplicate = structuredClone(cells);
+  duplicate[1] = duplicate[0];
+  assert.throws(() => validateSuggestion("```json\n" + JSON.stringify({cells:duplicate}) + "\n```", input.quests));
+  const unknown = structuredClone(cells);
+  unknown[0].quest_code = "INVENTED_QUEST";
+  assert.throws(() => validateSuggestion("```json\n" + JSON.stringify({cells:unknown}) + "\n```", input.quests));
 });

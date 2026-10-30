@@ -567,6 +567,73 @@
         },
         "description": "Fixed 500-token test credit. Requires authenticated account and enabled demo tools. Reuse requestId to retry without double credit; arbitrary amount/userId are ignored."
       }
+    },
+    {
+      "name": "Donation dashboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/charities/dashboard",
+        "description": "All-time aggregate totals by foundation category, including closed foundations. No donor identities are returned. Monetary values are THB from recorded simulated donations."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Dashboard succeeds', () => pm.response.to.have.status(200));",
+              "const report = pm.response.json().data;",
+              "pm.test('Four categories reconcile with the summary', () => { pm.expect(report.categories).to.have.lengthOf(4); pm.expect(report.categories.reduce((n,c)=>n+c.donationCount,0)).to.eql(report.summary.donationCount); pm.expect(Math.round(report.categories.reduce((n,c)=>n+c.totalAmount,0)*100)).to.eql(Math.round(report.summary.totalAmount*100)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pay with discount coupon",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/transactions/pay",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"shopId\": \"{{shopId}}\",\n  \"amount\": 100,\n  \"couponRedemptionId\": \"{{redemptionId}}\",\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Optional couponRedemptionId must be an owned, available and unexpired payment-discount voucher. amount is the gross merchandise amount. Apply discount before co-pay. Response originalAmount - discountAmount = totalAmount = userAmount + governmentAmount. Coupon USED and payment are committed atomically. Replaying the same requestId and payload returns the same payment."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Payment succeeds',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+              "const p=pm.response.json().data;",
+              "pm.test('Discount and funding reconcile',()=>{pm.expect(Math.round((p.originalAmount-p.discountAmount)*100)).to.eql(Math.round(p.totalAmount*100));pm.expect(Math.round((p.userAmount+p.governmentAmount)*100)).to.eql(Math.round(p.totalAmount*100));});"
+            ]
+          }
+        }
+      ]
     }
   ]
 }
