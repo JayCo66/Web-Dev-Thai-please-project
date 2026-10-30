@@ -157,17 +157,17 @@ function calculateProgressForQuest(questCode, targetValue, transactions) {
     // 3. Single Ticket
     case 'SINGLE_TICKET_ANY': {
       const maxTicket = Math.max(0, ...parsedTxs.map((t) => t.totalAmount));
-      return maxTicket >= targetValue ? targetValue : Math.floor(maxTicket);
+      return maxTicket >= targetValue ? targetValue : 0;
     }
 
     case 'SINGLE_TICKET_FD': {
       const maxTicket = Math.max(0, ...parsedTxs.filter((t) => t.isFood).map((t) => t.totalAmount));
-      return maxTicket >= targetValue ? targetValue : Math.floor(maxTicket);
+      return maxTicket >= targetValue ? targetValue : 0;
     }
 
     case 'SINGLE_TICKET_GD': {
       const maxTicket = Math.max(0, ...parsedTxs.filter((t) => t.isGoods).map((t) => t.totalAmount));
-      return maxTicket >= targetValue ? targetValue : Math.floor(maxTicket);
+      return maxTicket >= targetValue ? targetValue : 0;
     }
 
     // 4. Category Counts
@@ -795,6 +795,84 @@ async function syncDonationProgress(userId, donationAmount, donationId) {
 }
 
 /**
+ * Synchronize active board cells and bingo lines with actual user transactions & donations from DB
+ */
+async function syncActiveBoardWithDatabase(board, userId) {
+  if (!board || !board.cells) return { newlyCompletedCount: 0, totalCellTokensAwarded: 0 };
+  let newlyCompletedCount = 0;
+  let totalCellTokensAwarded = 0;
+
+  try {
+    const txs = await prisma.transactions.findMany({
+      where: { user_id: BigInt(userId), status: 'COMPLETED' },
+      include: { shops: true },
+      orderBy: { paid_at: 'asc' },
+    });
+
+    const donations = await prisma.donations.findMany({
+      where: { user_id: BigInt(userId) },
+    });
+
+    for (const cell of board.cells) {
+      const isCenter = cell.position === 12 || cell.family === 'DONATION' || cell.quest_code === 'DONATION';
+      const oldStatus = cell.status;
+
+      if (isCenter) {
+        const meetsCenter = donations.length > 0 || txs.length > 0;
+        if (meetsCenter) {
+          cell.progress = 1;
+          cell.status = 'COMPLETED';
+          cell.completed_at = cell.completed_at || new Date().toISOString();
+          if (oldStatus !== 'COMPLETED') {
+            newlyCompletedCount += 1;
+            totalCellTokensAwarded += cell.token_reward;
+          }
+          if (board.boardId && !isNaN(board.boardId)) {
+            await prisma.$executeRawUnsafe(
+              'UPDATE user_quests SET progress = 1, status = "COMPLETED", completed_at = ? WHERE board_id = ? AND position = ?;',
+              new Date(cell.completed_at), BigInt(board.boardId), cell.position
+            );
+          }
+        }
+      } else {
+        const calculated = calculateProgressForQuest(cell.quest_code, cell.target_value, txs);
+        const target = cell.target_value || 1;
+        const newProgress = Math.min(target, calculated);
+        const newStatus = newProgress >= target ? 'COMPLETED' : 'IN_PROGRESS';
+
+        cell.progress = newProgress;
+        cell.status = newStatus;
+        if (newStatus === 'COMPLETED' && !cell.completed_at) {
+          cell.completed_at = new Date().toISOString();
+        } else if (newStatus !== 'COMPLETED') {
+          cell.completed_at = null;
+        }
+
+        if (oldStatus !== 'COMPLETED' && newStatus === 'COMPLETED') {
+          newlyCompletedCount += 1;
+          totalCellTokensAwarded += cell.token_reward;
+        }
+
+        if (board.boardId && !isNaN(board.boardId)) {
+          await prisma.$executeRawUnsafe(
+            'UPDATE user_quests SET progress = ?, status = ?, completed_at = ? WHERE board_id = ? AND position = ?;',
+            cell.progress, cell.status, cell.completed_at ? new Date(cell.completed_at) : null, BigInt(board.boardId), cell.position
+          );
+        }
+      }
+    }
+
+    board.lines = analyzeBingoLines(board.cells);
+    board.bingoCount = board.lines.filter((l) => l.isCompleted).length;
+    board.completedCellsCount = board.cells.filter((c) => c.status === 'COMPLETED').length;
+  } catch (err) {
+    console.warn('syncActiveBoardWithDatabase warning:', err.message);
+  }
+
+  return { newlyCompletedCount, totalCellTokensAwarded };
+}
+
+/**
  * Real-time event hook: called when user makes a payment transaction.
  * STRICT ISOLATION RULE:
  * - Updates ONLY the currently ACTIVE board!
@@ -808,95 +886,27 @@ async function syncPaymentProgress(userId, transaction) {
   const activeBoard = boards.find((b) => b.status === 'ACTIVE') || boards[0];
 
   const oldCompletedLines = activeBoard.lines.filter((l) => l.isCompleted).length;
-  let newlyCompletedCount = 0;
-  let totalCellTokensAwarded = 0;
 
-  const totalAmount = Number(transaction.total_amount || 0);
-  const shopCat = (transaction.shops?.category || '').toLowerCase();
-  const isFood = shopCat.includes('food') || shopCat.includes('อาหาร') || shopCat.includes('เครื่องดื่ม') || shopCat.includes('cafe');
-  const isGoods = !isFood;
-  const date = transaction.paid_at ? new Date(transaction.paid_at) : new Date();
-  // Ensure time evaluation strictly uses Thailand Time (UTC+7) regardless of server host timezone
-  const utcMs = date.getTime() + (date.getTimezoneOffset() * 60000);
-  const thaiDate = new Date(utcMs + (7 * 3600000));
-  const paidHour = thaiDate.getHours();
-  const paidDay = thaiDate.getDay();
-  const isMorning = paidHour < 11;
-  const isLunch = paidHour >= 11 && paidHour < 14;
-  const isAfternoon = paidHour >= 14 && paidHour < 18;
-  const isWeekday = paidDay >= 1 && paidDay <= 5;
-  const isWeekend = paidDay === 0 || paidDay === 6;
+  // Run full, accurate synchronization against actual transactions
+  const { newlyCompletedCount, totalCellTokensAwarded } = await syncActiveBoardWithDatabase(activeBoard, userId);
 
-  for (const cell of activeBoard.cells) {
-    if (cell.status === 'COMPLETED') continue;
-
-    const increment = evaluateQuestIncrement(cell, transaction);
-    if (increment > 0) {
-      cell.progress = Math.min(cell.target_value, (cell.progress || 0) + increment);
-    }
-
-    if (cell.progress >= cell.target_value) {
-      cell.status = 'COMPLETED';
-      cell.completed_at = new Date().toISOString();
-      newlyCompletedCount += 1;
-      totalCellTokensAwarded += cell.token_reward;
-
-      try {
-        await prisma.token_transactions.create({
-          data: {
-            user_id: BigInt(userId),
-            amount: cell.token_reward,
-            type: 'EARN_CELL',
-            board_id: activeBoard.boardId && !isNaN(activeBoard.boardId) ? BigInt(activeBoard.boardId) : null,
-          },
-        });
-      } catch (err) {
-        console.warn('Token award warning:', err.message);
-      }
-
-      // Persist completed cell to user_quests
-      if (activeBoard.boardId && !isNaN(activeBoard.boardId)) {
-        try {
-          await prisma.$executeRawUnsafe(
-            'UPDATE user_quests SET progress = ?, status = ?, completed_at = ? WHERE board_id = ? AND position = ?;',
-            cell.progress, cell.status, cell.completed_at ? new Date(cell.completed_at) : null, BigInt(activeBoard.boardId), cell.position
-          );
-        } catch (dbErr) {
-          console.warn('DB user_quests cell sync warning:', dbErr.message);
-        }
-      }
-    }
-  }
-
-  // Dual-Action Center Tile Check (ADR-0003):
-  // Fulfill position 12 if user makes a payment at a participating merchant
-  const centerCell = activeBoard.cells.find((c) => c.position === 12);
-  if (centerCell && centerCell.status !== 'COMPLETED') {
-    centerCell.progress = 1;
-    centerCell.status = 'COMPLETED';
-    centerCell.completed_at = new Date().toISOString();
-    newlyCompletedCount += 1;
-    totalCellTokensAwarded += centerCell.token_reward;
+  if (totalCellTokensAwarded > 0) {
     try {
       await prisma.token_transactions.create({
         data: {
           user_id: BigInt(userId),
-          amount: centerCell.token_reward,
+          amount: totalCellTokensAwarded,
           type: 'EARN_CELL',
           board_id: activeBoard.boardId && !isNaN(activeBoard.boardId) ? BigInt(activeBoard.boardId) : null,
         },
       });
     } catch (err) {
-      console.warn('Center cell token award warning:', err.message);
+      console.warn('Token award warning:', err.message);
     }
   }
 
   // Refresh lines analysis for active board
-  activeBoard.lines = analyzeBingoLines(activeBoard.cells);
-  const newCompletedLines = activeBoard.lines.filter((l) => l.isCompleted).length;
-  activeBoard.bingoCount = newCompletedLines;
-  activeBoard.completedCellsCount = activeBoard.cells.filter((c) => c.status === 'COMPLETED').length;
-
+  const newCompletedLines = activeBoard.bingoCount;
   let bingoBonusTokens = 0;
   if (newCompletedLines > oldCompletedLines) {
     const lineDiff = newCompletedLines - oldCompletedLines;
@@ -1033,6 +1043,11 @@ async function getActiveBoard(req, res) {
     // Find currently active board index
     const activeIndex = boards.findIndex((b) => b.status === 'ACTIVE');
     const realActiveIndex = activeIndex >= 0 ? activeIndex : 0;
+    const activeBoard = boards[realActiveIndex] || boards[0];
+
+    // Ensure active board is always synchronized with user's real transactions from database
+    await syncActiveBoardWithDatabase(activeBoard, userId);
+    userMonthlyBoardsStore.set(`${userId}-${monthKey}`, boards);
 
     // Requested view index (user can view any board, but only one is ACTIVE)
     const viewIndex = req.query.boardIndex !== undefined
@@ -1249,6 +1264,8 @@ module.exports = {
   resetBoard,
   syncDonationProgress,
   syncPaymentProgress,
+  calculateProgressForQuest,
+  syncActiveBoardWithDatabase,
   getOrInitializeUserBoards,
   loadUserBoardsFromDB,
   userMonthlyBoardsStore,

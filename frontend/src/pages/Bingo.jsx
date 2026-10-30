@@ -137,7 +137,7 @@ export default function Bingo() {
     }
   };
 
-  // Sync inspected cell with currentBoard data (default to center FREE tile or first incomplete cell)
+  // Sync inspected cell with currentBoard data (default to center tile or first incomplete cell)
   useEffect(() => {
     if (!currentBoard?.cells?.length) return;
     setInspectedCell((prev) => {
@@ -287,7 +287,7 @@ export default function Bingo() {
         };
       case 'DONATION':
         return {
-          label: 'ร่วมบริจาคเพื่อสังคม (FREE)',
+          label: 'ร่วมบริจาคเพื่อสังคม',
           badgeClass: 'badge-family-donation',
           color: '#DC2626',
           bgLight: '#FFF1F2',
@@ -308,7 +308,7 @@ export default function Bingo() {
   const getShortQuestTitle = (cell) => {
     if (!cell) return '';
     if (cell.position === 12 || cell.family === 'DONATION' || cell.quest_code === 'DONATION') {
-      return 'FREE ร่วมบริจาค';
+      return 'ร่วมบริจาค';
     }
 
     if (cell.short_title) return cell.short_title;
@@ -541,7 +541,7 @@ export default function Bingo() {
             to="/charities"
             className="hero-scan-card"
             style={{ marginBottom: 0, padding: '14px 16px', background: 'var(--fin-success)' }}
-            aria-label="ร่วมบริจาค e-Donation ช่องกลาง FREE"
+            aria-label="ร่วมบริจาค e-Donation ช่องใจกลาง"
           >
             <div className="hero-scan-left">
               <div className="hero-scan-icon-wrap" style={{ width: 44, height: 44, borderRadius: 12, color: '#059669' }}>
@@ -549,7 +549,7 @@ export default function Bingo() {
               </div>
               <div>
                 <div className="hero-scan-title" style={{ fontSize: 15 }}>
-                  บริจาค e-Donation (ช่อง FREE)
+                  บริจาค e-Donation (ช่องใจกลาง)
                 </div>
                 <div className="hero-scan-desc" style={{ fontSize: 12 }}>
                   พิชิตช่องใจกลาง เชื่อมโยงได้ถึง 4 แนวเส้น
@@ -806,14 +806,9 @@ export default function Bingo() {
                           aria-label={`ช่อง ${coord}: ${cell.title} สถานะ: ${isCompleted ? 'สำเร็จ' : `${cell.progress}/${cell.target_value}`}`}
                           aria-selected={isInspected}
                         >
-                          {/* Top Row: Coordinates + FREE Badge */}
+                          {/* Top Row: Coordinates */}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                             <span className="bingo-cell-position">{coord}</span>
-                            {isCenter && (
-                              <span style={{ fontSize: 8.5, fontWeight: 900, background: '#D97706', color: '#FFFFFF', padding: '1px 4px', borderRadius: 3 }}>
-                                FREE
-                              </span>
-                            )}
                           </div>
 
                           {/* Icon + Desktop Title (Title hidden on mobile to avoid cramped unreadable text) */}
@@ -978,10 +973,10 @@ export default function Bingo() {
                           <Link
                             to="/charities"
                             className="btn-inspector-action btn-charity"
-                            aria-label="ไปร่วมบริจาค e-Donation ช่อง FREE"
+                            aria-label="ไปร่วมบริจาค e-Donation ช่องใจกลาง"
                           >
                             <HeartHandshake size={18} />
-                            <span>ไปร่วมบริจาค e-Donation (ช่อง FREE)</span>
+                            <span>ไปร่วมบริจาค e-Donation (ช่องใจกลาง)</span>
                             <ArrowRight size={16} />
                           </Link>
                         ) : (
@@ -1269,7 +1264,7 @@ export default function Bingo() {
               </div>
               <p style={{ fontSize: 13.5, color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
                 {selectedCell.position === 12 || selectedCell.family === 'DONATION'
-                  ? 'ร่วมบริจาค e-Donation ให้แก่มูลนิธิหรือโรงพยาบาลเพื่อสะสมช่องใจกลาง (FREE) รับ +10 โทเค็น'
+                  ? 'ร่วมบริจาค e-Donation ให้แก่มูลนิธิหรือโรงพยาบาลเพื่อสะสมช่องใจกลาง รับ +10 โทเค็น'
                   : `สแกนใช้สิทธิคนละครึ่ง (60/40) ให้ครบเป้าหมาย ${selectedCell.target_value} ${selectedCell.unit} เพื่อพิชิตช่องนี้และรับ +${selectedCell.token_reward} โทเค็น`}
               </p>
             </div>
@@ -1502,7 +1497,7 @@ export default function Bingo() {
             </div>
 
             <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '4px 0 6px 0', lineHeight: 1.45 }}>
-              แตะที่แนวเส้นด้านล่างเพื่อเน้นตำแหน่ง 5 ช่องบนกระดานบิงโก (ช่อง FREE เชื่อมต่อได้ถึง 4 แนวเส้น)
+              แตะที่แนวเส้นด้านล่างเพื่อเน้นตำแหน่ง 5 ช่องบนกระดานบิงโก (ช่องใจกลางเชื่อมต่อได้ถึง 4 แนวเส้น)
             </p>
 
             {/* Lines List */}
