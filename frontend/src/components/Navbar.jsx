@@ -11,13 +11,14 @@ import {
   UserRound,
   X,
   FlaskConical,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/experience.css";
 import "../styles/project-refinements.css";
 import "../styles/auth-refinements.css";
 
-const destinations = [
+const baseDestinations = [
   { to: "/", label: "หน้าหลัก", icon: Home, end: true },
   { to: "/bingo", label: "บิงโก", icon: Grid2X2 },
   { to: "/charities", label: "มูลนิธิ", icon: HeartHandshake },
@@ -28,6 +29,11 @@ export default function Navbar() {
   const { user, tokens, logout } = useAuth();
   const [dialog, setDialog] = useState(null);
   const dialogRef = useRef(null);
+
+  const isAdmin = ["ADMIN", "GOV_EXECUTIVE"].includes(user?.role);
+  const destinations = isAdmin
+    ? [...baseDestinations, { to: "/admin", label: "ภาครัฐ (Admin)", icon: ShieldCheck }]
+    : baseDestinations;
 
   useEffect(() => {
     if (dialog) dialogRef.current?.showModal();
@@ -131,6 +137,16 @@ export default function Navbar() {
                 <p className="text-muted">{user.maskedPhone}</p>
               )}
               </div></div><div className="xp-account-actions">
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="button button--primary xp-admin-nav-btn"
+                  onClick={() => setDialog(null)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                >
+                  <ShieldCheck size={18} /> จัดการระบบภาครัฐ (Admin)
+                </Link>
+              )}
               <Link
                 to="/profile"
                 className="button button--secondary"
