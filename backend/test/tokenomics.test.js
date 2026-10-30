@@ -35,9 +35,9 @@ describe("Tokenomics Rebalancing (ADR-0001 & ADR-0002)", () => {
       assert.equal(calculateLuckyDrawCost(1), 25);
     });
 
-    test("calculates bundled discounts: 3 tickets for 60 tokens, 5 tickets for 90 tokens", () => {
-      assert.equal(calculateLuckyDrawCost(3), 60);
-      assert.equal(calculateLuckyDrawCost(5), 90);
+    test("charges a flat rate for 3 and 5 tickets without discounts", () => {
+      assert.equal(calculateLuckyDrawCost(3), 75);
+      assert.equal(calculateLuckyDrawCost(5), 125);
     });
 
     test("calculates unbundled counts at 25 tokens each", () => {

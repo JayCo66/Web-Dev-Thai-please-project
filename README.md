@@ -66,3 +66,7 @@ postman simulation run postman/simulations/typhoon/typhoon.sim.yaml --port 5093 
 เป็น mock ที่สร้างสำหรับ boundary ของโปรเจกต์ ไม่ใช่ mock ที่รับรองจากผู้ให้บริการ ไม่มีการ push/deploy ไป Postman cloud
 
 กติกาล่าสุด ภาพ และเครื่องมือทดสอบ: [รายละเอียดรอบปรับปรุง](docs/project-refinements-v3.md)
+
+การแบ่งหน้ามูลนิธิ ราคาสิทธิ์ลุ้นคงที่ และบทบาท AI: [รอบปรับปรุง v4](docs/refinements-v4.md)
+
+เปรียบเทียบ GitHub ทุก branch ล่าสุด: [รายงาน 30 ตุลาคม 2026](docs/branch-comparison-20261030.md)

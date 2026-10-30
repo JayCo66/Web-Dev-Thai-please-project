@@ -1,0 +1,18 @@
+{
+  "valuesBasis": "owner supplied reference, not a live price feed",
+  "gold": {
+    "name": "ทองคำแท่ง 1 บาท",
+    "price": 63800
+  },
+  "phone": {
+    "name": "iPhone 18 Pro 256GB",
+    "price": 48900
+  },
+  "motorcycle": {
+    "name": "Honda Wave 125i สตาร์ทมือ ล้อซี่ลวด",
+    "price": 58000,
+    "priceSource": "user supplied dealer screenshot",
+    "imageSource": "https://www.arkomchareonyont.com/wp-content/uploads/2023/10/Color_Section_New_Wave_125i_red.png",
+    "sourcePage": "https://www.arkomchareonyont.com/motorcycle/new-wave125i/"
+  }
+}

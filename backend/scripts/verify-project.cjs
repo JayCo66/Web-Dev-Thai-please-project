@@ -296,19 +296,28 @@ async function main() {
   check(
     "reward ownership persists and replay cannot double spend or leak across accounts",
   );
-  assert.equal(catalog.data.prizes.length,3);
-  for(const prize of catalog.data.prizes){
+  assert.equal(catalog.data.prizes.length, 3);
+  for (const prize of catalog.data.prizes) {
     assert.ok(prize.imageUrl.startsWith("/assets/rewards/"));
-    const payload={rewardId:prize.rewardId,ticketsCount:1,requestId:crypto.randomUUID()};
-    const draw=await request("/rewards/lucky-draw",token,payload);
-    assert.equal(draw.success,true,JSON.stringify(draw));
-    assert.equal(draw.data.rewardId,prize.rewardId);
-    const after=(await request("/users/me",token)).data.tokens;
-    const replay=await request("/rewards/lucky-draw",token,payload);
-    assert.equal(replay.data.code,draw.data.code);
-    assert.equal((await request("/users/me",token)).data.tokens,after);
+    const payload = {
+      rewardId: prize.rewardId,
+      ticketsCount: 3,
+      requestId: crypto.randomUUID(),
+    };
+    const draw = await request("/rewards/lucky-draw", token, payload);
+    assert.equal(draw.success, true, JSON.stringify(draw));
+    assert.equal(draw.data.rewardId, prize.rewardId);
+    assert.equal(draw.data.tokensSpent, 75);
+    assert.equal(draw.data.ticketsCount, 3);
+    assert.ok(prize.prizeValue > 0);
+    const after = (await request("/users/me", token)).data.tokens;
+    const replay = await request("/rewards/lucky-draw", token, payload);
+    assert.equal(replay.data.code, draw.data.code);
+    assert.equal((await request("/users/me", token)).data.tokens, after);
   }
-  check("all three specific lucky prizes persist the selected reward and debit once");
+  check(
+    "all three specific lucky prizes persist the selected reward and debit once",
+  );
   await db.token_transactions.create({
     data: {
       user_id: user2.user_id,
@@ -512,7 +521,7 @@ async function main() {
       .evaluate((el) => getComputedStyle(el).stroke),
     "none",
   );
-  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: path.join(screenshots, "bingo-completed-desktop.png"),
     fullPage: true,
@@ -541,6 +550,61 @@ async function main() {
       ),
   );
   check("local full-card charity photos load successfully");
+  const firstName = await page
+    .locator(".xp-charity-card h2")
+    .first()
+    .innerText();
+  await page.getByRole("button", { name: "หน้า 2", exact: true }).click();
+  assert.equal(await page.locator(".xp-charity-card").count(), 6);
+  assert.notEqual(
+    await page.locator(".xp-charity-card h2").first().innerText(),
+    firstName,
+  );
+  assert.equal(await page.locator('.xp-pagination [aria-current="page"]').innerText(), "2");
+  await page.getByRole("button", { name: "หน้าก่อนหน้า", exact: true }).click();
+  assert.equal(
+    await page.locator(".xp-charity-card h2").first().innerText(),
+    firstName,
+  );
+  await page.getByRole("button", { name: "หน้า 5", exact: true }).click();
+  assert.equal(await page.locator(".xp-charity-card").count(), 4);
+  assert.ok(
+    await page
+      .getByRole("button", { name: "หน้าถัดไป", exact: true })
+      .isDisabled(),
+  );
+  await page.getByRole("textbox", { name: "ค้นหามูลนิธิ" }).fill("ยุวพัฒน์");
+  assert.equal(await page.locator(".xp-charity-card").count(), 1);
+  assert.equal(await page.locator('.xp-pagination [aria-current="page"]').innerText(), "1");
+  check(
+    "charity numbered pagination replaces cards, returns to previous page and resets on search",
+  );
+  await page.goto("http://127.0.0.1:5178/rewards");
+  await page.waitForLoadState("networkidle");
+  await page.locator(".xp-prize-card button").first().click();
+  const quantity = page.getByLabel("จำนวนสิทธิ์ที่ต้องการ", { exact: true });
+  await quantity.fill("3");
+  assert.match(await page.locator("dialog .xp-receipt").innerText(), /75/);
+  await quantity.fill("0");
+  assert.ok(
+    await page
+      .getByRole("button", { name: "ยืนยันใช้แต้ม", exact: true })
+      .isDisabled(),
+  );
+  await quantity.fill("1.5");
+  assert.ok(
+    await page
+      .getByRole("button", { name: "ยืนยันใช้แต้ม", exact: true })
+      .isDisabled(),
+  );
+  await quantity.fill("5");
+  assert.match(await page.locator("dialog .xp-receipt").innerText(), /125/);
+  await page.screenshot({
+    path: path.join(screenshots, "reward-quantity-mobile.png"),
+    fullPage: true,
+  });
+  await page.keyboard.press("Escape");
+  check("custom ticket quantity shows linear prices and blocks invalid counts");
   assert.deepEqual(errors, []);
   check("all five pages desktop/mobile: no overflow or browser exceptions");
   await page.goto("http://127.0.0.1:5178/charities");

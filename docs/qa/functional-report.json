@@ -1,5 +1,5 @@
 {
-  "database": "thai_please_qa_1793330427995",
+  "database": "thai_please_qa_1793333423826",
   "checks": [
     "fresh seed + additive upgrade",
     "demo identity needs no personal data and ThaiD is not impersonated",
@@ -18,6 +18,8 @@
     "board and progress survive a backend restart",
     "visible cell tokens, demo button and crossed completed line work in browser",
     "local full-card charity photos load successfully",
+    "charity numbered pagination replaces cards, returns to previous page and resets on search",
+    "custom ticket quantity shows linear prices and blocks invalid counts",
     "all five pages desktop/mobile: no overflow or browser exceptions",
     "donation dialog keyboard close and focus behavior",
     "new demo login works from a clean mobile browser"

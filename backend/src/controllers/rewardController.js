@@ -11,14 +11,25 @@ const {
   randomUUID,
 } = require("../utils/operations");
 
+// Reference values supplied by the project owner; not a live price feed.
+function prizeValuation(name) {
+  const value = {
+    "ทองคำแท่ง 1 บาท": 63800,
+    "iPhone 18 Pro 256GB": 48900,
+    "Honda Wave 125i สตาร์ทมือ ล้อซี่ลวด": 58000,
+  }[name];
+  return {
+    prizeValue: value ?? null,
+    prizeValueBasis: "OWNER_REFERENCE",
+    currency: "THB",
+  };
+}
+
 function calculateLuckyDrawCost(value, base = 25) {
   const count = Number(value);
   if (!Number.isSafeInteger(count) || count < 1 || count > 100)
     fail("เลือกจำนวนสิทธิ์ตั้งแต่ 1 ถึง 100");
-  return (
-    { 1: base, 3: Math.round(base * 2.4), 5: Math.round(base * 3.6) }[count] ||
-    count * base
-  );
+  return count * base;
 }
 function checkMonthlyHardSinkQuota(count, max = 1) {
   return Number(count || 0) < max;
@@ -56,6 +67,7 @@ exports.getRewards = async (req, res) => {
             imageUrl: r.image_url,
             description: r.description,
             tokenCost: r.token_cost,
+            ...prizeValuation(r.name),
             packages: [1, 3, 5].map((tickets) => ({
               tickets,
               tokens: calculateLuckyDrawCost(tickets, r.token_cost),
@@ -78,8 +90,8 @@ exports.getRewards = async (req, res) => {
           description: "ตั๋วทดลองสำหรับโครงงาน ยังไม่มีการจับรางวัลจริง",
           packages: [
             { tickets: 1, tokens: 25 },
-            { tickets: 3, tokens: 60 },
-            { tickets: 5, tokens: 90 },
+            { tickets: 3, tokens: 75 },
+            { tickets: 5, tokens: 125 },
           ],
         },
       },
@@ -96,7 +108,7 @@ async function redeem(req, res, lucky) {
     const key = requestKey(req, lucky ? "draw" : "reward");
     const rewardId =
       lucky && !req.body.rewardId ? null : positiveId(req.body.rewardId);
-    const count = lucky ? Number(req.body.ticketsCount || 1) : 0;
+    const count = lucky ? Number(req.body.ticketsCount ?? 1) : 0;
     if (lucky) calculateLuckyDrawCost(count);
     const result = await prisma.$transaction(async (tx) => {
       await lockUser(tx, userId);

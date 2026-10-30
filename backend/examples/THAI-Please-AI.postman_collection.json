@@ -16,6 +16,10 @@
     {
       "key": "boardIndex",
       "value": "0"
+    },
+    {
+      "key": "rewardId",
+      "value": ""
     }
   ],
   "item": [
@@ -419,13 +423,14 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"ticketsCount\": 1, \"requestId\": \"{{requestId}}\"}",
+          "raw": "{\n  \"ticketsCount\": 3,\n  \"requestId\": \"{{requestId}}\",\n  \"rewardId\": \"{{rewardId}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
             }
           }
-        }
+        },
+        "description": "Flat pricing: token cost = ticketsCount × reward.token_cost, no bulk discount. ticketsCount is an integer 1–100. Choose rewardId from GET /rewards prizes; prizeValue is a declared demo value, not a market quote."
       },
       "event": [
         {

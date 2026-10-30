@@ -47,7 +47,9 @@ export default function Charities() {
   const [list, setList] = useState([]),
     [history, setHistory] = useState([]),
     [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(6);
+  const [page, setPage] = useState(1);
+  const resultsTop = useRef(null);
+  const pageSize = 6;
   const [tab, setTab] = useState("discover"),
     [filter, setFilter] = useState("ALL"),
     [query, setQuery] = useState("");
@@ -123,6 +125,10 @@ export default function Charities() {
         item.name.includes(query.trim()),
     )
     .sort((a, b) => Number(!!official[b.name]) - Number(!!official[a.name]));
+  function goToPage(next) {
+    setPage(next);
+    resultsTop.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
   const balance = Number(wallet?.balance || 0),
     total = history.reduce((sum, item) => sum + Number(item.amount), 0);
   return (
@@ -183,7 +189,7 @@ export default function Charities() {
           </div>
         ) : tab === "discover" ? (
           <>
-            <div className="xp-charity-tools">
+            <div className="xp-charity-tools" ref={resultsTop}>
               <label className="xp-search">
                 <Search size={18} />
                 <input
@@ -191,7 +197,7 @@ export default function Charities() {
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
-                    setVisible(6);
+                    setPage(1);
                   }}
                   placeholder="ค้นหาชื่อมูลนิธิ"
                 />
@@ -201,7 +207,7 @@ export default function Charities() {
                   aria-pressed={filter === "ALL"}
                   onClick={() => {
                     setFilter("ALL");
-                    setVisible(6);
+                    setPage(1);
                   }}
                 >
                   ทั้งหมด
@@ -212,7 +218,7 @@ export default function Charities() {
                     aria-pressed={filter === key}
                     onClick={() => {
                       setFilter(key);
-                      setVisible(6);
+                      setPage(1);
                     }}
                   >
                     {cat.label}
@@ -224,73 +230,76 @@ export default function Charities() {
               รายการบริจาคในหน้านี้เป็นการทดลอง ไม่มีการโอนเงินถึงมูลนิธิจริง
             </p>
             <div className="xp-charity-grid">
-              {filtered.slice(0, visible).map((item) => {
-                const cat = categories[item.impactType] || categories.COMMUNITY,
-                  asset = official[item.name];
-                return (
-                  <article
-                    className="panel xp-charity-card"
-                    key={item.charityId}
-                  >
-                    <div
-                      className={`xp-charity-art xp-charity-art--${item.impactType.toLowerCase()}`}
+              {filtered
+                .slice((page - 1) * pageSize, page * pageSize)
+                .map((item) => {
+                  const cat =
+                      categories[item.impactType] || categories.COMMUNITY,
+                    asset = official[item.name];
+                  return (
+                    <article
+                      className="panel xp-charity-card"
+                      key={item.charityId}
                     >
-                      <img
-                        className="xp-charity-cover"
-                        src={item.coverImageUrl}
-                        alt={`${item.imageCaption} · ${item.name}`}
-                        style={{
-                          objectPosition: item.imagePosition || "center",
-                        }}
-                        loading="lazy"
-                      />
-                      {asset && (
-                        <span className="xp-charity-brand">
-                          <img
-                            src={`/assets/charities/${asset.image}`}
-                            alt={`ตราสัญลักษณ์${item.name}`}
-                          />
-                        </span>
-                      )}
-                      <span className="xp-photo-caption">
-                        {item.imageCaption}
-                      </span>
-                      <span className="badge">{cat.label}</span>
-                    </div>
-                    <div className="xp-charity-copy">
-                      <h2>{item.name}</h2>
-                      <p>{description(item.description)}</p>
-                      <div className="xp-charity-numbers">
-                        <span>
-                          ยอดทดลอง{" "}
-                          <strong>฿{money(item.totalDonations)}</strong>
-                        </span>
-                        <span>{item.donorCount} คนร่วมให้</span>
-                      </div>
-                      <div className="xp-charity-card-actions">
-                        <button
-                          className="button button--primary"
-                          onClick={() => choose(item)}
-                        >
-                          ร่วมให้
-                          <ArrowRight size={16} />
-                        </button>
-                        {(asset || item.websiteUrl) && (
-                          <a
-                            href={item.websiteUrl || asset?.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="xp-official-link"
-                          >
-                            เว็บไซต์มูลนิธิ
-                            <ExternalLink size={13} />
-                          </a>
+                      <div
+                        className={`xp-charity-art xp-charity-art--${item.impactType.toLowerCase()}`}
+                      >
+                        <img
+                          className="xp-charity-cover"
+                          src={item.coverImageUrl}
+                          alt={`${item.imageCaption} · ${item.name}`}
+                          style={{
+                            objectPosition: item.imagePosition || "center",
+                          }}
+                          loading="lazy"
+                        />
+                        {asset && (
+                          <span className="xp-charity-brand">
+                            <img
+                              src={`/assets/charities/${asset.image}`}
+                              alt={`ตราสัญลักษณ์${item.name}`}
+                            />
+                          </span>
                         )}
+                        <span className="xp-photo-caption">
+                          {item.imageCaption}
+                        </span>
+                        <span className="badge">{cat.label}</span>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
+                      <div className="xp-charity-copy">
+                        <h2>{item.name}</h2>
+                        <p>{description(item.description)}</p>
+                        <div className="xp-charity-numbers">
+                          <span>
+                            ยอดทดลอง{" "}
+                            <strong>฿{money(item.totalDonations)}</strong>
+                          </span>
+                          <span>{item.donorCount} คนร่วมให้</span>
+                        </div>
+                        <div className="xp-charity-card-actions">
+                          <button
+                            className="button button--primary"
+                            onClick={() => choose(item)}
+                          >
+                            ร่วมให้
+                            <ArrowRight size={16} />
+                          </button>
+                          {(asset || item.websiteUrl) && (
+                            <a
+                              href={item.websiteUrl || asset?.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="xp-official-link"
+                            >
+                              เว็บไซต์มูลนิธิ
+                              <ExternalLink size={13} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
             </div>
             {filtered.length === 0 && (
               <div className="empty-state">
@@ -307,19 +316,46 @@ export default function Charities() {
                 </button>
               </div>
             )}
-            {filtered.length > visible && (
-              <div className="xp-load-more">
-                <button
-                  className="button button--secondary"
-                  onClick={() => setVisible((n) => n + 6)}
-                >
-                  ดูเพิ่มอีก {Math.min(6, filtered.length - visible)} มูลนิธิ
-                </button>
-                <span className="text-muted">
-                  แสดง {Math.min(visible, filtered.length)} จาก{" "}
-                  {filtered.length}
-                </span>
-              </div>
+            {filtered.length > 0 && (
+              <nav className="xp-pagination" aria-label="หน้ามูลนิธิ">
+                <p className="text-muted">
+                  แสดง {(page - 1) * pageSize + 1}–
+                  {Math.min(page * pageSize, filtered.length)} จาก{" "}
+                  {filtered.length} มูลนิธิ
+                </p>
+                <div>
+                  <button
+                    className="button button--secondary"
+                    disabled={page === 1}
+                    onClick={() => goToPage(page - 1)}
+                    aria-label="หน้าก่อนหน้า"
+                  >
+                    ←
+                  </button>
+                  {Array.from(
+                    { length: Math.ceil(filtered.length / pageSize) },
+                    (_, i) => i + 1,
+                  ).map((n) => (
+                    <button
+                      key={n}
+                      className={`button ${page === n ? "button--primary" : "button--secondary"}`}
+                      aria-current={page === n ? "page" : undefined}
+                      aria-label={`หน้า ${n}`}
+                      onClick={() => goToPage(n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  <button
+                    className="button button--secondary"
+                    disabled={page === Math.ceil(filtered.length / pageSize)}
+                    onClick={() => goToPage(page + 1)}
+                    aria-label="หน้าถัดไป"
+                  >
+                    →
+                  </button>
+                </div>
+              </nav>
             )}
             <details className="xp-image-credit">
               <summary>เกี่ยวกับข้อมูลและภาพ</summary>

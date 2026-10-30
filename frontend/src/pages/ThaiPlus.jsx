@@ -69,8 +69,23 @@ export default function ThaiPlus() {
   const close = () => {
     if (!busy) setSelected(null);
   };
+  const drawCount = Number(selected?.tickets);
+  const validCount =
+    Number.isSafeInteger(drawCount) && drawCount >= 1 && drawCount <= 100;
+  const selectedCost =
+    selected?.kind === "draw"
+      ? validCount
+        ? drawCount * selected.tokenCost
+        : 0
+      : selected?.tokenCost || 0;
   async function confirm() {
-    if (busy || !selected) return;
+    if (
+      busy ||
+      !selected ||
+      (selected.kind === "draw" && !validCount) ||
+      tokens < selectedCost
+    )
+      return;
     setBusy(true);
     setError("");
     try {
@@ -192,7 +207,17 @@ export default function ThaiPlus() {
                         </div>
                         <div className="xp-prize-copy">
                           <h3>{prize.name}</h3>
-                          <p>เริ่มต้น {prize.tokenCost} แต้ม / 1 สิทธิ์</p>
+                          <p className="xp-prize-value">
+                            ฿
+                            {Number(prize.prizeValue || 0).toLocaleString(
+                              "th-TH",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              },
+                            )}
+                          </p>
+                          <p>{prize.tokenCost} แต้ม / 1 สิทธิ์</p>
                           <button
                             className="button button--primary"
                             disabled={tokens < prize.tokenCost}
@@ -384,35 +409,48 @@ export default function ThaiPlus() {
             )}
             <h3>{selected?.name}</h3>
             {selected?.kind === "draw" && (
-              <div className="xp-package-picker" aria-label="จำนวนสิทธิ์ลุ้น">
-                {selected.packages?.map((pack) => (
-                  <button
-                    key={pack.tickets}
-                    aria-pressed={selected.tickets === pack.tickets}
-                    disabled={busy || tokens < pack.tokens}
-                    onClick={() => {
-                      request.current = crypto.randomUUID();
-                      setSelected((s) => ({
-                        ...s,
-                        tickets: pack.tickets,
-                        tokenCost: pack.tokens,
-                      }));
-                    }}
-                  >
-                    <strong>{pack.tickets} สิทธิ์</strong>
-                    <span>{pack.tokens} แต้ม</span>
-                  </button>
-                ))}
+              <div className="xp-ticket-quantity">
+                <p className="xp-prize-value">
+                  ฿
+                  {Number(selected.prizeValue || 0).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+                <label htmlFor="ticket-count">จำนวนสิทธิ์ที่ต้องการ</label>
+                <input
+                  id="ticket-count"
+                  type="number"
+                  min="1"
+                  max="100"
+                  step="1"
+                  inputMode="numeric"
+                  value={selected.tickets}
+                  disabled={busy}
+                  onChange={(e) => {
+                    request.current = crypto.randomUUID();
+                    setSelected((s) => ({ ...s, tickets: e.target.value }));
+                  }}
+                  aria-describedby="ticket-count-hint"
+                />
+                <p id="ticket-count-hint" className="text-muted">
+                  1–100 สิทธิ์ · สิทธิ์ละ {selected.tokenCost} แต้ม ·
+                  ไม่มีส่วนลดตามจำนวน
+                </p>
+                {!validCount && (
+                  <p role="alert">กรอกจำนวนเต็มตั้งแต่ 1 ถึง 100 สิทธิ์</p>
+                )}
               </div>
             )}
+
             <dl className="xp-receipt">
               <div>
                 <dt>ใช้แต้ม</dt>
-                <dd>{selected?.tokenCost} แต้ม</dd>
+                <dd>{selectedCost} แต้ม</dd>
               </div>
               <div>
                 <dt>คงเหลือ</dt>
-                <dd>{tokens - (selected?.tokenCost || 0)} แต้ม</dd>
+                <dd>{tokens - selectedCost} แต้ม</dd>
               </div>
             </dl>
             <p className="text-muted">สิทธิ์สาธิตจะบันทึกในบัญชีนี้</p>
@@ -431,7 +469,11 @@ export default function ThaiPlus() {
               </button>
               <button
                 className="button button--primary"
-                disabled={busy || tokens < (selected?.tokenCost || 0)}
+                disabled={
+                  busy ||
+                  tokens < selectedCost ||
+                  (selected?.kind === "draw" && !validCount)
+                }
                 onClick={confirm}
               >
                 {busy ? "กำลังยืนยัน…" : "ยืนยันใช้แต้ม"}
