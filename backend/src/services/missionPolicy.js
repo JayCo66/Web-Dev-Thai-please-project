@@ -1,6 +1,7 @@
 const { randomInt } = require("node:crypto");
+// Shared starter-board distribution; personalized AI boards keep their own levels.
 const MIX = { easy: 12, medium: 8, hard: 4 };
-// Every standard board has one 12-point premium line. Rotation preserves all 12 line scores.
+// Starter template has one 12-point premium line. Rotation preserves its line scores.
 const TEMPLATE = [
   3, 3, 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 0, 1, 1, 2, 1, 1, 2, 1, 1, 2, 3, 3, 1,
 ];
@@ -46,56 +47,27 @@ function starterSelection(quests) {
     level: TEMPLATE.filter(Boolean)[i],
   }));
 }
-function mixedDifficulty(suggestions, quests, profile) {
+function mixedDifficulty(suggestions, quests, profile, source = "AI") {
   const byCode = new Map(quests.map((q) => [q.quest_code, q]));
   const starter = phaseOf(profile) === "STARTER";
-  const cells = suggestions.map((s, i) => ({
-    ...s,
-    quest: byCode.get(s.quest_code),
-    ai_level: s.level,
-    level: starter ? TEMPLATE.filter(Boolean)[i] : 1,
-  }));
-  if (!starter) {
-    const ranked = [...cells].sort((a, b) => {
-      const strength = (q) =>
-        q.achieved_last_period / q.ladder[0] +
-        (q.bingo_history?.completed || 0) * 0.3;
-      return (
-        strength(b.quest) - strength(a.quest) ||
-        b.ai_level - a.ai_level ||
-        a.quest.quest_code.localeCompare(b.quest.quest_code)
-      );
-    });
-    let hard = 0,
-      medium = 0;
-    for (const c of ranked)
-      if (hard < 4 && c.quest.safe_level >= 3) {
-        c.level = 3;
-        hard++;
-      }
-    for (const c of ranked)
-      if (c.level === 1 && medium < 8 && c.quest.safe_level >= 2) {
-        c.level = 2;
-        medium++;
-      }
-  }
-  return cells.map((c) => {
-    const q = c.quest,
-      level = c.level,
-      target = q.ladder[level - 1];
+  return suggestions.map((suggestion, index) => {
+    const quest = byCode.get(suggestion.quest_code);
+    const level = starter ? TEMPLATE.filter(Boolean)[index] : suggestion.level;
+    const target = quest.ladder[level - 1];
+    const aiLevel = !starter && source === "AI" ? suggestion.level : null;
     return {
-      quest_code: q.quest_code,
-      quest_id: q.quest_id || null,
-      family: q.family,
-      unit: q.unit,
+      quest_code: quest.quest_code,
+      quest_id: quest.quest_id || null,
+      family: quest.family,
+      unit: quest.unit,
       level,
-      ai_level: c.ai_level,
-      level_adjusted: level !== c.ai_level,
+      ai_level: aiLevel,
+      level_adjusted: aiLevel !== null && level !== aiLevel,
       target_value: target,
-      title: q.text.replace(/\{n\}|\bn\b/g, String(target)),
+      title: quest.text.replace(/\{n\}|\bn\b/g, String(target)),
       reason: starter
         ? "ภารกิจตั้งต้นร่วมกัน คละง่าย กลาง และท้าทาย เพื่อเริ่มเก็บพฤติกรรม"
-        : `ข้อมูลล่าสุดทำได้ ${q.achieved_last_period} ${q.unit} · เป้าหมาย ${target} ${q.unit}`,
+        : `ข้อมูลล่าสุดทำได้ ${quest.achieved_last_period} ${quest.unit} · เป้าหมาย ${target} ${quest.unit}`,
       reason_source: "SERVER_DATA",
     };
   });

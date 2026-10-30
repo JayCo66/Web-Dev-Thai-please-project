@@ -12,7 +12,8 @@
     "db:upgrade": "node scripts/upgrade-db.js",
     "verify:app": "node scripts/verify-project.cjs",
     "verify:ai": "node scripts/verify-ai.cjs",
-    "verify:ai:live": "node scripts/verify-ai-live.cjs"
+    "verify:ai:live": "node scripts/verify-ai-live.cjs",
+    "evaluate:ai:live": "node scripts/evaluate-ai-quality.cjs"
   },
   "keywords": [],
   "author": "",

@@ -102,6 +102,7 @@ async function prepareBoard(userId) {
     aiDiagnostics: generated.aiDiagnostics,
     aiEvidence: generated.aiEvidence,
     difficultyMix: generated.difficultyMix,
+    personalizationEvidence: generated.personalizationEvidence,
     period: generated.period,
     budget: generated.total_level,
     cells: generated.bingo_board_5x5.map((cell) => ({

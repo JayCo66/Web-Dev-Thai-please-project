@@ -13,6 +13,16 @@ const input = (phase) => {
   data.quests.forEach((q) => (q.safe_level = 3));
   return data;
 };
+const selectAcrossFamilies = (quests) => {
+  const buckets = ["ACTIVITY", "VARIETY", "TIME", "SPEND"].map((family) =>
+    quests.filter((quest) => quest.family === family),
+  );
+  const picked = [];
+  while (picked.length < 24)
+    for (const bucket of buckets)
+      if (bucket.length && picked.length < 24) picked.push(bucket.shift());
+  return picked;
+};
 test("first boards have the same mixed goals and positions across different users", async () => {
   const a = input("STARTER"),
     b = input("STARTER");
@@ -41,7 +51,7 @@ test("first boards have the same mixed goals and positions across different user
     second.bingo_board_5x5.map((c) => [c.quest_code, c.level, c.target_value]),
   );
 });
-test("the second board reaches AI even if the user completed the first on the same day", async () => {
+test("the second board reaches AI and keeps AI-proposed levels", async () => {
   const data = input("PERSONALIZED");
   data.user_profile.transactions_last_period = 0;
   data.user_profile.spend_last_period = 0;
@@ -60,8 +70,7 @@ test("the second board reaches AI even if the user completed the first on the sa
             finish_reason: "stop",
             message: {
               content: JSON.stringify({
-                cells: data.quests
-                  .slice(0, 24)
+                cells: selectAcrossFamilies(data.quests)
                   .map((q) => ({ quest_code: q.quest_code, level: 1 })),
               }),
             },
@@ -72,7 +81,9 @@ test("the second board reaches AI even if the user completed the first on the sa
   });
   assert.equal(calls, 1);
   assert.equal(board.source, "AI");
-  assert.deepEqual(board.difficultyMix, { easy: 12, medium: 8, hard: 4 });
+  assert.deepEqual(board.difficultyMix, { easy: 24, medium: 0, hard: 0 });
+  assert.equal(board.personalizationEvidence.profile.transactions, 0);
+  assert.equal(board.personalizationEvidence.profile.distinctMerchants, data.user_profile.distinct_merchants_last_period);
 });
 test("harder lines pay more and every new mixed layout has the same highest bonus", () => {
   const cells = Array.from({ length: 24 }, (_, i) => ({

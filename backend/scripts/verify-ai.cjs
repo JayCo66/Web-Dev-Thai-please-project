@@ -38,14 +38,29 @@ function request(path, body) {
       mode === "malformed" ? 2 : 1,
       mode + " request count",
     );
-    assert.ok(board.difficultyMix.easy >= 12);
     assert.equal(board.total_cells, 25);
+    assert.equal(
+      board.difficultyMix.easy + board.difficultyMix.medium + board.difficultyMix.hard,
+      24,
+    );
+    assert.equal(board.personalizationEvidence.selectionAudit.checks.valid24UniqueCatalogMissions, true);
+    if (mode === "success") {
+      assert.equal(board.source, "AI");
+      const finalLevels = new Map(
+        board.bingo_board_5x5
+          .filter((cell) => cell.family !== "DONATION")
+          .map((cell) => [cell.quest_code, cell.level]),
+      );
+      for (const proposed of board.aiEvidence.selectedQuests)
+        assert.equal(finalLevels.get(proposed.quest_code), proposed.level);
+    }
     console.log(
       JSON.stringify({
         scenario: mode,
         source: board.source,
         httpRequests: stats.requests,
         difficultyMix: board.difficultyMix,
+        selectionAudit: board.personalizationEvidence.selectionAudit.checks,
       }),
     );
   }

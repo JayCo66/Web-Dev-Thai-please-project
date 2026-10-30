@@ -18,9 +18,36 @@ const response = (cells) => ({
   ],
 });
 const suggested = (input) =>
-  input.quests
-    .slice(0, 24)
-    .map((q) => ({ quest_code: q.quest_code, level: 3 }));
+  (() => {
+    const families = ["ACTIVITY", "VARIETY", "TIME", "SPEND"];
+    const buckets = Object.fromEntries(families.map((family) => [
+      family,
+      input.quests.filter((q) => q.family === family),
+    ]));
+    const picked = [];
+    const count = (family) => picked.filter((q) => q.family === family).length;
+    const highDiversity = input.user_profile.transactions_last_period >= 8 &&
+      input.user_profile.distinct_merchants_last_period >= 8;
+    const lowDiversity = input.user_profile.transactions_last_period >= 3 &&
+      input.user_profile.distinct_merchants_last_period <= 2;
+    for (const family of families) {
+      const minimum = family === "VARIETY" && lowDiversity ? 4 : 2;
+      while (count(family) < minimum && buckets[family].length)
+        picked.push(buckets[family].shift());
+    }
+    while (picked.length < 24) {
+      let added = false;
+      for (const family of families) {
+        if (family === "VARIETY" && highDiversity && count(family) >= 2) continue;
+        if (buckets[family].length && picked.length < 24) {
+          picked.push(buckets[family].shift());
+          added = true;
+        }
+      }
+      if (!added) break;
+    }
+    return picked.map((q) => ({ quest_code: q.quest_code, level: 3 }));
+  })();
 
 test("new users get a mixed common 25-cell starter board and donation task", async () => {
   const input = clone();
@@ -49,23 +76,46 @@ test("new users get a mixed common 25-cell starter board and donation task", asy
   );
   assert.equal(board.bingo_board_5x5[12].quest_code, "DONATION");
 });
-test("AI selections are checked and do not force the legacy budget of 63", async () => {
+test("personalized board uses AI levels directly without a fixed 12/8/4 mix", async () => {
   const input = clone();
+  const aiSuggestions = suggested(input).map((q, index) => ({
+    ...q,
+    level: (index % 3) + 1,
+  }));
   const board = await generateBingoMissionsWithAI(input, {
-    createCompletion: async () => response(suggested(input)),
+    createCompletion: async () => response(aiSuggestions),
   });
   assert.equal(board.source, "AI");
-  assert.ok(board.difficultyMix.easy >= 12);
-  assert.ok(board.difficultyMix.medium <= 8);
-  assert.ok(board.difficultyMix.hard <= 4);
-  assert.ok(board.total_level <= 40);
+  assert.deepEqual(board.difficultyMix, { easy: 8, medium: 8, hard: 8 });
+  assert.equal(board.total_level, 48);
+  assert.equal(board.personalizationEvidence.profile.transactions, input.user_profile.transactions_last_period);
+  assert.equal(board.personalizationEvidence.selectedMissions.length, 24);
   for (const cell of board.bingo_board_5x5.filter(
     (c) => c.family !== "DONATION",
   )) {
     const q = input.quests.find((q) => q.quest_code === cell.quest_code);
+    const selected = aiSuggestions.find((q) => q.quest_code === cell.quest_code);
     assert.ok(cell.level <= q.safe_level);
+    assert.equal(cell.level, selected.level);
     assert.equal(cell.target_value, q.ladder[cell.level - 1]);
   }
+});
+test("AI candidate prompt interleaves families so the first 24 options include spend missions", async () => {
+  const input = clone();
+  let firstPageFamilies;
+  const board = await generateBingoMissionsWithAI(input, {
+    createCompletion: async (request) => {
+      const payload = JSON.parse(request.messages[1].content);
+      firstPageFamilies = payload.quests.slice(0, 24).reduce((counts, quest) => {
+        counts[quest.family] = (counts[quest.family] || 0) + 1;
+        return counts;
+      }, {});
+      return response(suggested(input));
+    },
+  });
+  assert.equal(board.source, "AI");
+  for (const family of ["ACTIVITY", "VARIETY", "TIME", "SPEND"])
+    assert.ok(firstPageFamilies[family] >= 2, `${family} must appear in the first 24 candidates`);
 });
 test("malformed AI is corrected once and a repeated failure returns a truthful fallback", async () => {
   const input = clone();
@@ -79,6 +129,25 @@ test("malformed AI is corrected once and a repeated failure returns a truthful f
   assert.equal(calls, 2);
   assert.equal(board.source, "RULE_BASED");
   assert.equal(board.sourceReason, "AI_UNAVAILABLE");
+});
+test("AI that ignores spend-family coverage is retried then replaced by an audited rule fallback", async () => {
+  const input = clone();
+  const first24 = input.quests.slice(0, 24).map((quest) => ({
+    quest_code: quest.quest_code,
+    level: 1,
+  }));
+  let calls = 0;
+  const board = await generateBingoMissionsWithAI(input, {
+    createCompletion: async () => {
+      calls++;
+      return response(first24);
+    },
+  });
+  assert.equal(calls, 2);
+  assert.equal(board.source, "RULE_BASED");
+  assert.equal(board.sourceReason, "AI_SELECTION_QUALITY_FAILED");
+  assert.equal(board.aiDiagnostics.failureCode, "SELECTION_QUALITY_FAILED");
+  assert.equal(board.personalizationEvidence.selectionAudit.checks.coversAvailableFamiliesAtLeastTwice, true);
 });
 test("provider rate limiting falls back immediately without repeated paid requests", async () => {
   let calls = 0;
@@ -105,20 +174,32 @@ test("invalid profile and insufficient eligible pool are rejected", async () => 
     (e) => e.statusCode === 503,
   );
 });
-test("difficulty remains mixed even when little prior history is available", () => {
+test("AI proposed levels are not overwritten by backend difficulty quotas", () => {
   const input = clone();
   input.quests.forEach((q) => {
     q.safe_level = 3;
     q.achieved_last_period = 0;
   });
+  const proposed = suggested(input);
   const cells = applyDifficultyPolicy(
-    suggested(input),
+    proposed,
     input.quests,
     input.user_profile,
+    "AI",
   );
-  assert.equal(cells.filter((c) => c.level === 3).length, 4);
-  assert.equal(cells.filter((c) => c.level === 2).length, 8);
-  assert.equal(cells.filter((c) => c.level === 1).length, 12);
+  assert.equal(cells.filter((c) => c.level === 3).length, 24);
+  assert.ok(cells.every((cell) => cell.ai_level === 3));
+  assert.ok(cells.every((cell) => cell.level_adjusted === false));
+});
+
+test("AI cannot propose a level above the quest safety limit", () => {
+  const input = clone();
+  const cells = suggested(input);
+  const restrictedQuest = input.quests[0];
+  restrictedQuest.safe_level = 1;
+  const suggestion = cells.map((cell) => ({ ...cell }));
+  suggestion[0].level = 2;
+  assert.throws(() => validateSuggestion(JSON.stringify({ cells: suggestion }), input.quests));
 });
 
 

@@ -84,7 +84,7 @@ async function buildUserMissionInput(db, userId, now = new Date()) {
       const achieved = evaluateQuestProgress(q.quest_code, activity, {
         previousMerchantIds: pastMerchants.map((t) => t.shop_id),
       });
-      // A little stretch is allowed, but absence of evidence never forces a harder target.
+      // Readiness is guidance for the AI and the rule fallback, not a personalized-board quota.
       let safeLevel = 1;
       if (activity.length >= 5 && achieved >= ladder[1] * 0.8) safeLevel = 2;
       if (activity.length >= 12 && achieved >= ladder[2] * 0.8) safeLevel = 3;
@@ -134,7 +134,6 @@ async function buildUserMissionInput(db, userId, now = new Date()) {
       distinct_merchants_last_period: new Set(
         activity.map((t) => String(t.shop_id)),
       ).size,
-      confidence: Math.min(1, activity.length / 20),
       bingo_history: historicCells.length
         ? {
             boards_played: boards.length,
