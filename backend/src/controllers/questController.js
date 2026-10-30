@@ -7,6 +7,7 @@ const {
   thaiDateParts,
 } = require("../services/questMetrics");
 
+const { lineBonus } = require("../services/missionPolicy");
 const BINGO_LINE_BONUS_TOKENS = 20;
 const BINGO_LINES = [
   ...Array.from({ length: 5 }, (_, r) => ({
@@ -29,12 +30,12 @@ function fail(message, statusCode = 400) {
   throw Object.assign(new Error(message), { statusCode });
 }
 
-function calculateBoardYield(budget = 24) {
+function calculateBoardYield(budget = 40, maxLineScore = 12) {
   return {
     cellTokens: budget * 2,
     donationTokens: 10,
-    lineTokens: BINGO_LINE_BONUS_TOKENS,
-    totalTokens: budget * 2 + 10 + BINGO_LINE_BONUS_TOKENS,
+    lineTokens: BINGO_LINE_BONUS_TOKENS + maxLineScore * 4,
+    totalTokens: budget * 2 + 10 + BINGO_LINE_BONUS_TOKENS + maxLineScore * 4,
   };
 }
 
@@ -51,7 +52,7 @@ function analyzeBingoLines(cells, selectedLine = null) {
       completedCount: count,
       isCompleted: count === 5,
       progressPercent: count * 20,
-      tokenReward: BINGO_LINE_BONUS_TOKENS,
+      ...lineBonus(cells, line.positions),
       isClaimed: selectedLine === line.id,
     };
   });
@@ -94,7 +95,8 @@ async function prepareBoard(userId) {
   const input = await buildUserMissionInput(prisma, userId);
   const generated = await generateBingoMissionsWithAI(input);
   return {
-    version: 2,
+    version: 3,
+    phase: generated.phase,
     source: generated.source,
     sourceReason: generated.sourceReason,
     difficultyMix: generated.difficultyMix,
@@ -173,7 +175,16 @@ async function ensureCurrentBoard(userId) {
 function rowToBoard(row) {
   const snapshot = safeJson(row.snapshot, {});
   const cells = snapshot.cells || [];
-  const lines = analyzeBingoLines(cells, row.selected_line);
+  const lines = analyzeBingoLines(cells, row.selected_line).map((line) =>
+    line.isClaimed
+      ? {
+          ...line,
+          tokenReward:
+            snapshot.claimedBonus ??
+            ((snapshot.version || 0) < 3 ? 20 : line.tokenReward),
+        }
+      : line,
+  );
   return {
     ...snapshot,
     boardId: row.board_id.toString(),
@@ -237,6 +248,7 @@ async function viewData(db, userId, requestedIndex) {
       year: "numeric",
     }).format(new Date()),
     totalBoards: 4,
+    demoToolsEnabled: demoToolsEnabled(),
     activeBoardIndex: active.board_index,
     selectedBoardIndex: index,
     isViewingActiveBoard: selected.status === "ACTIVE",
@@ -253,14 +265,79 @@ function parseBoardIndex(value) {
   return index;
 }
 
+async function upgradeLegacyBoard(db, row) {
+  const state = safeJson(row.snapshot, {});
+  if (
+    (state.version || 0) >= 3 ||
+    row.selected_line ||
+    !Array.isArray(state.cells) ||
+    state.cells.length !== 25
+  )
+    return row;
+  const pool = await db.bingo_quests.findMany({
+    where: { quest_code: { in: state.cells.map((c) => c.quest_code) } },
+  });
+  const byCode = new Map(pool.map((q) => [q.quest_code, q]));
+  const normal = state.cells.filter((c) => c.family !== "DONATION");
+  const pending = normal
+    .filter((c) => !["COMPLETED", "CLAIMED"].includes(c.status))
+    .sort(
+      (a, b) =>
+        b.progress / b.target_value - a.progress / a.target_value ||
+        a.position - b.position,
+    );
+  let hard = Math.max(
+    0,
+    4 -
+      normal.filter(
+        (c) => ["COMPLETED", "CLAIMED"].includes(c.status) && c.level === 3,
+      ).length,
+  );
+  let medium = Math.max(
+    0,
+    8 -
+      normal.filter(
+        (c) => ["COMPLETED", "CLAIMED"].includes(c.status) && c.level === 2,
+      ).length,
+  );
+  for (const c of pending) {
+    const q = byCode.get(c.quest_code),
+      ladder = safeJson(q?.levels_json, []);
+    if (ladder.length < 3) continue;
+    c.level = hard > 0 ? 3 : medium > 0 ? 2 : 1;
+    if (hard > 0) hard--;
+    else if (medium > 0) medium--;
+    c.target_value = ladder[c.level - 1];
+    c.token_reward = c.level * 2;
+    c.title = q.title.replace(/\{n\}|\bn\b/g, String(c.target_value));
+    c.short_title = c.title;
+    c.reason = "ปรับความยากตามกติกาใหม่ โดยคงช่องที่สำเร็จและโทเค็นเดิมไว้";
+  }
+  state.version = 3;
+  state.phase = row.board_index > 0 ? "PERSONALIZED" : "STARTER";
+  state.source = "RULE_BASED";
+  state.sourceReason = "POLICY_UPDATED";
+  state.difficultyMix = {
+    easy: normal.filter((c) => c.level === 1).length,
+    medium: normal.filter((c) => c.level === 2).length,
+    hard: normal.filter((c) => c.level === 3).length,
+  };
+  state.budget = normal.reduce((sum, c) => sum + c.level, 0);
+  return db.bingo_boards.update({
+    where: { board_id: row.board_id },
+    data: { snapshot: state },
+  });
+}
+
 async function syncActivityInTransaction(db, userId) {
   // Caller must hold users row FOR UPDATE. Root payment/donation controllers use this
   // inside their ledger transaction, keeping activity, progress and rewards atomic.
-  const row = await db.bingo_boards.findFirst({
+  let row = await db.bingo_boards.findFirst({
     where: { user_id: BigInt(userId), month_key: monthKey(), status: "ACTIVE" },
   });
   if (!row || row.selected_line)
     return { tokensAwarded: 0, newBingoLinesCount: 0, bingoBonusTokens: 0 };
+  row = await upgradeLegacyBoard(db, row);
   const state = safeJson(row.snapshot, {});
   if (!Array.isArray(state.cells) || state.cells.length !== 25)
     fail("ข้อมูลกระดานไม่สมบูรณ์ กรุณาติดต่อผู้ดูแล", 500);
@@ -348,16 +425,14 @@ const syncDonationProgress = syncPaymentProgress;
 function respondError(res, error) {
   const schemaMissing = ["P2021", "P2022"].includes(error.code);
   if (!error.statusCode) console.error("Bingo:", error.code || error.message);
-  return res
-    .status(schemaMissing ? 503 : error.statusCode || 500)
-    .json({
-      success: false,
-      error: schemaMissing
-        ? "ระบบกำลังเตรียมข้อมูลกระดาน กรุณาให้ผู้ดูแลอัปเดตฐานข้อมูล"
-        : error.statusCode
-          ? error.message
-          : "โหลดกระดานไม่สำเร็จ กรุณาลองอีกครั้ง",
-    });
+  return res.status(schemaMissing ? 503 : error.statusCode || 500).json({
+    success: false,
+    error: schemaMissing
+      ? "ระบบกำลังเตรียมข้อมูลกระดาน กรุณาให้ผู้ดูแลอัปเดตฐานข้อมูล"
+      : error.statusCode
+        ? error.message
+        : "โหลดกระดานไม่สำเร็จ กรุณาลองอีกครั้ง",
+  });
 }
 
 async function getActiveBoard(req, res) {
@@ -415,9 +490,12 @@ async function claimLine(req, res) {
           event_key: `bingo:${row.board_id}:line`,
         },
       });
+      const claimedState = safeJson(row.snapshot, {});
+      claimedState.claimedBonus = chosen.tokenReward;
       await db.bingo_boards.update({
         where: { board_id: row.board_id },
         data: {
+          snapshot: claimedState,
           selected_line: chosen.id,
           line_select_mode: mode,
           completed_at: new Date(),
@@ -501,6 +579,81 @@ async function acceptBoard(req, res) {
   }
 }
 
+function demoToolsEnabled() {
+  return (
+    process.env.DEMO_MODE !== "false" &&
+    process.env.ENABLE_DEMO_TOOLS !== "false" &&
+    (process.env.NODE_ENV !== "production" ||
+      process.env.ENABLE_DEMO_TOOLS === "true")
+  );
+}
+async function demoComplete(req, res) {
+  try {
+    if (!demoToolsEnabled()) fail("เครื่องมือทดสอบปิดอยู่", 403);
+    const userId = req.user.userId,
+      index = parseBoardIndex(req.body.boardIndex);
+    const hasPosition = req.body.position !== undefined,
+      hasLine = typeof req.body.lineId === "string";
+    if (hasPosition === hasLine)
+      fail("เลือกช่องหรือเส้นที่ต้องการทดสอบอย่างใดอย่างหนึ่ง");
+    const positions = hasLine
+      ? BINGO_LINES.find((l) => l.id === req.body.lineId)?.positions
+      : [Number(req.body.position)];
+    if (
+      !positions ||
+      positions.some((p) => !Number.isInteger(p) || p < 0 || p > 24)
+    )
+      fail("ตำแหน่งทดสอบไม่ถูกต้อง");
+    const data = await withUserLock(userId, async (db) => {
+      const row = await db.bingo_boards.findUnique({
+        where: {
+          user_id_month_key_board_index: {
+            user_id: BigInt(userId),
+            month_key: monthKey(),
+            board_index: index,
+          },
+        },
+      });
+      if (!row || row.status !== "ACTIVE" || row.selected_line)
+        fail("ทดสอบได้เฉพาะกระดานที่กำลังทำและยังไม่รับโบนัส", 409);
+      const snapshot = safeJson(row.snapshot, {});
+      for (const position of positions) {
+        const cell = snapshot.cells.find((c) => c.position === position);
+        if (!cell) fail("ไม่พบภารกิจ", 404);
+        if (cell.status === "COMPLETED" || cell.status === "CLAIMED") continue;
+        cell.progress = cell.target_value;
+        cell.status = "COMPLETED";
+        cell.demo_completed = true;
+        cell.completed_at = new Date().toISOString();
+        const event_key = `bingo:${row.board_id}:cell:${position}`;
+        if (!(await db.token_transactions.findUnique({ where: { event_key } })))
+          await db.token_transactions.create({
+            data: {
+              user_id: BigInt(userId),
+              board_id: row.board_id,
+              amount: cell.token_reward,
+              type: "EARN_CELL",
+              event_key,
+            },
+          });
+      }
+      snapshot.tested = true;
+      await db.bingo_boards.update({
+        where: { board_id: row.board_id },
+        data: { snapshot },
+      });
+      return viewData(db, userId, index);
+    });
+    return res.json({
+      success: true,
+      message: "บันทึกผลทดสอบแล้ว ไม่ได้นับเป็นธุรกรรมจริง",
+      data,
+    });
+  } catch (error) {
+    return respondError(res, error);
+  }
+}
+
 async function setActiveBoard(req, res) {
   try {
     const data = await viewData(prisma, req.user.userId, req.body.boardIndex);
@@ -512,22 +665,20 @@ async function setActiveBoard(req, res) {
   }
 }
 const progressCell = (_req, res) =>
-  res
-    .status(403)
-    .json({
-      success: false,
-      error: "ภารกิจอัปเดตจากการชำระเงินหรือบริจาคเท่านั้น",
-    });
+  res.status(403).json({
+    success: false,
+    error: "ภารกิจอัปเดตจากการชำระเงินหรือบริจาคเท่านั้น",
+  });
 const resetBoard = (_req, res) =>
-  res
-    .status(403)
-    .json({
-      success: false,
-      error: "กระดานนี้บันทึกไว้แล้ว ทำภารกิจต่อจากเดิมได้เลย",
-    });
+  res.status(403).json({
+    success: false,
+    error: "กระดานนี้บันทึกไว้แล้ว ทำภารกิจต่อจากเดิมได้เลย",
+  });
 const generateBoard = getActiveBoard;
 
 module.exports = {
+  upgradeLegacyBoard,
+  demoComplete,
   BINGO_LINES,
   BINGO_LINE_BONUS_TOKENS,
   calculateBoardYield,

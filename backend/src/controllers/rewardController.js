@@ -11,11 +11,14 @@ const {
   randomUUID,
 } = require("../utils/operations");
 
-function calculateLuckyDrawCost(value) {
+function calculateLuckyDrawCost(value, base = 25) {
   const count = Number(value);
   if (!Number.isSafeInteger(count) || count < 1 || count > 100)
     fail("เลือกจำนวนสิทธิ์ตั้งแต่ 1 ถึง 100");
-  return { 1: 25, 3: 60, 5: 90 }[count] || count * 25;
+  return (
+    { 1: base, 3: Math.round(base * 2.4), 5: Math.round(base * 3.6) }[count] ||
+    count * base
+  );
 }
 function checkMonthlyHardSinkQuota(count, max = 1) {
   return Number(count || 0) < max;
@@ -45,6 +48,19 @@ exports.getRewards = async (req, res) => {
       success: true,
       data: {
         simulation: true,
+        prizes: list
+          .filter((r) => r.reward_type === "LUCKY_DRAW")
+          .map((r) => ({
+            rewardId: r.reward_id.toString(),
+            name: r.name,
+            imageUrl: r.image_url,
+            description: r.description,
+            tokenCost: r.token_cost,
+            packages: [1, 3, 5].map((tickets) => ({
+              tickets,
+              tokens: calculateLuckyDrawCost(tickets, r.token_cost),
+            })),
+          })),
         rewards: list
           .filter((r) => r.reward_type !== "LUCKY_DRAW")
           .map((r) => ({
@@ -78,9 +94,10 @@ async function redeem(req, res, lucky) {
     demoOnly();
     const userId = BigInt(req.user.userId);
     const key = requestKey(req, lucky ? "draw" : "reward");
-    const rewardId = lucky ? null : positiveId(req.body.rewardId);
+    const rewardId =
+      lucky && !req.body.rewardId ? null : positiveId(req.body.rewardId);
     const count = lucky ? Number(req.body.ticketsCount || 1) : 0;
-    const cost = lucky ? calculateLuckyDrawCost(count) : null;
+    if (lucky) calculateLuckyDrawCost(count);
     const result = await prisma.$transaction(async (tx) => {
       await lockUser(tx, userId);
       const previous = await tx.reward_redemptions.findUnique({
@@ -89,7 +106,7 @@ async function redeem(req, res, lucky) {
       if (previous) {
         if (
           (lucky && previous.metadata.ticketsCount !== count) ||
-          (!lucky && previous.reward_id !== rewardId)
+          (rewardId !== null && previous.reward_id !== rewardId)
         )
           fail("รายการเดิมมีข้อมูลต่างกัน กรุณาเริ่มรายการใหม่", 409);
         return {
@@ -98,12 +115,22 @@ async function redeem(req, res, lucky) {
           replayed: true,
         };
       }
-      const reward = lucky
-        ? null
-        : await tx.rewards.findUnique({ where: { reward_id: rewardId } });
-      if (!lucky && (!reward?.is_active || reward.reward_type === "LUCKY_DRAW"))
+      const reward = rewardId
+        ? await tx.rewards.findUnique({ where: { reward_id: rewardId } })
+        : await tx.rewards.findFirst({
+            where: { is_active: true, reward_type: "LUCKY_DRAW" },
+            orderBy: { reward_id: "asc" },
+          });
+      if (
+        !reward?.is_active ||
+        (lucky
+          ? reward.reward_type !== "LUCKY_DRAW"
+          : reward.reward_type === "LUCKY_DRAW")
+      )
         fail("ไม่พบรางวัลที่เลือก", 404);
-      const tokenCost = lucky ? cost : reward.token_cost;
+      const tokenCost = lucky
+        ? calculateLuckyDrawCost(count, reward.token_cost)
+        : reward.token_cost;
       if (!Number.isSafeInteger(tokenCost) || tokenCost <= 0)
         fail("รางวัลนี้ยังไม่พร้อมให้แลก", 409);
       if (
@@ -128,14 +155,17 @@ async function redeem(req, res, lucky) {
       const code = `DEMO-${randomUUID().replaceAll("-", "").slice(0, 20).toUpperCase()}`;
       const metadata = lucky
         ? {
-            title: "สิทธิ์ลุ้นรางวัลทดลอง",
+            title: `สิทธิ์ลุ้น ${reward.name}`,
+            prizeName: reward.name,
+            imageUrl: reward.image_url,
             ticketsCount: count,
-            campaignId: `DEMO-${bangkokPeriod().month}`,
+            campaignId: `DEMO-${bangkokPeriod().month}-${reward.reward_id}`,
             simulation: true,
           }
         : {
             title: reward.name,
             rewardName: reward.name,
+            imageUrl: reward.image_url,
             rewardType: reward.reward_type,
             voucherCode: code,
             simulation: true,
@@ -143,7 +173,7 @@ async function redeem(req, res, lucky) {
       const item = await tx.reward_redemptions.create({
         data: {
           user_id: userId,
-          reward_id: rewardId,
+          reward_id: reward.reward_id,
           kind: lucky ? "LUCKY_DRAW" : reward.reward_type,
           code,
           metadata,
@@ -216,12 +246,10 @@ exports.getMyTokenHistory = async (req, res) => {
   }
 };
 exports.instantSpin = (req, res) =>
-  res
-    .status(410)
-    .json({
-      success: false,
-      error: "ใช้เมนูแลกรางวัลหรือสะสมสิทธิ์ลุ้นรางวัล",
-    });
+  res.status(410).json({
+    success: false,
+    error: "ใช้เมนูแลกรางวัลหรือสะสมสิทธิ์ลุ้นรางวัล",
+  });
 exports.faucetTokens = (req, res) =>
   res
     .status(403)

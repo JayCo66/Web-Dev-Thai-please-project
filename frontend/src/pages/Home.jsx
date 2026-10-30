@@ -5,7 +5,6 @@ import {
   Check,
   Coins,
   CreditCard,
-  Gift,
   Grid2X2,
   HeartHandshake,
   Plus,
@@ -28,6 +27,7 @@ export default function Home() {
   const [boardError, setBoardError] = useState("");
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
+  const [recent, setRecent] = useState([]);
   const [donationTotal, setDonationTotal] = useState(null);
   const [topupBusy, setTopupBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -53,13 +53,15 @@ export default function Home() {
     api
       .get("/charities/my-donations", { signal: controller.signal })
       .then((response) => {
-        if (response.data.success)
+        if (response.data.success) {
+          setRecent(response.data.data.slice(0, 3));
           setDonationTotal(
             response.data.data.reduce(
               (total, item) => total + Number(item.amount || 0),
               0,
             ),
           );
+        }
       })
       .catch(() => {});
     return () => controller.abort();
@@ -259,37 +261,28 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="xp-action-grid" aria-label="เริ่มทำกิจกรรม">
-          <Link to="/payment" className="xp-action-card">
-            <span className="xp-action-icon">
-              <CreditCard />
-            </span>
-            <div>
-              <h3>ใช้จ่ายที่ร้านค้า</h3>
-              <p>ธุรกรรมช่วยเติมภารกิจอัตโนมัติ</p>
-            </div>
-            <ArrowRight size={19} />
-          </Link>
-          <Link to="/charities" className="xp-action-card">
-            <span className="xp-action-icon">
-              <HeartHandshake />
-            </span>
-            <div>
-              <h3>เลือกมูลนิธิที่อยากช่วย</h3>
-              <p>ร่วมให้และทำภารกิจช่องกลาง</p>
-            </div>
-            <ArrowRight size={19} />
-          </Link>
-          <Link to="/rewards" className="xp-action-card">
-            <span className="xp-action-icon">
-              <Gift />
-            </span>
-            <div>
-              <h3>ใช้โทเค็นที่สะสม</h3>
-              <p>แลกรางวัลหรือเลือกสิทธิ์ลุ้นโชค</p>
-            </div>
-            <ArrowRight size={19} />
-          </Link>
+        <section className="panel xp-home-activity">
+          <div className="panel-head">
+            <h2>การให้ล่าสุดของคุณ</h2>
+            <span className="text-muted">ประวัติจริงในบัญชีทดลอง</span>
+          </div>
+          {recent.length ? (
+            recent.map((item) => (
+              <div className="xp-history-row" key={item.donationId}>
+                <span>
+                  <strong>{item.charityName}</strong>
+                  <small>
+                    {new Date(item.donatedAt).toLocaleDateString("th-TH")}
+                  </small>
+                </span>
+                <strong>฿{money(item.amount)}</strong>
+              </div>
+            ))
+          ) : (
+            <p className="text-muted">
+              ยังไม่มีรายการบริจาค เริ่มได้จากเมนูมูลนิธิเมื่อคุณพร้อม
+            </p>
+          )}
         </section>
       </main>
     </div>

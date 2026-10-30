@@ -1,3 +1,5 @@
+> กติกาบิงโกและภาพล่าสุดแทนที่ส่วนที่ขัดกันในรายงานนี้: [รอบปรับปรุง v3](project-refinements-v3.md)
+
 # ผลยกระดับ Functional และ UX
 
 ตรวจวันที่ 30 ตุลาคม 2026 บน branch `improveUxUi` ไม่ได้ commit/push

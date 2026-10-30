@@ -79,7 +79,7 @@ export default function ThaiPlus() {
         draw ? "/rewards/lucky-draw" : "/rewards/redeem",
         {
           ...(draw
-            ? { ticketsCount: selected.tickets }
+            ? { ticketsCount: selected.tickets, rewardId: selected.rewardId }
             : { rewardId: selected.rewardId }),
           requestId: request.current,
         },
@@ -123,7 +123,7 @@ export default function ThaiPlus() {
         </div>
         <div className="segmented xp-reward-tabs">
           {[
-            ["rewards", Gift, "แลกรางวัล"],
+            ["rewards", Gift, "ลุ้น / แลกรางวัล"],
             ["items", Package, "ของฉัน"],
             ["history", History, "ประวัติแต้ม"],
           ].map(([key, Icon, label]) => (
@@ -166,6 +166,54 @@ export default function ThaiPlus() {
                 <p className="xp-quiet-note">
                   รางวัลสาธิตสำหรับโครงงาน ยังใช้รับสินค้าและบริการจริงไม่ได้
                 </p>
+                <section className="xp-prize-section">
+                  <div className="xp-section-heading">
+                    <div>
+                      <h2>3 รางวัลที่อยากลุ้น</h2>
+                      <p>เลือกสะสมสิทธิ์ให้รางวัลที่คุณชอบ</p>
+                    </div>
+                    <span className="badge">แคมเปญสาธิต</span>
+                  </div>
+                  <div className="xp-prize-grid">
+                    {catalog?.prizes?.map((prize) => (
+                      <article
+                        key={prize.rewardId}
+                        className="panel xp-prize-card"
+                      >
+                        <div
+                          className={`xp-prize-art ${prize.name.includes("iPhone") ? "is-phone" : ""}`}
+                        >
+                          <span className="badge">ลุ้นรางวัล</span>
+                          <img
+                            src={prize.imageUrl}
+                            alt={prize.name}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="xp-prize-copy">
+                          <h3>{prize.name}</h3>
+                          <p>เริ่มต้น {prize.tokenCost} แต้ม / 1 สิทธิ์</p>
+                          <button
+                            className="button button--primary"
+                            disabled={tokens < prize.tokenCost}
+                            onClick={() =>
+                              choose({ ...prize, kind: "draw", tickets: 1 })
+                            }
+                          >
+                            <Ticket size={17} />
+                            ลุ้น{prize.name}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+                <div className="xp-section-heading">
+                  <div>
+                    <h2>ของเล็ก ๆ ที่แลกได้</h2>
+                    <p>ใช้แต้มแลกคูปองหรือของที่ระลึก</p>
+                  </div>
+                </div>
                 <div className="xp-reward-grid">
                   {catalog?.rewards.map((item) => (
                     <article
@@ -173,7 +221,13 @@ export default function ThaiPlus() {
                       key={item.rewardId}
                     >
                       <div className="xp-reward-art">
-                        {item.rewardType === "PHYSICAL" ? (
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            loading="lazy"
+                          />
+                        ) : item.rewardType === "PHYSICAL" ? (
                           <Package size={44} />
                         ) : (
                           <Gift size={44} />
@@ -206,35 +260,7 @@ export default function ThaiPlus() {
                 {catalog?.rewards.length === 0 && (
                   <p className="empty-state">ยังไม่มีรางวัลเปิดให้แลก</p>
                 )}
-                <section className="panel xp-draw-section">
-                  <div>
-                    <span className="badge">สิทธิ์ลุ้น · สาธิต</span>
-                    <h2>เก็บแต้มไว้ลุ้นต่อ</h2>
-                    <p className="text-muted">
-                      ตั๋วเก็บในบัญชีของคุณ ยังไม่มีการจับรางวัลจริง
-                    </p>
-                  </div>
-                  <div className="xp-draw-packages">
-                    {catalog?.luckyDrawCampaign?.packages.map((p) => (
-                      <button
-                        key={p.tickets}
-                        disabled={tokens < p.tokens}
-                        onClick={() =>
-                          choose({
-                            ...p,
-                            kind: "draw",
-                            name: `${p.tickets} สิทธิ์ลุ้นรางวัล`,
-                            tokenCost: p.tokens,
-                          })
-                        }
-                      >
-                        <Ticket />
-                        <strong>{p.tickets} สิทธิ์</strong>
-                        <span>{p.tokens} แต้ม</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
+
                 <Link className="xp-reward-more" to="/bingo">
                   ทำภารกิจเพื่อรับแต้มเพิ่ม
                   <ArrowRight size={16} />
@@ -258,9 +284,17 @@ export default function ThaiPlus() {
                 <div className="xp-owned-items">
                   {items.map((item) => (
                     <article className="panel xp-owned-item" key={item.id}>
-                      <div className="xp-stat-icon">
-                        {item.kind === "LUCKY_DRAW" ? <Ticket /> : <Gift />}
-                      </div>
+                      {item.imageUrl ? (
+                        <img
+                          className="xp-owned-thumb"
+                          src={item.imageUrl}
+                          alt={item.title}
+                        />
+                      ) : (
+                        <div className="xp-stat-icon">
+                          {item.kind === "LUCKY_DRAW" ? <Ticket /> : <Gift />}
+                        </div>
+                      )}
                       <div>
                         <span className="badge">
                           {item.status === "EXPIRED"
@@ -326,7 +360,11 @@ export default function ThaiPlus() {
           aria-labelledby="reward-title"
         >
           <div className="dialog-head">
-            <h2 id="reward-title">ยืนยันแลกรางวัล</h2>
+            <h2 id="reward-title">
+              {selected?.kind === "draw"
+                ? "ยืนยันสิทธิ์ลุ้น"
+                : "ยืนยันแลกรางวัล"}
+            </h2>
             <button
               className="button button--icon"
               aria-label="ปิด"
@@ -337,7 +375,36 @@ export default function ThaiPlus() {
             </button>
           </div>
           <div className="dialog-body">
+            {selected?.imageUrl && (
+              <img
+                className="xp-draw-preview"
+                src={selected.imageUrl}
+                alt={selected.name}
+              />
+            )}
             <h3>{selected?.name}</h3>
+            {selected?.kind === "draw" && (
+              <div className="xp-package-picker" aria-label="จำนวนสิทธิ์ลุ้น">
+                {selected.packages?.map((pack) => (
+                  <button
+                    key={pack.tickets}
+                    aria-pressed={selected.tickets === pack.tickets}
+                    disabled={busy || tokens < pack.tokens}
+                    onClick={() => {
+                      request.current = crypto.randomUUID();
+                      setSelected((s) => ({
+                        ...s,
+                        tickets: pack.tickets,
+                        tokenCost: pack.tokens,
+                      }));
+                    }}
+                  >
+                    <strong>{pack.tickets} สิทธิ์</strong>
+                    <span>{pack.tokens} แต้ม</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <dl className="xp-receipt">
               <div>
                 <dt>ใช้แต้ม</dt>

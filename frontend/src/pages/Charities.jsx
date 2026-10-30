@@ -226,7 +226,6 @@ export default function Charities() {
             <div className="xp-charity-grid">
               {filtered.slice(0, visible).map((item) => {
                 const cat = categories[item.impactType] || categories.COMMUNITY,
-                  Icon = cat.icon,
                   asset = official[item.name];
                 return (
                   <article
@@ -236,15 +235,26 @@ export default function Charities() {
                     <div
                       className={`xp-charity-art xp-charity-art--${item.impactType.toLowerCase()}`}
                     >
-                      {asset ? (
-                        <img
-                          src={`/assets/charities/${asset.image}`}
-                          alt={`ตราสัญลักษณ์${item.name}`}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Icon size={48} strokeWidth={1.2} />
+                      <img
+                        className="xp-charity-cover"
+                        src={item.coverImageUrl}
+                        alt={`${item.imageCaption} · ${item.name}`}
+                        style={{
+                          objectPosition: item.imagePosition || "center",
+                        }}
+                        loading="lazy"
+                      />
+                      {asset && (
+                        <span className="xp-charity-brand">
+                          <img
+                            src={`/assets/charities/${asset.image}`}
+                            alt={`ตราสัญลักษณ์${item.name}`}
+                          />
+                        </span>
                       )}
+                      <span className="xp-photo-caption">
+                        {item.imageCaption}
+                      </span>
                       <span className="badge">{cat.label}</span>
                     </div>
                     <div className="xp-charity-copy">
@@ -265,9 +275,9 @@ export default function Charities() {
                           ร่วมให้
                           <ArrowRight size={16} />
                         </button>
-                        {asset && (
+                        {(asset || item.websiteUrl) && (
                           <a
-                            href={asset.url}
+                            href={item.websiteUrl || asset?.url}
                             target="_blank"
                             rel="noreferrer"
                             className="xp-official-link"
@@ -314,10 +324,10 @@ export default function Charities() {
             <details className="xp-image-credit">
               <summary>เกี่ยวกับข้อมูลและภาพ</summary>
               <p>
-                ใช้ชื่อมูลนิธิจากชุดข้อมูลโครงงาน ตราสัญลักษณ์ของ 4
-                มูลนิธิมาจากเว็บไซต์ทางการ ใช้ประกอบการศึกษา
-                ไม่มีความร่วมมือหรือการรับรองจากมูลนิธิ
-                ภาพอื่นเป็นสัญลักษณ์ตามหมวดหมู่
+                ใช้ชื่อมูลนิธิจากชุดข้อมูลโครงงาน
+                ภาพกิจกรรมและตราสัญลักษณ์มาจากเว็บไซต์ทางการหลายมูลนิธิ
+                ใช้ประกอบการศึกษา ไม่มีความร่วมมือหรือการรับรองจากมูลนิธิ
+                ภาพที่ไม่ได้มาจากองค์กรนั้นระบุว่าเป็นภาพประกอบหมวดหมู่
               </p>
             </details>
           </>

@@ -1,6 +1,5 @@
 const {
   DAY,
-  THAI_OFFSET,
   categoryOf,
   thaiDateParts,
   evaluateQuestProgress,
@@ -18,9 +17,8 @@ function safeJson(value, fallback) {
 }
 
 async function buildUserMissionInput(db, userId, now = new Date()) {
-  // Thirty complete Bangkok days. Names, citizen IDs and contact details never leave the server.
-  const today = new Date(`${thaiDateParts(now).date}T00:00:00+07:00`);
-  const from = new Date(today.getTime() - 30 * DAY);
+  // Rolling 30 days, including the just-finished first board. Names, citizen IDs and contact details never leave the server.
+  const from = new Date(now.getTime() - 30 * DAY);
   const [pool, activity, pastMerchants, boards] = await Promise.all([
     db.bingo_quests.findMany({
       where: {
@@ -33,7 +31,7 @@ async function buildUserMissionInput(db, userId, now = new Date()) {
       where: {
         user_id: BigInt(userId),
         status: "COMPLETED",
-        paid_at: { gte: from, lt: today },
+        paid_at: { gte: from, lte: now },
       },
       include: { shops: true },
     }),
@@ -52,8 +50,8 @@ async function buildUserMissionInput(db, userId, now = new Date()) {
       take: 12,
     }),
   ]);
-  const historicCells = boards.flatMap(
-    (b) => safeJson(b.snapshot, {}).cells || [],
+  const historicCells = boards.flatMap((b) =>
+    (safeJson(b.snapshot, {}).cells || []).filter((c) => !c.demo_completed),
   );
   const historyFor = (code) => {
     const cells = historicCells.filter((c) => c.quest_code === code);
@@ -98,7 +96,8 @@ async function buildUserMissionInput(db, userId, now = new Date()) {
         unit: q.unit || "ครั้ง",
         ladder,
         achieved_last_period: achieved,
-        safe_level: safeLevel,
+        safe_level: 3,
+        supported_level: safeLevel,
         bingo_history: historyFor(q.quest_code),
       };
     })
@@ -111,10 +110,16 @@ async function buildUserMissionInput(db, userId, now = new Date()) {
       center_quest: "DONATION",
     },
     user_profile: {
+      board_phase: boards.some(
+        (b) => (safeJson(b.snapshot, {}).cells || []).length === 25,
+      )
+        ? "PERSONALIZED"
+        : "STARTER",
+      test_completions_excluded: true,
       mode: "purchases_and_bingo_history",
       period: {
         from: thaiDateParts(from).date,
-        to: thaiDateParts(new Date(today.getTime() - 1)).date,
+        to: thaiDateParts(now).date,
       },
       transactions_last_period: activity.length,
       spend_last_period:

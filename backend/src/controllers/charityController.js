@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { charityMedia } = require("../services/charityMedia");
 const {
   money,
   positiveId,
@@ -33,6 +34,7 @@ async function getCharities(req, res) {
         const total = totals.find((t) => t.charity_id === c.charity_id);
         return {
           charityId: c.charity_id.toString(),
+          ...charityMedia(c),
           name: c.name,
           description: c.description,
           impactType: c.impact_type,

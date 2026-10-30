@@ -211,16 +211,16 @@ async function main() {
   let board = await request("/quests/active-board", token);
   assert.equal(board.success, true, JSON.stringify(board));
   assert.deepEqual(board.data.currentBoard.difficultyMix, {
-    easy: 24,
-    medium: 0,
-    hard: 0,
+    easy: 12,
+    medium: 8,
+    hard: 4,
   });
   const boardId = board.data.currentBoard.boardId;
   assert.equal(
     board.data.boardsSummary.filter((b) => b.status === "LOCKED").length,
     3,
   );
-  check("new-user easy board, 25 cells, locked future boards");
+  check("new-user mixed starter board, 25 cells, locked future boards");
   const other = await request("/quests/active-board", token2);
   assert.notEqual(other.data.currentBoard.boardId, boardId);
   check("two accounts own different boards");
@@ -296,6 +296,19 @@ async function main() {
   check(
     "reward ownership persists and replay cannot double spend or leak across accounts",
   );
+  assert.equal(catalog.data.prizes.length,3);
+  for(const prize of catalog.data.prizes){
+    assert.ok(prize.imageUrl.startsWith("/assets/rewards/"));
+    const payload={rewardId:prize.rewardId,ticketsCount:1,requestId:crypto.randomUUID()};
+    const draw=await request("/rewards/lucky-draw",token,payload);
+    assert.equal(draw.success,true,JSON.stringify(draw));
+    assert.equal(draw.data.rewardId,prize.rewardId);
+    const after=(await request("/users/me",token)).data.tokens;
+    const replay=await request("/rewards/lucky-draw",token,payload);
+    assert.equal(replay.data.code,draw.data.code);
+    assert.equal((await request("/users/me",token)).data.tokens,after);
+  }
+  check("all three specific lucky prizes persist the selected reward and debit once");
   await db.token_transactions.create({
     data: {
       user_id: user2.user_id,
@@ -319,21 +332,26 @@ async function main() {
   check("different concurrent reward requests cannot overdraw token balance");
   const persisted = await request("/quests/active-board", token);
   assert.equal(persisted.data.currentBoard.boardId, boardId);
-  // Test end-game using an explicit QA-only DB fixture; no bypass exists in the app.
+  // Exercise the guarded demo endpoint, including replay safety.
   const row = await db.bingo_boards.findUnique({
     where: { board_id: BigInt(boardId) },
   });
-  const snapshot = row.snapshot;
-  snapshot.cells.forEach((c) => {
-    if (c.position < 5) {
-      c.status = "COMPLETED";
-      c.progress = c.target_value;
-    }
+  const completed = await request("/quests/demo-complete", token, {
+    boardIndex: 0,
+    lineId: "R1",
   });
-  await db.bingo_boards.update({
-    where: { board_id: row.board_id },
-    data: { snapshot },
+  assert.equal(completed.success, true, JSON.stringify(completed));
+  const tokensAfterDemo = (await request("/users/me", token)).data.tokens;
+  const repeated = await request("/quests/demo-complete", token, {
+    boardIndex: 0,
+    lineId: "R1",
   });
+  assert.equal(repeated.success, true, JSON.stringify(repeated));
+  assert.equal(
+    (await request("/users/me", token)).data.tokens,
+    tokensAfterDemo,
+  );
+  check("guarded demo line completion is persisted and repeat-safe");
   const [ca, cb] = await Promise.all([
     request("/quests/claim", token, {
       boardIndex: 0,
@@ -476,6 +494,53 @@ async function main() {
     });
     report.screenshots.push(filename + "-mobile.png");
   }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("http://127.0.0.1:5178/bingo");
+  await page.waitForLoadState("networkidle");
+  assert.equal(await page.locator(".xp-cell-tokens").count(), 25);
+  await page.getByText("เครื่องมือทดสอบ", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "ทดสอบบิงโกแถว 1", exact: true })
+    .click();
+  await page
+    .locator('.xp-bingo-crosses line[data-line="R1"]')
+    .waitFor({ state: "attached" });
+  assert.ok(await page.locator(".xp-bingo-crosses").isVisible());
+  assert.notEqual(
+    await page
+      .locator('.xp-bingo-crosses line[data-line="R1"]')
+      .evaluate((el) => getComputedStyle(el).stroke),
+    "none",
+  );
+  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.screenshot({
+    path: path.join(screenshots, "bingo-completed-desktop.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: path.join(screenshots, "bingo-completed-mobile.png"),
+    fullPage: true,
+  });
+  report.screenshots.push(
+    "bingo-completed-desktop.png",
+    "bingo-completed-mobile.png",
+  );
+  check(
+    "visible cell tokens, demo button and crossed completed line work in browser",
+  );
+  await page.goto("http://127.0.0.1:5178/charities");
+  await page.waitForLoadState("networkidle");
+  assert.ok(
+    await page
+      .locator(".xp-charity-cover")
+      .evaluateAll(
+        (imgs) =>
+          imgs.length > 0 &&
+          imgs.every((img) => img.complete && img.naturalWidth > 0),
+      ),
+  );
+  check("local full-card charity photos load successfully");
   assert.deepEqual(errors, []);
   check("all five pages desktop/mobile: no overflow or browser exceptions");
   await page.goto("http://127.0.0.1:5178/charities");

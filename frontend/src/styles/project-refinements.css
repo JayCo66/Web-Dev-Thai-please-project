@@ -1,0 +1,594 @@
+/* Full-width imagery and a compact, readable mission economy. */
+.xp-charity-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+}
+.xp-charity-art {
+  padding: 0;
+  aspect-ratio: 16/10;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+.xp-charity-art > .xp-charity-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  transition: transform 0.35s;
+}
+.xp-charity-card:hover .xp-charity-cover {
+  transform: scale(1.025);
+}
+.xp-charity-art:after {
+  content: "";
+  position: absolute;
+  inset: 65% 0 0;
+  z-index: 1;
+  background: linear-gradient(transparent, #10231e6b);
+  pointer-events: none;
+}
+.xp-charity-art > .badge {
+  z-index: 2;
+  top: 16px;
+  left: 16px;
+  backdrop-filter: blur(6px);
+  background: #fffffff2;
+}
+.xp-photo-caption {
+  position: absolute;
+  bottom: 15px;
+  left: 16px;
+  color: #fff;
+  font-size: 10px;
+  z-index: 2;
+  text-shadow: 0 1px 4px #0008;
+}
+.xp-charity-brand {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #fffffff5;
+  box-shadow: 0 4px 16px #172d2414;
+}
+.xp-charity-brand img {
+  max-width: 125px;
+  max-height: 42px;
+  object-fit: contain;
+}
+.xp-charity-copy {
+  padding: 25px 26px;
+  gap: 16px;
+}
+.xp-charity-copy h2 {
+  font-size: 19px;
+  line-height: 1.65;
+}
+.xp-charity-copy > p {
+  font-size: 13px;
+}
+.xp-charity-card-actions .button {
+  min-width: 132px;
+}
+.xp-charity-numbers {
+  font-size: 11px;
+  align-items: center;
+}
+.xp-charity-numbers strong {
+  font-size: 23px;
+}
+.xp-charity-copy .xp-official-link {
+  font-size: 11px;
+}
+.xp-grid-stage {
+  position: relative;
+  --grid-pad: 24px;
+  --grid-pad-total: 48px;
+}
+.xp-bingo-grid {
+  grid-auto-rows: 1fr;
+}
+.xp-mission-cell {
+  min-height: 145px;
+}
+.xp-cell-name {
+  font-size: 13px;
+}
+.xp-cell-target {
+  font-size: 11px;
+  color: #5d7153;
+  margin-bottom: 12px;
+}
+.xp-cell-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: auto;
+}
+.xp-cell-bottom > .xp-level {
+  margin: 0;
+  font-size: 10px;
+}
+.xp-cell-tokens {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: Outfit, Prompt, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #946e27;
+  white-space: nowrap;
+}
+.xp-cell-tokens svg {
+  flex-shrink: 0;
+}
+.xp-mission-cell.is-done .xp-cell-name {
+  text-decoration: line-through;
+  text-decoration-color: #4e8258;
+  text-decoration-thickness: 1.5px;
+}
+.xp-mission-cell.is-done .xp-cell-tokens {
+  color: #3a7950;
+}
+.xp-bingo-crosses {
+  position: absolute;
+  pointer-events: none;
+  z-index: 4;
+  left: var(--grid-pad);
+  top: var(--grid-pad);
+  width: calc(100% - var(--grid-pad-total));
+  height: calc(100% - var(--grid-pad-total));
+  overflow: visible;
+}
+.xp-bingo-crosses line {
+  stroke: #117461;
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.46;
+  filter: drop-shadow(0 1px 2px #fff8);
+}
+.xp-bingo-crosses line.is-claimed {
+  stroke: #bb8b2f;
+  stroke-width: 7;
+  opacity: 0.72;
+}
+.xp-mission-list .xp-cell-bottom {
+  grid-column: 3;
+  grid-row: 1/3;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: auto;
+  margin: 0;
+}
+.xp-mission-list .xp-cell-target {
+  margin-bottom: 0;
+}
+.xp-mission-list .xp-cell-bottom > .xp-level {
+  grid-column: auto;
+  grid-row: auto;
+}
+.xp-bingo-achieved {
+  padding: 20px;
+}
+.xp-bingo-achieved > div {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.xp-bingo-achieved button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #d8e7d3;
+  border-radius: 9px;
+  background: #f4f9ef;
+  color: #47714c;
+  padding: 11px;
+  font-size: 11px;
+}
+.xp-bingo-achieved button strong {
+  font-size: 11px;
+  color: #8b6b2b;
+}
+.xp-demo-tools {
+  background: #faf8f0;
+  border-style: dashed;
+  border-color: #dfd2ae;
+}
+.xp-demo-tools .button {
+  font-size: 11px;
+  width: 100%;
+  margin-top: 5px;
+}
+.xp-demo-complete {
+  font-size: 12px;
+  width: 100%;
+  border-style: dashed;
+  background: #fbf8ef;
+  border-color: #d9c99e;
+  color: #8e7540;
+}
+.xp-home-activity {
+  padding: 0 26px 20px;
+}
+.xp-home-activity .panel-head {
+  padding: 24px 0 16px;
+}
+.xp-home-activity h2 {
+  font-size: 18px;
+}
+.xp-home-activity > p {
+  padding: 0 0 8px;
+}
+.xp-prize-section {
+  margin: 12px 0 36px;
+}
+.xp-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 24px 0 18px;
+}
+.xp-section-heading h2 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 500;
+}
+.xp-section-heading p {
+  font-size: 12px;
+  color: #6c7c65;
+  margin: 4px 0 0;
+}
+.xp-prize-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.xp-prize-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.xp-prize-art {
+  position: relative;
+  height: 250px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+.xp-prize-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  min-height: 0;
+}
+.xp-prize-art.is-phone {
+  background: #050505;
+  padding: 0;
+}
+.xp-prize-art .badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1;
+  background: #fffffff0;
+}
+.xp-prize-copy {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  flex: 1;
+}
+.xp-prize-copy h3 {
+  font-size: 20px;
+  line-height: 1.5;
+  margin: 0;
+}
+.xp-prize-copy > p {
+  font-size: 12px;
+  color: #74826a;
+  margin: 0;
+}
+.xp-prize-copy .button {
+  width: 100%;
+  margin-top: auto;
+}
+.xp-reward-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.xp-reward-art {
+  min-height: 0;
+  height: 205px;
+  background: #fff !important;
+  overflow: hidden;
+}
+.xp-reward-art > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.xp-reward-copy {
+  padding: 20px;
+  gap: 15px;
+}
+.xp-reward-copy h2 {
+  font-size: 16px;
+}
+.xp-reward-bottom {
+  gap: 12px;
+}
+.xp-reward-bottom .button {
+  width: 100%;
+  font-size: 12px;
+}
+.xp-reward-bottom > strong {
+  font-family: Outfit, Prompt, sans-serif;
+  font-size: 18px;
+  color: #40644c;
+}
+.xp-owned-thumb {
+  width: 70px;
+  height: 65px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #f5f6f0;
+}
+.xp-package-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 20px 0;
+}
+.xp-package-picker button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 13px 6px;
+  border-radius: 10px;
+  border: 1px solid #dce5d6;
+  background: #fff;
+  color: #657c55;
+  font-family: inherit;
+  font-size: 12px;
+}
+.xp-package-picker button[aria-pressed="true"] {
+  border-color: #6f9a62;
+  background: #eff7e9;
+  color: #355f39;
+}
+.xp-package-picker strong {
+  font-size: 17px;
+}
+.xp-draw-preview {
+  height: 150px;
+  object-fit: contain;
+  width: 100%;
+  border-radius: 14px;
+  background: #f5f7f0;
+  margin-bottom: 20px;
+}
+@media (max-width: 1100px) {
+  .xp-grid-stage {
+    --grid-pad: 20px;
+    --grid-pad-total: 40px;
+  }
+  .xp-prize-art {
+    height: 215px;
+  }
+  .xp-prize-copy {
+    padding: 19px;
+  }
+  .xp-prize-copy h3 {
+    font-size: 18px;
+  }
+  .xp-reward-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .xp-reward-art {
+    height: 230px;
+  }
+  .xp-charity-copy h2 {
+    font-size: 18px;
+  }
+}
+@media (max-width: 850px) {
+  .xp-grid-stage {
+    --grid-pad: 24px;
+    --grid-pad-total: 48px;
+  }
+  .xp-charity-grid {
+    gap: 18px;
+  }
+  .xp-charity-copy {
+    padding: 21px;
+  }
+  .xp-charity-copy h2 {
+    font-size: 17px;
+  }
+  .xp-charity-brand img {
+    max-width: 100px;
+    max-height: 35px;
+  }
+  .xp-photo-caption {
+    font-size: 8px;
+    left: 12px;
+  }
+  .xp-prize-grid {
+    gap: 12px;
+  }
+  .xp-prize-art {
+    height: 180px;
+    padding: 10px;
+  }
+  .xp-prize-copy {
+    padding: 16px;
+  }
+  .xp-prize-copy h3 {
+    font-size: 16px;
+  }
+  .xp-prize-copy .button {
+    font-size: 11px;
+  }
+  .xp-section-heading h2 {
+    font-size: 21px;
+  }
+}
+@media (max-width: 560px) {
+  .xp-charity-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .xp-charity-art {
+    aspect-ratio: 4/3;
+  }
+  .xp-charity-copy {
+    padding: 23px;
+  }
+  .xp-charity-copy h2 {
+    font-size: 19px;
+  }
+  .xp-charity-brand img {
+    max-width: 115px;
+    max-height: 40px;
+  }
+  .xp-photo-caption {
+    font-size: 9px;
+    left: 15px;
+  }
+  .xp-grid-stage {
+    --grid-pad: 14px;
+    --grid-pad-total: 28px;
+  }
+  .xp-mission-cell {
+    min-height: 132px;
+  }
+  .xp-cell-name {
+    font-size: 11px;
+  }
+  .xp-cell-target {
+    font-size: 9px;
+    margin-bottom: 9px;
+  }
+  .xp-cell-bottom > .xp-level {
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+  .xp-cell-tokens {
+    font-size: 10px;
+    gap: 2px;
+  }
+  .xp-cell-tokens svg {
+    width: 10px;
+    height: 10px;
+  }
+  .xp-cell-bottom {
+    justify-content: flex-start;
+    gap: 5px 6px;
+  }
+  .xp-bingo-crosses line {
+    stroke-width: 4;
+  }
+  .xp-bingo-crosses line.is-claimed {
+    stroke-width: 6;
+  }
+  .xp-board-panel .panel-head .segmented button {
+    padding: 6px;
+    font-size: 9px;
+    gap: 3px;
+  }
+  .xp-board-panel .panel-head .segmented svg {
+    width: 15px;
+  }
+  .xp-mission-list .xp-cell-tokens {
+    font-size: 13px;
+  }
+  .xp-mission-list .xp-level {
+    font-size: 10px;
+  }
+  .xp-mission-list .xp-cell-bottom {
+    gap: 8px;
+  }
+  .xp-home-activity {
+    padding: 0 22px 20px;
+  }
+  .xp-home-activity .panel-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .xp-prize-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .xp-prize-art {
+    height: 250px;
+    padding: 20px;
+  }
+  .xp-prize-copy {
+    padding: 22px;
+  }
+  .xp-prize-copy h3 {
+    font-size: 21px;
+  }
+  .xp-prize-copy .button {
+    font-size: 13px;
+  }
+  .xp-reward-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .xp-reward-art {
+    height: 150px;
+  }
+  .xp-reward-copy {
+    padding: 15px;
+    gap: 12px;
+  }
+  .xp-reward-copy h2 {
+    font-size: 13px;
+  }
+  .xp-reward-copy details {
+    font-size: 10px;
+  }
+  .xp-reward-bottom > strong {
+    font-size: 16px;
+  }
+  .xp-reward-bottom .button {
+    font-size: 10px;
+    padding: 9px 7px;
+    min-height: 38px;
+  }
+  .xp-section-heading h2 {
+    font-size: 21px;
+  }
+  .xp-section-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .xp-owned-thumb {
+    width: 52px;
+    height: 55px;
+  }
+  .xp-owned-item > div:nth-child(2) {
+    max-width: calc(100% - 67px);
+  }
+}

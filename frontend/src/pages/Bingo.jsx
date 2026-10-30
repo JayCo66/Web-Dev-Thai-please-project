@@ -65,7 +65,7 @@ const shortNames = {
   SPEND_SINGLE_MERCHANT: "ยอดร้านเดียว",
   DONATION: "ร่วมบริจาค",
 };
-const levelNames = { 1: "ง่าย", 2: "พอดี", 3: "ท้าทาย" };
+const levelNames = { 1: "ง่าย", 2: "กลาง", 3: "ท้าทาย" };
 const fmt = (value) => Number(value || 0).toLocaleString("th-TH");
 
 export default function Bingo() {
@@ -176,12 +176,15 @@ export default function Bingo() {
       setClaimOpen(false);
       setAcceptOpen(false);
       setHoverLine(null);
+      setSelectedCell(null);
       setNotice(
-        kind === "claim"
-          ? "รับโบนัสแล้ว เก็บความสำเร็จนี้แล้วไปต่อได้เลย"
-          : currentIndex < 3
-            ? "กระดานถัดไปพร้อมแล้ว"
-            : "ครบทั้ง 4 กระดานแล้ว พบกันเดือนหน้า",
+        kind === "demo-complete"
+          ? "บันทึกผลทดสอบแล้ว เส้นที่สำเร็จจะถูกขีดบิงโก"
+          : kind === "claim"
+            ? "รับโบนัสแล้ว เก็บความสำเร็จนี้แล้วไปต่อได้เลย"
+            : currentIndex < 3
+              ? "กระดานถัดไปพร้อมแล้ว"
+              : "ครบทั้ง 4 กระดานแล้ว พบกันเดือนหน้า",
       );
       if (kind === "accept") setRequestedIndex(null);
     } catch (failure) {
@@ -333,6 +336,7 @@ export default function Bingo() {
                     onClick={() => setView("grid")}
                   >
                     <Grid2X2 size={18} />
+                    <span>ตาราง</span>
                   </button>
                   <button
                     type="button"
@@ -341,6 +345,7 @@ export default function Bingo() {
                     onClick={() => setView("list")}
                   >
                     <List size={19} />
+                    <span>รายการ</span>
                   </button>
                 </div>
               </div>
@@ -352,54 +357,89 @@ export default function Bingo() {
                   aria-label={`สำเร็จ ${completed} จาก 25 ช่อง`}
                 />
               </div>
-              <div
-                className={
-                  view === "grid" ? "xp-bingo-grid" : "xp-mission-list"
-                }
-              >
-                {cells.map((cell) => {
-                  const family = families[cell.family] || families.ACTIVITY;
-                  const Icon = family.icon;
-                  const done = isDone(cell);
-                  const donation = cell.family === "DONATION";
-                  return (
-                    <button
-                      key={cell.position}
-                      type="button"
-                      className={`xp-mission-cell${done ? " is-done" : ""}${donation ? " is-donation" : ""}${highlighted.includes(cell.position) ? " is-highlighted" : ""}`}
-                      onClick={() => setSelectedCell(cell)}
-                      aria-label={`${cell.title} ${done ? "สำเร็จแล้ว" : `${fmt(cell.progress)} จาก ${fmt(cell.target_value)} ${cell.unit || ""}`}`}
-                    >
-                      <span className="xp-cell-top">
-                        <span className="xp-cell-icon">
-                          {done ? <Check size={18} /> : <Icon size={18} />}
-                        </span>
-                        <span className="xp-cell-position">
-                          {String(cell.position + 1).padStart(2, "0")}
-                        </span>
-                      </span>
-                      <span className="xp-cell-name">
-                        {view === "list"
-                          ? cell.title
-                          : shortNames[cell.quest_code] ||
-                            cell.short_title ||
-                            cell.title}
-                      </span>
-                      <span className="xp-cell-target">
-                        {done
-                          ? "สำเร็จแล้ว"
-                          : `${fmt(cell.progress)} / ${fmt(cell.target_value)} ${cell.unit || ""}`}
-                      </span>
-                      <span
-                        className={`xp-level xp-level--${donation ? "donation" : cell.level || 1}`}
+              <div className="xp-grid-stage">
+                <div
+                  className={
+                    view === "grid" ? "xp-bingo-grid" : "xp-mission-list"
+                  }
+                >
+                  {cells.map((cell) => {
+                    const family = families[cell.family] || families.ACTIVITY;
+                    const Icon = family.icon;
+                    const done = isDone(cell);
+                    const donation = cell.family === "DONATION";
+                    return (
+                      <button
+                        key={cell.position}
+                        type="button"
+                        className={`xp-mission-cell${done ? " is-done" : ""}${donation ? " is-donation" : ""}${highlighted.includes(cell.position) ? " is-highlighted" : ""}`}
+                        onClick={() => setSelectedCell(cell)}
+                        aria-label={`${cell.title} ${done ? "สำเร็จแล้ว" : `${fmt(cell.progress)} จาก ${fmt(cell.target_value)} ${cell.unit || ""}`}`}
                       >
-                        {donation
-                          ? "เพื่อสังคม"
-                          : levelNames[cell.level] || "ง่าย"}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className="xp-cell-top">
+                          <span className="xp-cell-icon">
+                            {done ? <Check size={18} /> : <Icon size={18} />}
+                          </span>
+                          <span className="xp-cell-position">
+                            {String(cell.position + 1).padStart(2, "0")}
+                          </span>
+                        </span>
+                        <span className="xp-cell-name">
+                          {view === "list"
+                            ? cell.title
+                            : shortNames[cell.quest_code] ||
+                              cell.short_title ||
+                              cell.title}
+                        </span>
+                        <span className="xp-cell-target">
+                          {`${fmt(cell.progress)} / ${fmt(cell.target_value)} ${cell.unit || ""}`}
+                        </span>
+                        <span className="xp-cell-bottom">
+                          <span
+                            className={`xp-level xp-level--${donation ? "donation" : cell.level || 1}`}
+                          >
+                            {donation
+                              ? "เพื่อสังคม"
+                              : levelNames[cell.level] || "ง่าย"}
+                          </span>
+                          <span
+                            className="xp-cell-tokens"
+                            title={done ? "ได้รับแล้ว" : "ได้รับเมื่อสำเร็จ"}
+                          >
+                            <Coins size={12} />+{cell.token_reward}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {view === "grid" && (
+                  <svg
+                    className="xp-bingo-crosses"
+                    viewBox="0 0 500 500"
+                    preserveAspectRatio="none"
+                    role="img"
+                    aria-label="เส้นบิงโกที่สำเร็จ"
+                  >
+                    {(board.lines || [])
+                      .filter((l) => l.isCompleted)
+                      .map((line) => {
+                        const first = line.positions[0],
+                          last = line.positions[4];
+                        return (
+                          <line
+                            key={line.id}
+                            data-line={line.id}
+                            x1={50 + (first % 5) * 100}
+                            y1={50 + Math.floor(first / 5) * 100}
+                            x2={50 + (last % 5) * 100}
+                            y2={50 + Math.floor(last / 5) * 100}
+                            className={line.isClaimed ? "is-claimed" : ""}
+                          />
+                        );
+                      })}
+                  </svg>
+                )}
               </div>
               <div className="xp-board-legend">
                 <span>
@@ -415,6 +455,32 @@ export default function Bingo() {
             </section>
 
             <aside className="xp-bingo-aside">
+              {board.lines?.some((l) => l.isCompleted) && (
+                <section className="panel xp-bingo-achieved">
+                  <span className="badge">
+                    บิงโกแล้ว {board.bingoCount} เส้น
+                  </span>
+                  <div>
+                    {board.lines
+                      .filter((l) => l.isCompleted)
+                      .map((l) => (
+                        <button
+                          key={l.id}
+                          onClick={() => {
+                            setHoverLine(l.id);
+                            setView("grid");
+                          }}
+                        >
+                          <span>{l.name}</span>
+                          <strong>
+                            +{l.tokenReward} แต้ม
+                            {l.isClaimed ? " · รับแล้ว" : ""}
+                          </strong>
+                        </button>
+                      ))}
+                  </div>
+                </section>
+              )}
               <section className="panel xp-next-step">
                 <div className="xp-step-icon">
                   <Trophy size={25} />
@@ -506,12 +572,38 @@ export default function Bingo() {
                     >
                       <span>
                         {line.name.replace(/\s*\(.*?\)/g, "")}
-                        <small>{line.completedCount}/5 ช่อง</small>
+                        <small>
+                          {line.completedCount}/5 ช่อง · โบนัส +
+                          {line.tokenReward} แต้ม
+                        </small>
                       </span>
                       <ChevronRight size={16} />
                     </button>
                   ))}
                 </section>
+              )}
+              {data.demoToolsEnabled && !claimed && !accepted && (
+                <details className="panel xp-details xp-demo-tools">
+                  <summary>เครื่องมือทดสอบ</summary>
+                  <div>
+                    <p>
+                      จำลองให้ภารกิจครบ 1 แถว รับเฉพาะโทเค็นทดลอง
+                      และไม่สร้างประวัติใช้จ่ายให้ AI
+                    </p>
+                    <button
+                      className="button button--secondary"
+                      disabled={busy}
+                      onClick={() =>
+                        action("demo-complete", {
+                          boardIndex: currentIndex,
+                          lineId: "R1",
+                        })
+                      }
+                    >
+                      ทดสอบบิงโกแถว 1
+                    </button>
+                  </div>
+                </details>
               )}
               <details className="panel xp-details">
                 <summary>
@@ -524,7 +616,10 @@ export default function Bingo() {
                     <li>ครบ 5 ช่องในเส้นเดียวกัน เลือกรับโบนัส</li>
                     <li>ยืนยันเพื่อไปกระดานถัดไป สูงสุด 4 กระดานต่อเดือน</li>
                   </ol>
-                  <p>ความคืบหน้าเก็บไว้ กลับมาทำต่อได้</p>
+                  <p>
+                    โบนัสเส้น = 20 + (ระดับความยากรวม × 4)
+                    เส้นที่ยากกว่าได้โบนัสมากกว่า โดยไม่นับซ้ำกับโทเค็นรายช่อง
+                  </p>
                 </div>
               </details>
               <details className="panel xp-details">
@@ -538,11 +633,13 @@ export default function Bingo() {
                       ? "AI เลือกภารกิจจากประวัติกิจกรรมของคุณ โดยระบบตรวจเงื่อนไขและความยากก่อนแสดง"
                       : "ระบบเลือกภารกิจตามกติกาจากข้อมูลที่มี ยังไม่ได้ใช้คำตอบจาก AI สำหรับกระดานนี้"}
                   </p>
-                  {board.sourceReason === "NEW_USER" && (
-                    <p className="text-muted">
-                      เริ่มจากเป้าหมายง่ายเพื่อรู้จักคุณก่อน
-                    </p>
-                  )}
+                  <p className="text-muted">
+                    {board.phase === "STARTER"
+                      ? "กระดานแรกใช้ชุดตั้งต้นร่วมกัน คละง่าย กลาง และท้าทาย"
+                      : board.source === "AI"
+                        ? "ตั้งแต่กระดานที่สอง AI ใช้ธุรกรรมล่าสุดและประวัติภารกิจ โดยรวมรายการที่เพิ่งทำวันนี้"
+                        : "ตั้งแต่กระดานที่สองปรับจากประวัติที่มี หาก AI ไม่พร้อมจะใช้กติกาช่วยเลือก"}
+                  </p>
                   {board.difficultyMix && (
                     <p>
                       ง่าย {board.difficultyMix.easy} · พอดี{" "}
@@ -551,8 +648,8 @@ export default function Bingo() {
                     </p>
                   )}
                   <p className="text-muted">
-                    คนที่เพิ่งเริ่มใช้จะได้ภารกิจเบากว่า
-                    ความยากปรับตามกิจกรรมที่ผ่านมา
+                    โครงสร้างเป้าหมายคือ 12 ง่าย / 8 กลาง / 4 ท้าทาย
+                    กระดานเดิมคงช่องที่สำเร็จแล้วไว้
                   </p>
                 </div>
               </details>
@@ -621,6 +718,23 @@ export default function Bingo() {
                 <p>{selectedCell.reason}</p>
               </details>
             )}
+            {data.demoToolsEnabled &&
+              !isDone(selectedCell) &&
+              !claimed &&
+              !accepted && (
+                <button
+                  className="button button--secondary xp-demo-complete"
+                  disabled={busy}
+                  onClick={() =>
+                    action("demo-complete", {
+                      boardIndex: currentIndex,
+                      position: selectedCell.position,
+                    })
+                  }
+                >
+                  ทดสอบ: ทำภารกิจนี้สำเร็จ
+                </button>
+              )}
             <div className="dialog-actions">
               {isDone(selectedCell) || claimed || accepted ? (
                 <button
