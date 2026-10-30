@@ -664,3 +664,117 @@
     padding: 38px 32px 44px;
   }
 }
+
+.xp-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: #4c685b;
+  text-decoration: none;
+}
+.xp-profile-identity {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.xp-profile-identity h2 {
+  margin: 12px 0 8px;
+}
+.xp-profile-identity p {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.xp-profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: 24px;
+  background: #e8f1e5;
+  color: #117461;
+}
+.xp-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.xp-profile-detail {
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+.xp-profile-detail h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+}
+.xp-profile-detail .xp-receipt {
+  width: 100%;
+}
+.xp-profile-detail .xp-receipt > div {
+  gap: 12px;
+}
+.xp-profile-detail dd {
+  overflow-wrap: anywhere;
+}
+.xp-profile-balance {
+  font-size: 32px;
+  color: #173b46;
+}
+.xp-profile-balance small {
+  font-size: 15px;
+}
+.xp-profile-detail .button {
+  margin-top: auto;
+}
+.xp-inline-link {
+  color: #117461;
+}
+.xp-owned-item.is-used {
+  opacity: 0.75;
+}
+@media (max-width: 900px) {
+  .xp-profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .xp-profile-identity {
+    padding: 22px;
+  }
+  .xp-profile-detail {
+    padding: 24px;
+  }
+}
+
+.xp-owned-item > .xp-owned-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .xp-owned-item {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: start;
+  }
+  .xp-owned-item > .xp-owned-actions {
+    grid-column: 1/-1;
+    width: 100%;
+  }
+  .xp-owned-item code {
+    font-size: 11px;
+  }
+  .xp-owned-item h2 {
+    line-height: 1.6;
+  }
+}

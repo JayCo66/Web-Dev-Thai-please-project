@@ -418,6 +418,76 @@ async function main() {
   assert.deepEqual(races.map((r) => r.status).sort(), [201, 400]);
   assert.ok((await request("/users/me", token2)).data.tokens >= 0);
   check("different concurrent reward requests cannot overdraw token balance");
+  // The incoming coupon-use feature must respect ownership and be repeat-safe.
+  await db.token_transactions.create({
+    data: {
+      user_id: user.user_id,
+      amount: 1000,
+      type: "EARN_CELL",
+      event_key: "qa:coupon-feature",
+    },
+  });
+  const voucherReward = catalog.data.rewards.find((r) =>
+    ["COUPON", "DISCOUNT"].includes(r.rewardType),
+  );
+  assert.ok(voucherReward);
+  const voucher = await request("/rewards/redeem", token, {
+    rewardId: voucherReward.rewardId,
+    requestId: crypto.randomUUID(),
+  });
+  assert.equal(voucher.success, true, JSON.stringify(voucher));
+  const voucherTokens = (await request("/users/me", token)).data.tokens;
+  const otherUse = await request("/rewards/use-voucher", token2, {
+    redemptionId: voucher.data.id,
+  });
+  assert.equal(otherUse.status, 404);
+  const uses = await Promise.all([
+    request("/rewards/use-voucher", token, { redemptionId: voucher.data.id }),
+    request("/rewards/use-voucher", token, { redemptionId: voucher.data.id }),
+  ]);
+  assert.ok(
+    uses.every((r) => r.success && r.data.status === "USED"),
+    JSON.stringify(uses),
+  );
+  assert.equal((await request("/users/me", token)).data.tokens, voucherTokens);
+  const savedVoucher = await db.reward_redemptions.findUnique({
+    where: { redemption_id: BigInt(voucher.data.id) },
+  });
+  assert.equal(savedVoucher.status, "USED");
+  assert.ok(savedVoucher.metadata.usedAt);
+  const aliasItems = await request("/rewards/my-redemptions", token);
+  assert.ok(
+    aliasItems.data.some(
+      (item) => item.id === voucher.data.id && item.status === "USED",
+    ),
+  );
+  check(
+    "merged voucher feature verifies ownership, persists usage and cannot charge twice",
+  );
+  const browserVoucher = await request("/rewards/redeem", token, {
+    rewardId: voucherReward.rewardId,
+    requestId: crypto.randomUUID(),
+  });
+  assert.equal(browserVoucher.success, true);
+  const expiredVoucher = await db.reward_redemptions.create({
+    data: {
+      user_id: user.user_id,
+      reward_id: BigInt(voucherReward.rewardId),
+      kind: "COUPON",
+      code: "QA-EXPIRED-COUPON",
+      metadata: { title: "QA expired coupon" },
+      token_cost: 0,
+      expires_at: new Date("2020-01-01"),
+    },
+  });
+  assert.equal(
+    (
+      await request("/rewards/use-voucher", token, {
+        redemptionId: expiredVoucher.redemption_id.toString(),
+      })
+    ).status,
+    409,
+  );
   const persisted = await request("/quests/active-board", token);
   assert.equal(persisted.data.currentBoard.boardId, boardId);
   // Exercise the guarded demo endpoint, including replay safety.
@@ -549,7 +619,14 @@ async function main() {
   await page.addInitScript((t) => localStorage.setItem("token", t), token);
   const screenshots = path.join(root, "docs/qa");
   fs.mkdirSync(screenshots, { recursive: true });
-  for (const route of ["/", "/bingo", "/charities", "/rewards", "/payment"]) {
+  for (const route of [
+    "/",
+    "/bingo",
+    "/charities",
+    "/rewards",
+    "/payment",
+    "/profile",
+  ]) {
     await page.goto("http://127.0.0.1:5178" + route);
     await page.waitForLoadState("networkidle");
     assert.equal(await page.locator("main h1").count(), 1, route);
@@ -564,8 +641,37 @@ async function main() {
     });
     report.screenshots.push(filename + "-desktop.png");
   }
+  await page.goto("http://127.0.0.1:5178/profile");
+  await page.waitForLoadState("networkidle");
+  const walletBefore = Number(
+    (await request("/users/me", token)).data.wallet.balance,
+  );
+  await page
+    .getByRole("button", { name: "เติมเงินทดลอง ฿500", exact: true })
+    .click();
+  await page
+    .getByRole("status")
+    .filter({ hasText: "เติมเงินทดลอง 500 บาทแล้ว" })
+    .waitFor();
+  assert.equal(
+    Number((await request("/users/me", token)).data.wallet.balance),
+    walletBefore + 500,
+  );
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  assert.ok(await page.locator(".xp-profile-balance").first().innerText());
+  check(
+    "merged Profile tops up the server wallet and survives reload without claiming ThaiD verification",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const route of ["/", "/bingo", "/charities", "/rewards", "/payment"]) {
+  for (const route of [
+    "/",
+    "/bingo",
+    "/charities",
+    "/rewards",
+    "/payment",
+    "/profile",
+  ]) {
     await page.goto("http://127.0.0.1:5178" + route);
     await page.waitForLoadState("networkidle");
     assert.equal(
@@ -698,8 +804,35 @@ async function main() {
   });
   await page.keyboard.press("Escape");
   check("custom ticket quantity shows linear prices and blocks invalid counts");
+  await page.goto("http://127.0.0.1:5178/rewards?tab=items");
+  await page.waitForLoadState("networkidle");
+  await page
+    .getByRole("button", { name: "ใช้คูปองทดลอง", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "ใช้คูปองทดลอง", exact: true })
+    .waitFor({ state: "hidden" });
+  assert.ok(
+    (await request("/rewards/my-items", token)).data.some(
+      (item) => item.id === browserVoucher.data.id && item.status === "USED",
+    ),
+  );
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    ),
+    false,
+    "owned items mobile overflow",
+  );
+  await page.screenshot({
+    path: path.join(screenshots, "merged-coupon-items-mobile.png"),
+    fullPage: true,
+  });
+  check(
+    "merged coupon action works in browser and expired coupons cannot be used",
+  );
   assert.deepEqual(errors, []);
-  check("all five pages desktop/mobile: no overflow or browser exceptions");
+  check("all six pages desktop/mobile: no overflow or browser exceptions");
   await page.goto("http://127.0.0.1:5178/charities");
   await page.waitForLoadState("networkidle");
   await page

@@ -7,3 +7,5 @@ Import `THAI-Please-AI.postman_collection.json`. The collection now follows the 
 `POST /quests/progress` and `/rewards/demo-faucet` are deliberately blocked. Complete missions via payment/donation. Claim a completed line using MANUAL or AUTO_MAX_TOKEN, then accept the board to open the next one (maximum four per Bangkok calendar month).
 
 Actual SDK HTTP behavior is checked by the local simulation under `postman/simulations/typhoon`. It models only the boundary the project calls; unknown endpoints return 501. There is no configured provider-owned Postman workspace, so no owner mock was pulled. The stand-in does not establish provider availability or AI quality. Start the simulation then run `npm run verify:ai` from backend.
+
+Merged coupon contract: GET /rewards/my-redemptions aliases /my-items. POST /rewards/use-voucher accepts redemptionId or voucherCode, verifies ownership and expiry, and persistently marks a coupon USED. It does not debit tokens again. Profiles use server-backed demo topups and do not claim ThaiD verification.

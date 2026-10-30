@@ -134,11 +134,11 @@ export default function Navbar() {
                 <p className="text-muted">{user.maskedPhone}</p>
               )}
               <Link
-                to="/payment"
+                to="/profile"
                 className="button button--secondary"
                 onClick={() => setDialog(null)}
               >
-                ไปหน้าชำระเงินทดลอง
+                ดูข้อมูลบัญชีของฉัน
               </Link>
               <button
                 type="button"

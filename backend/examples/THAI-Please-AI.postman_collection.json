@@ -20,6 +20,10 @@
     {
       "key": "rewardId",
       "value": ""
+    },
+    {
+      "key": "redemptionId",
+      "value": ""
     }
   ],
   "item": [
@@ -488,6 +492,52 @@
             }
           ]
         }
+      }
+    },
+    {
+      "name": "My owned rewards (compatibility route)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/rewards/my-redemptions",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Returns the same flat owned-item contract as GET /rewards/my-items."
+      }
+    },
+    {
+      "name": "Use owned demo coupon",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/rewards/use-voucher",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"redemptionId\": \"{{redemptionId}}\"\n}"
+        },
+        "description": "Own COUPON/DISCOUNT only. AVAILABLE becomes USED without a second token debit. Repeated calls return the same USED item; another owner gets 404; expired coupon gets 409."
       }
     }
   ]

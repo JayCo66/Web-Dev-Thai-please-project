@@ -119,6 +119,19 @@ export default function ThaiPlus() {
       setBusy(false);
     }
   }
+  async function activateVoucher(item) {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api.post("/rewards/use-voucher", { redemptionId: item.id });
+      await load();
+    } catch (e) {
+      setError(e.response?.data?.error || "ใช้คูปองไม่สำเร็จ");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function copy(code) {
     try {
       await navigator.clipboard.writeText(code);
@@ -309,7 +322,10 @@ export default function ThaiPlus() {
               ) : (
                 <div className="xp-owned-items">
                   {items.map((item) => (
-                    <article className="panel xp-owned-item" key={item.id}>
+                    <article
+                      className={`panel xp-owned-item ${item.status === "USED" ? "is-used" : ""}`}
+                      key={item.id}
+                    >
                       {item.imageUrl ? (
                         <img
                           className="xp-owned-thumb"
@@ -323,9 +339,11 @@ export default function ThaiPlus() {
                       )}
                       <div>
                         <span className="badge">
-                          {item.status === "EXPIRED"
-                            ? "หมดอายุ"
-                            : "สิทธิ์สาธิต"}
+                          {item.status === "USED"
+                            ? "ใช้แล้ว"
+                            : item.status === "EXPIRED"
+                              ? "หมดอายุ"
+                              : "สิทธิ์สาธิต"}
                           {item.ticketsCount
                             ? ` · ${item.ticketsCount} สิทธิ์`
                             : ""}
@@ -339,17 +357,29 @@ export default function ThaiPlus() {
                         </p>
                         <code>{item.code}</code>
                       </div>
-                      <button
-                        className="button button--secondary"
-                        onClick={() => copy(item.code)}
-                      >
-                        {copied === item.code ? (
-                          <Check size={16} />
-                        ) : (
-                          <Copy size={16} />
-                        )}
-                        คัดลอก
-                      </button>
+                      <div className="xp-owned-actions">
+                        {["COUPON", "DISCOUNT"].includes(item.kind) &&
+                          item.status === "AVAILABLE" && (
+                            <button
+                              className="button button--primary"
+                              disabled={busy}
+                              onClick={() => activateVoucher(item)}
+                            >
+                              ใช้คูปองทดลอง
+                            </button>
+                          )}
+                        <button
+                          className="button button--secondary"
+                          onClick={() => copy(item.code)}
+                        >
+                          {copied === item.code ? (
+                            <Check size={16} />
+                          ) : (
+                            <Copy size={16} />
+                          )}
+                          คัดลอก
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>

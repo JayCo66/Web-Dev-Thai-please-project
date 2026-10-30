@@ -30,7 +30,11 @@ function itemView(item) {
     rewardId: item.reward_id?.toString() || null,
     tokensSpent: item.token_cost,
     status:
-      item.expires_at && item.expires_at < new Date() ? "EXPIRED" : item.status,
+      item.status === "USED"
+        ? "USED"
+        : item.expires_at && item.expires_at < new Date()
+          ? "EXPIRED"
+          : item.status,
     createdAt: item.created_at,
     expiresAt: item.expires_at,
     ...item.metadata,
@@ -256,3 +260,46 @@ exports.faucetTokens = (req, res) =>
     .json({ success: false, error: "สะสมแต้มได้จากการทำภารกิจบิงโกและบริจาค" });
 exports.calculateLuckyDrawCost = calculateLuckyDrawCost;
 exports.checkMonthlyHardSinkQuota = checkMonthlyHardSinkQuota;
+
+// Incoming main feature, adapted to the existing persisted item contract.
+exports.getMyRedemptions = exports.getMyItems;
+exports.useVoucher = async (req, res) => {
+  try {
+    demoOnly();
+    const userId = BigInt(req.user.userId);
+    const id =
+      req.body.redemptionId === undefined
+        ? null
+        : positiveId(req.body.redemptionId);
+    const code =
+      typeof req.body.voucherCode === "string"
+        ? req.body.voucherCode.trim()
+        : "";
+    if (!id && !code) fail("เลือกรหัสคูปองที่ต้องการใช้");
+    const result = await prisma.$transaction(async (tx) => {
+      await lockUser(tx, userId);
+      const item = await tx.reward_redemptions.findFirst({
+        where: { user_id: userId, ...(id ? { redemption_id: id } : { code }) },
+      });
+      if (!item) fail("ไม่พบคูปองของคุณ", 404);
+      if (code && item.code !== code) fail("ข้อมูลคูปองไม่ตรงกัน", 400);
+      if (!["COUPON", "DISCOUNT"].includes(item.kind))
+        fail("รายการนี้ไม่ใช่คูปอง", 400);
+      if (item.status === "USED") return { ...itemView(item), replayed: true };
+      if (item.expires_at && item.expires_at < new Date())
+        fail("คูปองหมดอายุแล้ว", 409);
+      if (item.status !== "AVAILABLE") fail("คูปองนี้ยังใช้ไม่ได้", 409);
+      const saved = await tx.reward_redemptions.update({
+        where: { redemption_id: item.redemption_id },
+        data: {
+          status: "USED",
+          metadata: { ...item.metadata, usedAt: new Date().toISOString() },
+        },
+      });
+      return itemView(saved);
+    });
+    res.json({ success: true, data: result });
+  } catch (error) {
+    handleError(res, error, "ใช้คูปองไม่สำเร็จ");
+  }
+};
