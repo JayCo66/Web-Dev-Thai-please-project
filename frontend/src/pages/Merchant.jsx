@@ -276,28 +276,48 @@ function BillPanel({ onPaid, onViewSales }) {
       </div>
 
       <form onSubmit={create} style={{ marginTop: 16 }}>
-        <label className="form-field">
-          <span className="field-label">ยอดที่ต้องการเก็บ (บาท) *</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min="0.01"
-            max="100000"
-            step="0.01"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            disabled={busy}
-          />
-        </label>
+        <div className="form-field">
+          <label className="field-label" htmlFor="merchant-bill-amount">
+            ยอดที่ต้องการเก็บ (บาท) *
+          </label>
+          <div className="merchant-amount-input-box">
+            <span className="merchant-currency-symbol">฿</span>
+            <input
+              id="merchant-bill-amount"
+              type="number"
+              inputMode="decimal"
+              className="merchant-amount-input"
+              min="0.01"
+              max="100000"
+              step="0.01"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              disabled={busy}
+            />
+            {amount && (
+              <button
+                type="button"
+                className="merchant-clear-amount-btn"
+                onClick={() => setAmount('')}
+                title="ล้างยอดเงิน"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+        </div>
 
-        <div className="xp-quick-amounts" role="group" aria-label="เลือกยอดอย่างเร็ว">
-          {QUICK_AMOUNTS.map((val) => (
+        <div className="merchant-quick-amounts-label">
+          <span>💡 ยอดเงินด่วนยอดนิยม:</span>
+        </div>
+        <div className="merchant-quick-amounts" role="group" aria-label="เลือกยอดอย่างเร็ว">
+          {[50, 100, 150, 200, 300, 500].map((val) => (
             <button
               type="button"
               key={val}
-              className={`xp-chip${Number(amount) === val ? ' is-active' : ''}`}
+              className={`merchant-amount-chip${Number(amount) === val ? ' is-active' : ''}`}
               onClick={() => setAmount(String(val))}
             >
               ฿{val}
