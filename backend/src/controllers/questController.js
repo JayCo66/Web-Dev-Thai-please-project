@@ -268,12 +268,35 @@ function parseBoardIndex(value) {
 }
 
 async function upgradeLegacyBoard(db, row) {
-  const state = safeJson(row.snapshot, {});
+  let state = safeJson(row.snapshot, {});
+  if (!Array.isArray(state.cells) || state.cells.length !== 25) {
+    const input = await buildUserMissionInput(db, row.user_id);
+    const generated = await generateBingoMissionsWithAI(input, { forceRules: true });
+    state = {
+      version: 3,
+      phase: row.board_index > 0 ? "PERSONALIZED" : "STARTER",
+      source: "RULE_BASED",
+      sourceReason: "LEGACY_BOARD_RESTORED",
+      period: generated.period,
+      budget: generated.total_level,
+      cells: generated.bingo_board_5x5.map((cell) => ({
+        ...cell,
+        short_title: cell.title,
+        row: Math.floor(cell.position / 5),
+        col: cell.position % 5,
+        progress: 0,
+        status: "IN_PROGRESS",
+        token_reward: cell.family === "DONATION" ? 10 : cell.level * 2,
+      })),
+    };
+    return db.bingo_boards.update({
+      where: { board_id: row.board_id },
+      data: { snapshot: state },
+    });
+  }
   if (
     (state.version || 0) >= 3 ||
-    row.selected_line ||
-    !Array.isArray(state.cells) ||
-    state.cells.length !== 25
+    row.selected_line
   )
     return row;
   const pool = await db.bingo_quests.findMany({

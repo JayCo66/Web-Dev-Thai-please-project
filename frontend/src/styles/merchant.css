@@ -1,46 +1,746 @@
-.merchant-page { max-width: 760px; margin: 0 auto; display: grid; gap: 18px; }
-.merchant-status { display: flex; gap: 16px; align-items: flex-start; padding: 20px; border-radius: 16px; border: 1px solid; }
-.merchant-status h2 { margin: 0 0 6px; font-size: 20px; }
-.merchant-status p { margin: 0 0 8px; line-height: 1.55; }
-.merchant-status small { opacity: 0.75; }
-.merchant-status svg { flex-shrink: 0; margin-top: 2px; }
-.merchant-status--pending { background: #fffbeb; border-color: #fcd34d; color: #78350f; }
-.merchant-status--approved { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
-.merchant-status--rejected { background: #fef2f2; border-color: #fca5a5; color: #7f1d1d; }
-.merchant-note { background: rgba(255, 255, 255, 0.65); padding: 10px 12px; border-radius: 10px; }
-.merchant-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; }
-.merchant-card h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 17px; }
-.merchant-card dl { display: grid; gap: 12px; margin: 0; }
-.merchant-card dl > div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
-.merchant-card dt { display: flex; align-items: center; gap: 4px; color: #61718a; font-size: 14px; }
-.merchant-card dd { margin: 0; font-weight: 600; word-break: break-word; }
-.merchant-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-.merchant-stats > div { display: grid; gap: 4px; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; }
-.merchant-stats span { color: #61718a; font-size: 14px; }
-.merchant-stats strong { font-size: 22px; }
-.register-type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; padding: 4px; background: #f1f5f9; border-radius: 14px; }
-.register-type-toggle button { min-height: 48px; border: 0; border-radius: 10px; background: transparent; font-size: 15px; font-weight: 700; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.register-type-toggle button.is-active { background: #fff; color: #1d4ed8; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12); }
-.merchant-stats > div small { color: #64748b; font-size: 13px; }
-.merchant-bill { text-align: center; display: grid; gap: 8px; justify-items: center; }
-.merchant-bill h2 { justify-self: start; }
-.merchant-qr { width: min(280px, 100%); height: auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 8px; background: #fff; }
-.merchant-bill-amount { margin: 0; font-size: 32px; font-weight: 800; }
-.merchant-code { font-family: ui-monospace, monospace; font-size: 20px; letter-spacing: 2px; background: #eef2ff; padding: 2px 10px; border-radius: 8px; }
-.merchant-bill-done { display: grid; gap: 8px; justify-items: center; padding: 18px 0; color: #475569; }
-.merchant-bill-done--paid { color: #047857; }
-.merchant-bill-done strong { font-size: 22px; }
-.merchant-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
-.merchant-chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 180px; align-items: end; }
-.merchant-bar { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
-.merchant-bar > div { width: 100%; max-width: 44px; background: #3b82f6; border-radius: 8px 8px 2px 2px; min-height: 2px; }
-.merchant-bar small { color: #64748b; font-size: 12px; }
-.merchant-bar-value { font-size: 11px; color: #334155; font-weight: 700; }
-.merchant-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.merchant-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
-.merchant-list li span:first-child { display: grid; }
-.merchant-list small { color: #64748b; }
-.merchant-pill { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #f1f5f9; color: #475569; white-space: nowrap; }
-.merchant-pill--paid { background: #d1fae5; color: #065f46; }
-.merchant-pill--pending { background: #fef3c7; color: #92400e; }
-.merchant-pill--cancelled, .merchant-pill--expired { background: #f1f5f9; color: #64748b; }
+/* =========================================================
+   MERCHANT CONSOLE & DASHBOARD STYLES
+   Civic Tech Modern & Tabbed Subpages
+   ========================================================= */
+
+.merchant-page {
+  max-width: 860px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+  padding: 16px 20px 48px;
+}
+
+/* Status Banners */
+.merchant-status {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid;
+}
+.merchant-status h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+.merchant-status p {
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+.merchant-status small {
+  opacity: 0.75;
+}
+.merchant-status svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.merchant-status--pending {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #78350f;
+}
+.merchant-status--approved {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+.merchant-status--rejected {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #7f1d1d;
+}
+.merchant-note {
+  background: rgba(255, 255, 255, 0.65);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+/* Subpage Navigation Tabs */
+.merchant-nav-tabs {
+  display: flex;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 6px;
+  border-radius: 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.merchant-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+.merchant-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.merchant-tab-btn:hover {
+  color: #0f172a;
+}
+.merchant-tab-btn.is-active {
+  background: #ffffff;
+  color: #1e3a8a;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+.merchant-tab-badge {
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.merchant-tab-btn.is-active .merchant-tab-badge {
+  background: #dbeafe;
+}
+
+/* Generic Merchant Cards */
+.merchant-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+.merchant-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Details list */
+.merchant-card dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.merchant-card dl > div {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.merchant-card dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+}
+.merchant-card dd {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+/* Subpage Header */
+.merchant-subpage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.merchant-subpage-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.merchant-subpage-header p {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* =========================================================
+   SUBPAGE 1: CREATE BILL & QR
+   ========================================================= */
+.merchant-bill {
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.merchant-bill h2 {
+  justify-self: start;
+}
+
+/* POS Cashier Amount Input Box */
+.merchant-amount-input-box {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 4px 12px 4px 6px;
+  transition: all 0.15s ease;
+  margin-top: 6px;
+}
+.merchant-amount-input-box:focus-within {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+.merchant-currency-symbol {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 20px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid #bfdbfe;
+}
+.merchant-amount-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  padding: 0 12px !important;
+  height: 46px !important;
+  box-shadow: none !important;
+}
+.merchant-amount-input:focus {
+  outline: none !important;
+}
+.merchant-clear-amount-btn {
+  background: #e2e8f0;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.merchant-clear-amount-btn:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+/* Quick Amounts Preset Chips */
+.merchant-quick-amounts-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 14px;
+  margin-bottom: 8px;
+}
+.merchant-quick-amounts,
+.xp-quick-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.merchant-amount-chip,
+.xp-chip {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  transition: all 0.15s ease;
+}
+.merchant-amount-chip:hover,
+.xp-chip:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.15);
+}
+.merchant-amount-chip.is-active,
+.xp-chip.is-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+  transform: translateY(-1px);
+}
+.merchant-qr-wrapper {
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 18px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+.merchant-qr {
+  width: min(280px, 100%);
+  height: auto;
+  display: block;
+  border-radius: 10px;
+}
+.merchant-bill-amount {
+  margin: 4px 0 0;
+  font-size: 34px;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+.merchant-code-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 14px;
+  border-radius: 10px;
+  margin: 4px 0;
+}
+.merchant-code {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #1d4ed8;
+}
+.merchant-bill-done {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding: 24px 0;
+  color: #475569;
+}
+.merchant-bill-done--paid {
+  color: #059669;
+}
+.merchant-bill-done strong {
+  font-size: 24px;
+}
+.merchant-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* Mini stat highlight under Bill Panel */
+.merchant-quick-stats-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #475569;
+}
+.merchant-quick-stats-strip button {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* =========================================================
+   SUBPAGE 2: SALES & ANALYTICS
+   ========================================================= */
+.merchant-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.merchant-stat-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+.merchant-stat-box-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.merchant-stat-box-icon.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.merchant-stat-box-icon.green {
+  background: #ecfdf5;
+  color: #059669;
+}
+.merchant-stat-box-icon.amber {
+  background: #fffbeb;
+  color: #d97706;
+}
+.merchant-stat-box-icon.purple {
+  background: #faf5ff;
+  color: #9333ea;
+}
+
+.merchant-stat-box-content {
+  display: flex;
+  flex-direction: column;
+}
+.merchant-stat-box-content span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+.merchant-stat-box-content strong {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 3px 0;
+}
+.merchant-stat-box-content small {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* Sales Trend Bar Chart */
+.merchant-chart-card {
+  margin-bottom: 20px;
+}
+.merchant-chart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  height: 200px;
+  align-items: end;
+  padding: 16px 10px 10px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+}
+.merchant-bar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+.merchant-bar > div {
+  width: 100%;
+  max-width: 48px;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 8px 8px 3px 3px;
+  min-height: 4px;
+  transition: height 0.3s ease;
+}
+.merchant-bar.is-today > div {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+.merchant-bar small {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+.merchant-bar-value {
+  font-size: 11px;
+  color: #334155;
+  font-weight: 700;
+}
+
+/* Co-Pay Ratio Progress */
+.merchant-copay-card {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+.merchant-copay-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.merchant-copay-card p {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #15803d;
+}
+.merchant-copay-bar {
+  height: 12px;
+  background: #dbeafe;
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+}
+.merchant-copay-fill-gov {
+  background: #059669;
+  height: 100%;
+}
+.merchant-copay-fill-citizen {
+  background: #2563eb;
+  height: 100%;
+}
+.merchant-copay-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   SUBPAGE 3: BILLS MANAGEMENT
+   ========================================================= */
+.merchant-bills-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.merchant-bills-search {
+  flex: 1 1 240px;
+  position: relative;
+}
+.merchant-bills-search input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 14px 0 40px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #ffffff;
+}
+.merchant-bills-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.merchant-status-filters {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.merchant-filter-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.merchant-filter-btn.is-active {
+  background: #ffffff;
+  color: #1e3a8a;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* Rich Bill Cards List */
+.merchant-bills-list {
+  display: grid;
+  gap: 12px;
+}
+.merchant-bill-item-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.merchant-bill-item-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+@media (max-width: 600px) {
+  .merchant-bill-item-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.bill-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bill-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bill-item-code {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.bill-item-note {
+  font-size: 14px;
+  color: #334155;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.bill-item-meta {
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bill-item-amount-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .bill-item-amount-side {
+    align-items: flex-start;
+  }
+}
+.bill-item-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.bill-item-actions {
+  display: flex;
+  gap: 6px;
+}
+.bill-item-btn {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.bill-item-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Status Pills */
+.merchant-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.merchant-pill--paid {
+  background: #d1fae5;
+  color: #065f46;
+}
+.merchant-pill--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.merchant-pill--cancelled,
+.merchant-pill--expired {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* QR Preview Modal */
+.merchant-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 999;
+  padding: 20px;
+}
+.merchant-modal-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
